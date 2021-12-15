@@ -13,7 +13,14 @@ using SCS
 Computes the bipartite multi-access channel vertices using brute force and taking
 the unique combinations.
 """
-function multi_access_vertices(X :: Int64, Y :: Int64, Z :: Int64, dA :: Int64, dB :: Int64) :: Vector{Vector{Int64}}
+function multi_access_vertices(
+    X :: Int64,
+    Y :: Int64,
+    Z :: Int64,
+    dA :: Int64,
+    dB :: Int64;
+    normalize=true :: Bool
+) :: Vector{Vector{Int64}}
 
     P_A = BlackBox(dA,X)
     P_B = BlackBox(dB,Y)
@@ -29,12 +36,121 @@ function multi_access_vertices(X :: Int64, Y :: Int64, Z :: Int64, dA :: Int64, 
     id = 1
     for v_A in P_A_vertices, v_B in P_B_vertices, v_C in P_C_vertices
         V = v_C * kron(v_A,v_B)
-        verts[id] = V[1:end-1,:][:]
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
         id += 1
     end
 
     unique(verts)
 end
+
+function three_sender_multi_access_vertices(
+    X1 :: Int64,
+    X2 :: Int64,
+    X3 :: Int64,
+    Z :: Int64,
+    d1 :: Int64,
+    d2 :: Int64,
+    d3 :: Int64;
+    normalize=true :: Bool
+) :: Vector{Vector{Int64}}
+
+    P_A1 = BlackBox(d1, X1)
+    P_A2 = BlackBox(d2, X2)
+    P_A3 = BlackBox(d3, X3)
+
+    P_B = BlackBox(Z, d1*d2*d3)
+
+    P_A1_vertices = deterministic_strategies(P_A1)
+    P_A2_vertices = deterministic_strategies(P_A2)
+    P_A3_vertices = deterministic_strategies(P_A3)
+
+    P_B_vertices = deterministic_strategies(P_B)
+
+    num_verts_raw = d1^X1 * d2^X2 * d3^X3 * Z^(d1*d2*d3)
+    verts = Vector{Vector{Int64}}(undef, num_verts_raw)
+
+    id = 1
+    for v_A1 in P_A1_vertices, v_A2 in P_A2_vertices, v_A3 in P_A3_vertices, v_B in P_B_vertices
+
+        V = v_B * kron(v_A1,v_A2,v_A3)
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        id += 1
+    end
+
+    unique(verts)
+end
+
+function four_sender_multi_access_vertices(
+    X1 :: Int64,
+    X2 :: Int64,
+    X3 :: Int64,
+    X4 :: Int64,
+    Z :: Int64,
+    d1 :: Int64,
+    d2 :: Int64,
+    d3 :: Int64,
+    d4 :: Int64;
+    normalize=true :: Bool
+) :: Vector{Vector{Int64}}
+
+    P_A1 = BlackBox(d1, X1)
+    P_A2 = BlackBox(d2, X2)
+    P_A3 = BlackBox(d3, X3)
+    P_A4 = BlackBox(d4, X4)
+
+    P_B = BlackBox(Z, d1*d2*d3*d4)
+
+    P_A1_vertices = deterministic_strategies(P_A1)
+    P_A2_vertices = deterministic_strategies(P_A2)
+    P_A3_vertices = deterministic_strategies(P_A3)
+    P_A4_vertices = deterministic_strategies(P_A4)
+
+    P_B_vertices = deterministic_strategies(P_B)
+
+    num_verts_raw = d1^X1 * d2^X2 * d3^X3 * d4^X4 * Z^(d1*d2*d3*d4)
+    verts = Vector{Vector{Int64}}(undef, num_verts_raw)
+
+    id = 1
+    for v_A1 in P_A1_vertices, v_A2 in P_A2_vertices, v_A3 in P_A3_vertices, v_A4 in P_A4_vertices, v_B in P_B_vertices
+
+        V = v_B * kron(v_A1, v_A2, v_A3, v_A4)
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        id += 1
+    end
+
+    unique(verts)
+end
+
+"""
+    finger_printing_game(num_senders, num_in)
+
+Constructs the finger printing `Game` for the multiple access channel
+with `num_senders` each having `num_in` inputs.
+
+The game is won if the multiple access channel correctly guesses whether all
+senders are given the same input or not.
+"""
+function finger_printing_game(num_senders, num_in)
+    success_tensor = zeros((ones(Int, num_senders)*num_in)...)
+    for i in 1:num_in
+        success_tensor[(ones(Int, num_senders)*i)...] = 1
+    end
+
+    success_row = Int.(success_tensor[:])
+    error_row = map(el -> Int(el + 1)%2, success_row)
+
+    game_matrix = [success_row'; error_row']
+    bound = 1 + (num_in^num_senders - num_in)
+
+    return Game(game_matrix, bound)
+end
+
 
 """
     multi_access_num_bit_vertices(X :: Int64, Y :: Int64, Z :: Int64) :: Int64
@@ -250,8 +366,8 @@ end
 function multi_access_optimize_measurement(
     X,Y,Z,dA,dB,
     game::BellGame,
-    ρA_states::Vector{<:States.AbstractDensityMatrix},
-    ρB_states::Vector{<:States.AbstractDensityMatrix},
+    ρA_states::Vector{<:State},
+    ρB_states::Vector{<:State},
 ) :: Dict
     # if scenario.X != length(ρ_states)
     #     throw(DomainError(scenario, "expected length of `ρ_states` is $(scenario.X)), but got $(length(ρ_states)) instead"))
