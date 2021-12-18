@@ -81,11 +81,17 @@ def priors_scan_range(num_steps):
         
     return priors
 
-def plot_rate_region(rate_tuple):
+def rate_region_vertices(rate_tuple):
     r1, r2, r_sum = rate_tuple
     
     r1_vals = [0,0,r_sum-r2,r1,r1,0]
     r2_vals = [0,r2,r2,r_sum-r1,0,0]
+    
+    return (r1_vals, r2_vals)
+    
+
+def plot_rate_region(rate_tuple):
+    r1_vals, r2_vals = rate_region_vertices(rate_tuple)
     
     plt.plot(r1_vals, r2_vals,"b-",label="Quantum")
     plt.plot([0,0,1,0],[0,1,0,0],"r--",label="Classical")
