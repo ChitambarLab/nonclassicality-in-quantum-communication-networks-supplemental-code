@@ -84,8 +84,8 @@ def priors_scan_range(num_steps):
 def rate_region_vertices(rate_tuple):
     r1, r2, r_sum = rate_tuple
     
-    r1_vals = [0,0,r_sum-r2,r1,r1,0]
-    r2_vals = [0,r2,r2,r_sum-r1,0,0]
+    r1_vals = [0,0,min(r1,r_sum-r2),r1,r1,0]
+    r2_vals = [0,r2,r2,min(r2,r_sum-r1),0,0]
     
     return (r1_vals, r2_vals)
     
