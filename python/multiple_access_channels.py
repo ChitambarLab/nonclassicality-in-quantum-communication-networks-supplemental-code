@@ -114,3 +114,47 @@ def plot_rate_region(rate_tuple):
     plt.xlabel("Rate 1")
     plt.ylabel("Rate 2")
     plt.show()
+    
+def rate_region_inner_bound(rate_tuples, priors, theta_scan=np.arange(0,1.001,0.01)):
+    """Evaluates an inner bound on the rate region for the provided set of ``rate_tuples``
+    and corresponding ``priors`` distributions.
+    
+    Effectively computes the convex hull of the provided set of rate tuples.
+    """
+    
+    R1_vals = []
+    R2_vals = []
+    opt_rate_tuples = []
+    opt_priors = []
+
+    for theta in theta_scan:
+
+        theta_sum_rates = []
+        R1_scores = []
+        R2_scores = []
+        for r_tuple in rate_tuples:
+            biased_rate = theta*r_tuple[0] + (1-theta)*r_tuple[1]
+            R1 = r_tuple[0]
+            R2 = r_tuple[1]
+
+            if r_tuple[0] + r_tuple[1] > r_tuple[2]:
+                if theta*r_tuple[0] + (1-theta)*(r_tuple[2]-r_tuple[0]) >= theta*(r_tuple[2]-r_tuple[1]) + (1-theta)*r_tuple[1]:
+                    biased_rate = theta*r_tuple[0] + (1-theta)*(r_tuple[2]-r_tuple[0])
+                    R2 = r_tuple[2]-r_tuple[0]
+                else:
+                    biased_rate = theta*(r_tuple[2]-r_tuple[1]) + (1-theta)*r_tuple[1]
+                    R1 = r_tuple[2]-r_tuple[1]
+
+            theta_sum_rates.append(biased_rate)
+            R1_scores.append(R1)
+            R2_scores.append(R2)
+
+        max_theta_sum_rate = max(theta_sum_rates)
+        max_id = theta_sum_rates.index(max_theta_sum_rate)
+
+        opt_rate_tuples.append(rate_tuples[max_id]) 
+        opt_priors.append(priors[max_id])
+        R1_vals.append(R1_scores[max_id])
+        R2_vals.append(R2_scores[max_id])
+        
+    return R1_vals, R2_vals, opt_rate_tuples, opt_priors
