@@ -69,6 +69,20 @@ def bisender_mac_mutual_info(mac_behavior, priors_x, priors_y):
 
     return I_x_zy, I_y_zx, I_xy_z
 
+def finger_printing_matrix(num_senders, num_in):
+    """Constructs the matrix containing the winning answers
+    for the finger printing game.
+    """
+    ineq_tensor = np.zeros([num_in]*num_senders)
+    match_ids = np.diag_indices(num_in, num_senders)
+    
+    ineq_tensor[match_ids] = [1] * num_in
+    
+    success_row = ineq_tensor.reshape(num_in**num_senders)
+    error_row = [ (el + 1) % 2 for el in success_row]
+        
+    return np.array([success_row, error_row])
+
 def priors_scan_range(num_steps):
     eps = 1e-10
     x1_range = np.arange(0,1+eps,1/num_steps)
@@ -81,11 +95,17 @@ def priors_scan_range(num_steps):
         
     return priors
 
-def plot_rate_region(rate_tuple):
+def rate_region_vertices(rate_tuple):
     r1, r2, r_sum = rate_tuple
     
-    r1_vals = [0,0,r_sum-r2,r1,r1,0]
-    r2_vals = [0,r2,r2,r_sum-r1,0,0]
+    r1_vals = [0,0,min(r1,r_sum-r2),r1,r1,0]
+    r2_vals = [0,r2,r2,min(r2,r_sum-r1),0,0]
+    
+    return (r1_vals, r2_vals)
+    
+
+def plot_rate_region(rate_tuple):
+    r1_vals, r2_vals = rate_region_vertices(rate_tuple)
     
     plt.plot(r1_vals, r2_vals,"b-",label="Quantum")
     plt.plot([0,0,1,0],[0,1,0,0],"r--",label="Classical")
