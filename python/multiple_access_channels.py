@@ -69,6 +69,20 @@ def bisender_mac_mutual_info(mac_behavior, priors_x, priors_y):
 
     return I_x_zy, I_y_zx, I_xy_z
 
+def finger_printing_matrix(num_senders, num_in):
+    """Constructs the matrix containing the winning answers
+    for the finger printing game.
+    """
+    ineq_tensor = np.zeros([num_in]*num_senders)
+    match_ids = np.diag_indices(num_in, num_senders)
+    
+    ineq_tensor[match_ids] = [1] * num_in
+    
+    success_row = ineq_tensor.reshape(num_in**num_senders)
+    error_row = [ (el + 1) % 2 for el in success_row]
+        
+    return np.array([success_row, error_row])
+
 def priors_scan_range(num_steps):
     eps = 1e-10
     x1_range = np.arange(0,1+eps,1/num_steps)
