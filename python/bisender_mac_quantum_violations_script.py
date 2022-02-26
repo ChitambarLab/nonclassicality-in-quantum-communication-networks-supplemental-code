@@ -28,7 +28,9 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
 
     return opt_dict
 
-def optimize_inequality(mac_ansatz, postmap, inequality, **gradient_kwargs):
+def optimize_inequality(prep_nodes, meas_nodes, postmap, inequality, **gradient_kwargs):
+
+    mac_ansatz = qnet.NetworkAnsatz(prep_nodes, meas_nodes)
 
     def opt_fn(placeholder_param):
 
@@ -76,12 +78,15 @@ if __name__=="__main__":
         )
     ]
 
-    qmac_ansatz = qnet.NetworkAnsatz(qmac_prep_nodes, qmac_meas_nodes)
-    ea_mac_ansatz = qnet.NetworkAnsatz(ea_mac_prep_nodes, ea_mac_meas_nodes)
-
-
     inequalities = [(7, mac.finger_printing_matrix(2,3))] + mac.bisender_mac_bounds()
-    for (i, inequality) in enumerate(inequalities):
+    
+    for i in range(11,20):
+        inequality = inequalities[i]
+
+        print("i = ", i)
+        inequality_tag = "I_fp_" if i == 0 else "I_" + str(i) + "_"
+
+
         for postmap_tag in ["xor_", "and_"]:
             postmap = parity_postmap if postmap_tag == "xor_" else and_postmap
 
@@ -92,7 +97,11 @@ if __name__=="__main__":
             """
             time_start = time.time()
 
-            qmac_opt_fn = optimize_inequality(qmac_ansatz, postmap, inequality,
+            qmac_opt_fn = optimize_inequality(
+                qmac_prep_nodes,
+                qmac_meas_nodes,
+                postmap,
+                inequality,
                 num_steps=150,
                 step_size=0.2,
                 sample_width=1,
@@ -112,7 +121,6 @@ if __name__=="__main__":
             print(max_opt_dict)
 
             scenario = "qmac_"
-            inequality_tag = "I_fp_" if i == 0 else "I_" + str(i) + "_"
             datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
             qnet.write_optimization_json(
                 max_opt_dict,
@@ -126,7 +134,11 @@ if __name__=="__main__":
             """
             time_start = time.time()
 
-            ea_mac_opt_fn = optimize_inequality(ea_mac_ansatz, postmap, inequality,
+            ea_mac_opt_fn = optimize_inequality(
+                ea_mac_prep_nodes,
+                ea_mac_meas_nodes,
+                postmap,
+                inequality,
                 num_steps=150,
                 step_size=0.2,
                 sample_width=1,
@@ -143,10 +155,7 @@ if __name__=="__main__":
                     max_score = max(ea_mac_opt_dicts[j]["scores"])
                     max_opt_dict = ea_mac_opt_dicts[j]
 
-            print(max_opt_dict)
-
             scenario = "ea_mac_"
-            inequality_tag = "I_fp_" if i == 0 else "I_" + str(i) + "_"
             datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
             qnet.write_optimization_json(
                 max_opt_dict,
