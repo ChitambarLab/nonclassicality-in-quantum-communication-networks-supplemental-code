@@ -80,7 +80,7 @@ if __name__=="__main__":
 
     inequalities = [(7, mac.finger_printing_matrix(2,3))] + mac.bisender_mac_bounds()
     
-    for i in range(11,20):
+    for i in range(12,20):
         inequality = inequalities[i]
 
         print("i = ", i)
@@ -103,7 +103,7 @@ if __name__=="__main__":
                 postmap,
                 inequality,
                 num_steps=150,
-                step_size=0.2,
+                step_size=0.15,
                 sample_width=1,
                 verbose=False
             )
@@ -117,8 +117,6 @@ if __name__=="__main__":
                 if max(qmac_opt_dicts[j]["scores"]) > max_score:
                     max_score = max(qmac_opt_dicts[j]["scores"])
                     max_opt_dict = qmac_opt_dicts[j]
-
-            print(max_opt_dict)
 
             scenario = "qmac_"
             datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
@@ -140,7 +138,7 @@ if __name__=="__main__":
                 postmap,
                 inequality,
                 num_steps=150,
-                step_size=0.2,
+                step_size=0.15,
                 sample_width=1,
                 verbose=False
             )
