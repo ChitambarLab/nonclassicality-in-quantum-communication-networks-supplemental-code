@@ -1,4 +1,4 @@
-from context import QNetOptimizer as QNopt
+from context import qnetvo as qnet
 from pennylane import math
 from pennylane import numpy as np
 import matplotlib.pyplot as plt
@@ -50,13 +50,13 @@ def bisender_mac_mutual_info(mac_behavior, priors_x, priors_y):
         p_xz += p_xyz[:, y : num_x * num_y : num_y]
 
     # shannon entropies
-    H_x = QNopt.shannon_entropy(priors_x)
-    H_y = QNopt.shannon_entropy(priors_y)
-    H_z = QNopt.shannon_entropy(p_z)
-    H_xy = QNopt.shannon_entropy(p_xy)
-    H_xz = QNopt.shannon_entropy(p_xz.reshape(num_x * num_z))
-    H_yz = QNopt.shannon_entropy(p_yz.reshape(num_y * num_z))
-    H_xyz = QNopt.shannon_entropy(p_xyz.reshape(num_x * num_y * num_z))
+    H_x = qnet.shannon_entropy(priors_x)
+    H_y = qnet.shannon_entropy(priors_y)
+    H_z = qnet.shannon_entropy(p_z)
+    H_xy = qnet.shannon_entropy(p_xy)
+    H_xz = qnet.shannon_entropy(p_xz.reshape(num_x * num_z))
+    H_yz = qnet.shannon_entropy(p_yz.reshape(num_y * num_z))
+    H_xyz = qnet.shannon_entropy(p_xyz.reshape(num_x * num_y * num_z))
 
     # I(X;Z|Y)
     I_x_zy = H_xy + H_yz - H_y - H_xyz
@@ -82,6 +82,32 @@ def finger_printing_matrix(num_senders, num_in):
     error_row = [ (el + 1) % 2 for el in success_row]
         
     return np.array([success_row, error_row])
+
+
+def bisender_mac_bounds():
+    return [
+        (4, np.array([[0,0,0,0,1,0,1,0,0],[1,1,0,1,0,0,0,0,0]])),
+        (4, np.array([[0,0,1,0,1,0,0,0,0],[1,1,0,1,0,0,0,0,0]])),
+        (5, np.array([[0,0,0,0,0,1,1,0,0],[1,1,0,1,0,0,0,1,0]])),
+        (5, np.array([[0,0,0,0,1,0,0,0,1],[1,1,0,1,0,1,0,0,0]])),
+        (7, np.array([[0,0,1,0,1,0,1,0,0],[2,1,0,1,0,1,0,1,0]])),
+        (7, np.array([[0,0,1,0,1,0,1,0,0],[2,2,0,1,0,0,0,1,0]])),
+        (7, np.array([[0,0,1,0,1,0,1,0,0],[2,1,0,2,0,1,0,0,0]])),
+        (6, np.array([[0,0,0,0,1,1,1,0,1],[1,1,0,1,0,0,0,1,0]])),
+        (8, np.array([[0,0,0,0,1,1,2,0,0],[2,2,0,1,0,0,0,1,0]])),
+        (8, np.array([[0,0,0,0,2,0,1,0,1],[2,2,0,1,0,1,0,0,0]])),
+        (8, np.array([[0,0,1,0,2,0,0,0,1],[2,1,0,2,0,1,0,0,0]])),
+        (8, np.array([[0,0,1,0,2,0,0,0,1],[2,1,0,2,0,0,0,1,0]])),
+        (8, np.array([[0,0,1,0,1,0,2,0,0],[2,1,0,0,0,1,0,2,0]])),
+        (10, np.array([[0,0,1,0,2,0,1,0,1],[3,2,0,2,0,1,0,0,0]])),
+        (10, np.array([[0,0,1,0,2,0,1,0,1],[3,2,0,2,0,0,0,1,0]])),
+        (11, np.array([[0,0,2,0,1,0,2,0,0],[3,1,0,1,0,2,0,2,0]])),
+        (14, np.array([[0,0,2,0,2,0,2,0,0],[3,1,0,1,0,3,0,3,1]])),
+        (16, np.array([[0,0,2,0,3,0,2,0,1],[5,3,0,3,0,1,0,1,0]])),
+        (17, np.array([[0,0,2,1,2,0,5,0,1],[4,2,0,0,0,1,0,4,0]])),
+    ]
+
+
 
 def priors_scan_range(num_steps):
     eps = 1e-10
