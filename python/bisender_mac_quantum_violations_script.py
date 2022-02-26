@@ -80,7 +80,7 @@ if __name__=="__main__":
 
     inequalities = [(7, mac.finger_printing_matrix(2,3))] + mac.bisender_mac_bounds()
     
-    for i in range(12,20):
+    for i in range(20):
         inequality = inequalities[i]
 
         print("i = ", i)
