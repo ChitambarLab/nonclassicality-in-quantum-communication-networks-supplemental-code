@@ -24,6 +24,32 @@ include("../src/MultiAccessChannels.jl")
         ]
     end
 
+    @testset "2 -> (2,2) -> (2,2) only has non-negativity facets" begin
+        (X, Y, Z, dA, dB) = (2, 2, 2, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 8
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(4,2),rep="normalized"), facets)
+
+        @test bell_games == [
+            [0 0; 1 0; 1 0; 1 0],
+            [1 0; 0 0; 1 0; 1 0],
+            [1 0; 1 0; 0 0; 1 0],
+            [0 0; 0 1; 0 1; 0 1],
+            [0 1; 0 0; 0 1; 0 1],
+            [0 1; 0 1; 0 0; 0 1],
+            [0 1; 0 1; 0 1; 0 0],
+            [1 0; 1 0; 1 0; 0 0],
+        ]
+    end
+
     @testset "(2,2) -> (2,2) -> 3 only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 3, 2, 2)
 
@@ -46,10 +72,66 @@ include("../src/MultiAccessChannels.jl")
         ]
     end
 
+    @testset "3 -> (2,2) -> (2,2) only has non-negativity facets" begin
+        (X, Y, Z, dA, dB) = (3, 2, 2, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 12
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(4,3),rep="normalized"), facets)
+
+        @test bell_games == [
+            [0 0 0; 1 0 0; 1 0 0; 1 0 0],
+            [1 0 0; 0 0 0; 1 0 0; 1 0 0],
+            [1 0 0; 1 0 0; 0 0 0; 1 0 0],
+            [0 0 0; 0 1 0; 0 1 0; 0 1 0],
+            [0 1 0; 0 0 0; 0 1 0; 0 1 0],
+            [0 1 0; 0 1 0; 0 0 0; 0 1 0],
+            [0 0 0; 0 0 1; 0 0 1; 0 0 1],
+            [0 0 1; 0 0 0; 0 0 1; 0 0 1],
+            [0 0 1; 0 0 1; 0 0 0; 0 0 1],
+            [0 0 1; 0 0 1; 0 0 1; 0 0 0],
+            [0 1 0; 0 1 0; 0 1 0; 0 0 0],
+            [1 0 0; 1 0 0; 1 0 0; 0 0 0],
+        ]
+    end
+
     @testset "(2,2) -> (2,2) -> 4 only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 4, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 16
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(4,4),rep="normalized"), facets)
+
+        @test bell_games == [
+            [0 0 0 0; 1 0 0 0; 1 0 0 0; 1 0 0 0],[1 0 0 0; 0 0 0 0; 1 0 0 0; 1 0 0 0],
+            [1 0 0 0; 1 0 0 0; 0 0 0 0; 1 0 0 0],[0 0 0 0; 0 1 0 0; 0 1 0 0; 0 1 0 0],
+            [0 1 0 0; 0 0 0 0; 0 1 0 0; 0 1 0 0],[0 1 0 0; 0 1 0 0; 0 0 0 0; 0 1 0 0],
+            [0 0 0 0; 0 0 1 0; 0 0 1 0; 0 0 1 0],[0 0 1 0; 0 0 0 0; 0 0 1 0; 0 0 1 0],
+            [0 0 1 0; 0 0 1 0; 0 0 0 0; 0 0 1 0],[0 0 0 0; 0 0 0 1; 0 0 0 1; 0 0 0 1],
+            [0 0 0 1; 0 0 0 0; 0 0 0 1; 0 0 0 1],[0 0 0 1; 0 0 0 1; 0 0 0 0; 0 0 0 1],
+            [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0],[0 0 1 0; 0 0 1 0; 0 0 1 0; 0 0 0 0],
+            [0 1 0 0; 0 1 0 0; 0 1 0 0; 0 0 0 0],[1 0 0 0; 1 0 0 0; 1 0 0 0; 0 0 0 0],
+        ]
+    end
+
+    @testset "4 -> (2,2) -> (2,2) only has non-negativity facets" begin
+        (X, Y, Z, dA, dB) = (4, 2, 2, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
 
         facet_dict = LocalPolytope.facets(vertices)
 
@@ -384,4 +466,172 @@ include("../src/MultiAccessChannels.jl")
 
         # facet computation is too expensive
     end
+
+    @testset "2 -> (2,2) -> (3,3) positivity only" begin
+        (X, Y, Z, dA, dB) = (2, 3, 3, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 81
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 18
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(9,2),rep="normalized"), facets)
+
+        @test bell_games == [
+            [0 0;1 0;1 0;1 0;1 0;1 0;1 0;1 0;1 0],
+            [1 0;0 0;1 0;1 0;1 0;1 0;1 0;1 0;1 0],
+            [1 0;1 0;0 0;1 0;1 0;1 0;1 0;1 0;1 0],
+            [1 0;1 0;1 0;0 0;1 0;1 0;1 0;1 0;1 0],
+            [1 0;1 0;1 0;1 0;0 0;1 0;1 0;1 0;1 0],
+            [1 0;1 0;1 0;1 0;1 0;0 0;1 0;1 0;1 0],
+            [1 0;1 0;1 0;1 0;1 0;1 0;0 0;1 0;1 0],
+            [1 0;1 0;1 0;1 0;1 0;1 0;1 0;0 0;1 0],
+            [0 0;0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 1],
+            [0 1;0 0;0 1;0 1;0 1;0 1;0 1;0 1;0 1],
+            [0 1;0 1;0 0;0 1;0 1;0 1;0 1;0 1;0 1],
+            [0 1;0 1;0 1;0 0;0 1;0 1;0 1;0 1;0 1],
+            [0 1;0 1;0 1;0 1;0 0;0 1;0 1;0 1;0 1],
+            [0 1;0 1;0 1;0 1;0 1;0 0;0 1;0 1;0 1],
+            [0 1;0 1;0 1;0 1;0 1;0 1;0 0;0 1;0 1],
+            [0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 0;0 1],
+            [0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 1;0 0],
+            [1 0;1 0;1 0;1 0;1 0;1 0;1 0;1 0;0 0],
+        ]
+        
+    end
+
+    @testset "3 -> (2,2) -> (3,3)" begin
+        (X, Y, Z, dA, dB) = (3, 3, 3, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 441
+        # @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 417
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(9,3),rep="normalized"), facets)
+
+        bell_games[1]
+
+        classes_dict = bipartite_broadcast_facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 7
+
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [0 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [
+            0 0 1;
+            0 0 0;
+            1 0 0;
+            0 0 0;
+            0 1 0;
+            1 0 0;
+            1 0 0;
+            1 0 0;
+            1 0 0;
+        ]
+        @test bg2.β == 2
+
+        bg3 = bell_games[findfirst(bg -> bg in classes_dict[3], bell_games)]
+        @test bg3 == [
+            0 0 1;
+            0 0 1;
+            0 0 1;
+            0 1 0;
+            0 1 0;
+            0 1 0;
+            1 0 0;
+            1 0 0;
+            1 0 0;
+        ]
+        @test bg3.β == 2
+
+        bg4 = bell_games[findfirst(bg -> bg in classes_dict[4], bell_games)]
+        @test bg4 == [
+            0 0 1;
+            0 1 0;
+            1 0 0;
+            0 0 1;
+            0 1 0;
+            1 0 0;
+            0 0 1;
+            0 1 0;
+            1 0 0;
+        ]
+        @test bg4.β == 2
+
+        bg5 = bell_games[findfirst(bg -> bg in classes_dict[5], bell_games)]
+        @test bg5 == [
+            0 0 1;
+            0 0 0;
+            0 0 0;
+            0 0 0;
+            1 0 0;
+            0 1 0;
+            0 0 0;
+            0 1 0;
+            1 0 0
+        ]
+        @test bg5.β == 2
+
+        bg6 = bell_games[findfirst(bg -> bg in classes_dict[6], bell_games)]
+        @test bg6 == [
+            0 0 2;
+            0 0 1;
+            0 1 1;
+            0 2 0;
+            0 1 0;
+            0 1 1;
+            1 0 0;
+            2 0 0;
+            1 1 1;
+        ]
+        @test bg6.β == 4
+
+        bg7 = bell_games[findfirst(bg -> bg in classes_dict[7], bell_games)]
+        @test bg7 == [
+            0 0 2;
+            0 2 0;
+            1 0 0;
+            0 0 1;
+            0 1 0;
+            2 0 0;
+            0 1 1;
+            0 1 1;
+            1 1 1;
+        ]
+        @test bg7.β == 4
+
+    end
+
+    @testset "4 -> (2,2) -> (3,3)" begin
+        (X, Y, Z, dA, dB) = (4, 3, 3, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 2025
+        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
+
+    end
+
+    @testset "3 -> (2,2) -> (4,3)" begin
+        (X, Y, Z, dA, dB) = (3, 4, 3, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 840
+
+    end
+
 end

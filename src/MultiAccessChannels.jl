@@ -45,6 +45,40 @@ function multi_access_vertices(
     unique(verts)
 end
 
+
+
+function broadcast_vertices(
+    X :: Int64,
+    Y :: Int64,
+    Z :: Int64,
+    dA :: Int64,
+    dB :: Int64;
+    normalize=true :: Bool
+) :: Vector{Vector{Int64}}
+
+    P_A = BlackBox(dA*dB,X)
+    P_B = BlackBox(Y,dA)
+    P_C = BlackBox(Z,dB)
+
+    P_A_vertices = deterministic_strategies(P_A)
+    P_B_vertices = deterministic_strategies(P_B)
+    P_C_vertices = deterministic_strategies(P_C)
+
+    num_verts_raw = (dA*dB)^X * Y^dA * Z^dB
+    verts = Vector{Vector{Int64}}(undef, num_verts_raw)
+
+    id = 1
+    for v_A in P_A_vertices, v_B in P_B_vertices, v_C in P_C_vertices
+        V = kron(v_B,v_C) * v_A
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        id += 1
+    end
+
+    unique(verts)
+end
+
 function three_sender_multi_access_vertices(
     X1 :: Int64,
     X2 :: Int64,
@@ -174,13 +208,13 @@ function multi_access_num_bit_vertices(X :: Int64, Y :: Int64, Z :: Int64) :: In
     for c in 2:min(Z,dC)
         num_non_unique = 0
         if c ≤ dA
-            num_non_unique += QMath.stirling2(dA,c)
+            num_non_unique += QBase.stirling2(dA,c)
         end
         if c ≤ dB
-            num_non_unique += QMath.stirling2(dB,c)
+            num_non_unique += QBase.stirling2(dB,c)
         end
 
-        num_vs += QMath.stirling2(X,dA)*QMath.stirling2(Y,dB)*(QMath.stirling2(dC,c)-num_non_unique) * binomial(Z,c)*factorial(c)
+        num_vs += QBase.stirling2(X,dA)*QBase.stirling2(Y,dB)*(QBase.stirling2(dC,c)-num_non_unique) * binomial(Z,c)*factorial(c)
     end
 
     num_vs
@@ -206,12 +240,12 @@ function multi_access_num_vertices(X :: Int64, Y :: Int64, Z :: Int64, dA :: Int
         if c ≤ dA || c ≤ dB
             if c ≤ dA
                 for cA in c:dA
-                    num_non_unique += QMath.stirling2(dA,cA)
+                    num_non_unique += QBase.stirling2(dA,cA)
                 end
             end
             if c ≤ dB
                 for cB in c:dB
-                    num_non_unique += QMath.stirling2(dB,cB)
+                    num_non_unique += QBase.stirling2(dB,cB)
                 end
             end
 
@@ -221,7 +255,7 @@ function multi_access_num_vertices(X :: Int64, Y :: Int64, Z :: Int64, dA :: Int
             # end
         end
 
-        num_vs += QMath.stirling2(X,dA)*QMath.stirling2(Y,dB)*(QMath.stirling2(dC,c)-num_non_unique) * binomial(Z,c)*factorial(c)
+        num_vs += QBase.stirling2(X,dA)*QBase.stirling2(Y,dB)*(QBase.stirling2(dC,c)-num_non_unique) * binomial(Z,c)*factorial(c)
     end
 
     num_vs
@@ -309,7 +343,7 @@ function quadpartite_input_permutations(W :: Int64, X :: Int64, Y :: Int64, Z ::
 end
 
 
-function n_product_id(party_ids :: Vector{Int64}, party_inputs::Vector{Int64})
+function n_product_id(party_ids :: Vector{Int64}, party_inputs::Vector{Int64}) :: Int64
     num_ids = length(party_ids)
     if !all(x -> party_inputs[x] ≥ party_ids[x] ≥ 1, 1:num_ids)
         throw(DomainError(party_inputs, "not all num inputs are valid"))
@@ -330,6 +364,42 @@ end
 function facet_classes(X, Y, Z, bell_games :: Vector{BellScenario.BellGame})
     input_perms = multi_access_input_permutations(X,Y)
     output_perms = multi_access_output_permutations(Z)
+    num_perms = length(input_perms)*length(output_perms)
+
+    facet_class_dict = Dict{Int64, Vector{Matrix{Int64}}}()
+    facet_class_id = 1
+
+    for bell_game in bell_games
+        facet_considered = false
+
+        for facet_class in values(facet_class_dict)
+            if bell_game in facet_class
+                facet_considered = true
+                break
+            end
+        end
+
+        if !facet_considered
+            # construct all unique permutations
+            perms = Array{Matrix{Int64}}(undef, num_perms)
+            id = 1
+            for input_perm in input_perms, output_perm in output_perms
+                perms[id] = bell_game[output_perm, input_perm]
+                id += 1
+            end
+
+            # add facet to facet dictionary
+            facet_class_dict[facet_class_id] = unique(perms)
+            facet_class_id += 1
+        end
+    end
+
+    facet_class_dict
+end
+
+function bipartite_broadcast_facet_classes(X, Y, Z, bell_games :: Vector{BellScenario.BellGame})
+    output_perms = multi_access_input_permutations(Y, Z)
+    input_perms = multi_access_output_permutations(X)
     num_perms = length(input_perms)*length(output_perms)
 
     facet_class_dict = Dict{Int64, Vector{Matrix{Int64}}}()
