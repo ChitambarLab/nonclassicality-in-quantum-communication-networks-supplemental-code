@@ -54,8 +54,12 @@ vertices = broadcast_vertices(X,Y,Z,dA,dB)
 #     0 0 0 0;
 #     0 0 0 0;
 # ]
-p_mat = hcat(kron([1;0],[0.4;0.1;0.1;0.4],[1;0]), kron([1;0],[0.4;0.1;0.1;0.4],[0;1]), kron([0;1],[0.4;0.1;0.1;.4],[1;0]), kron([0;1],[.1;.4;.4;.1],[0;1]))
+p_mat = hcat(kron([1;0],[0.5;0;0;0.5],[1;0]), kron([1;0],[0.5;0;0;0.5],[0;1]), kron([0;1],[0.5;0;0;.5],[1;0]), kron([0;1],[0;.5;.5;0],[0;1]))
+pq_mat = hcat(kron([1;0],[1/(2*sqrt(2));(1 - 1/sqrt(2))/2;(1 - 1/sqrt(2))/2;1/(2*sqrt(2))],[1;0]), kron([1;0],[1/(2*sqrt(2));(1 - 1/sqrt(2))/2;(1 - 1/sqrt(2))/2;1/(2*sqrt(2))],[0;1]), kron([0;1],[1/(2*sqrt(2));(1 - 1/sqrt(2))/2;(1 - 1/sqrt(2))/2;1/(2*sqrt(2))],[1;0]), kron([0;1],[(1 - 1/sqrt(2))/2;1/(2*sqrt(2));1/(2*sqrt(2));(1 - 1/sqrt(2))/2],[0;1]))
+
+
 p = p_mat[1:end-1,:][:]
+# p = pq_mat[1:end-1,:][:]
 
 num_v = length(vertices)
 dim_v = length(vertices[1]) + 1 
@@ -100,3 +104,19 @@ verts
 
 BellScenario.dimension(verts)
 BellScenario.dimension(vertices)
+
+ρ = State([0.5 0.5im;-0.5im 0.5])
+
+Π = [0.5 0.35im;-0.35im 0.5]
+
+sqrt(Π) * ρ * sqrt(Π)'
+
+sqrt(Π) * ρ * sqrt(Π)'
+
+ρ =State( [1 0 0 1;0 0 0 0;0 0 0 0;1 0 0 1]/2)
+
+partial_trace(kron([1 0;0 1], sqrt(Π)) * ρ * kron([1 0;0 1], sqrt(Π)')  , [2,2], 1)
+
+transpose(sqrt(Π)) *[1 0;0 1]/2 * transpose(sqrt(Π)')
+
+sqrt(Π) *[1 0;0 1]/2 * sqrt(Π)'

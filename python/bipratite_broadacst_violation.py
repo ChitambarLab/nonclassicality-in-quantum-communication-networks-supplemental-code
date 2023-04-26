@@ -1,7 +1,7 @@
 import multiple_access_channels as mac
 import pennylane as qml
 from pennylane import numpy as np
-from dask.distributed import Client
+# from dask.distributed import Client
 import time
 from datetime import datetime
 import json
@@ -82,8 +82,11 @@ if __name__=="__main__":
     data_dir = "data/bipartite_broadcast_quantum_violations/"
 
     def prep_ansatz(settings, wires):
-        qml.ArbitraryUnitary(settings, [wires[0], wires[3]])
-        qnetvo.ghz_state([], wires=[wires[1],wires[2]])
+        # qml.ArbitraryUnitary(settings[0:3], [wires[0]])
+        # qml.ArbitraryUnitary(settings[3:6], [wires[3]])
+
+        qml.ArbitraryUnitary(settings[0:15], [wires[0], wires[3]])
+        # qnetvo.ghz_state([], wires=[wires[1],wires[2]])
 
     prep_nodes = [
         qnetvo.PrepareNode(num_in=4, wires=[0,1,2,3], ansatz_fn=prep_ansatz, num_settings=15)
@@ -93,7 +96,11 @@ if __name__=="__main__":
         qnetvo.MeasureNode(num_out=4, wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15)
     ]
 
-    inequality = (8, qnp.array(
+    # true entanglement-assistance witness
+    #
+    # 8.5 violation entanglement-assisted separable broadcast
+    # 8.5 violataion when entanglement assists general broadcast
+    inequality = (8, np.array(
         [
             [3,0,0,0],
             [0,3,0,0],
@@ -113,3 +120,57 @@ if __name__=="__main__":
             [2,2,1,2],
         ]
     ))
+
+    # # correlated signal communication value
+    # # not violated in any qubit broadcast scenario
+    # inequality = (2, np.array([
+    #     [1,0,0,0],
+    #     [0,1,0,0],
+    #     [0,0,0,0],
+    #     [0,0,0,0],
+    #     [0,1,0,0],
+    #     [1,0,0,0],
+    #     [0,0,0,0],
+    #     [0,0,0,0],
+    #     [0,0,0,0],
+    #     [0,0,0,0],
+    #     [0,0,1,0],
+    #     [0,0,0,1],
+    #     [0,0,0,0],
+    #     [0,0,0,0],
+    #     [0,0,0,1],
+    #     [0,0,1,0],
+    # ]))
+
+    # # embedded chsh game
+    # # 2 : not violated by separable quantum broadcast
+    # # 3 : violated by entangled broadcast
+    # # 2 sqrt(2) : violataed by entanglement assisted separable brodacast
+    # # 3 : violated by entangelement assisted quantum broadcast 
+    # inequality = (2, np.array([
+    #     [1,0,0,0],
+    #     [0,1,0,0],
+    #     [-1,0,0,0],
+    #     [0,-1,0,0],
+    #     [-1,0,0,0],
+    #     [0,-1,0,0],
+    #     [1,0,0,0],
+    #     [0,1,0,0],
+    #     [0,0,1,0],
+    #     [0,0,0,-1],
+    #     [0,0,-1,0],
+    #     [0,0,0,1],
+    #     [0,0,-1,0],
+    #     [0,0,0,1],
+    #     [0,0,1,0],
+    #     [0,0,0,-1],
+    # ]))
+
+    postmap = np.eye(16)
+
+    opt_dict = optimize_inequality(prep_nodes, meas_nodes, postmap, inequality,
+        sample_width=1,
+        step_size=0.2,
+        num_steps=70,
+        verbose=True,
+    )([])

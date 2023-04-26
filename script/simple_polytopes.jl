@@ -510,6 +510,8 @@ include("../src/MultiAccessChannels.jl")
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
         @test length(vertices) == 441
+        @test length(vertices[1]) == 24
+        BellScenario.dimension(vertices)
         # @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
 
         facet_dict = LocalPolytope.facets(vertices)
@@ -631,6 +633,103 @@ include("../src/MultiAccessChannels.jl")
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
         @test length(vertices) == 840
+
+    end
+
+
+    @testset "3 -> (2,2) -> (4,3)" begin
+        (X, Y, Z, dA, dB) = (3, 4, 3, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 840
+        @test length(vertices[1]) == 33
+        BellScenario.dimension(vertices)
+        # @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
+
+        facet_dict = LocalPolytope.facets(vertices)
+    end
+
+    @testset "4 -> (2,2) -> (4,4)" begin
+        (X, Y, Z, dA, dB) = (4, 4, 4, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB, normalize=false)
+        @test length(vertices) == 7744
+        @test length(vertices[1]) == 64
+        @test BellScenario.dimension(vertices) == 60
+
+        # embedded CHSH inequaliy
+        bg_chsh = BellScenario.BellGame([
+            1  0  0  0 ;
+            0  1  0  0 ;
+            -1 0  0  0 ;
+            0  -1 0  0 ;
+            -1 0  0  0 ;
+            0  -1 0  0 ;
+            1  0  0  0 ;
+            0  1  0  0 ;
+            0  0  1  0 ;
+            0  0  0  -1;
+            0  0  -1 0 ;
+            0  0  0  1 ;
+            0  0  -1 0 ;
+            0  0  0  1 ;
+            0  0  1  0 ;
+            0  0  0  -1;
+        ], 2)
+
+
+        # inequality is proper half-space
+        @test BellScenario.dimension(filter(v -> bg_chsh.β == bg_chsh[:]'*v, vertices)) == 59
+
+        # inequality does not bound polytope
+        @test length(filter(v -> bg_chsh.β < bg_chsh[:]'*v, vertices)) == 24
+
+        bg_correlated = BellScenario.BellGame([
+            1 0 0 0;
+            0 1 0 0;
+            0 0 0 0;
+            0 0 0 0;
+            0 1 0 0;
+            1 0 0 0;
+            0 0 0 0;
+            0 0 0 0;
+            0 0 0 0;
+            0 0 0 0;
+            0 0 1 0;
+            0 0 0 1;
+            0 0 0 0;
+            0 0 0 0;
+            0 0 0 1;
+            0 0 1 0;
+        ], 2)
+
+        # inequality is proper half-space and tight facet
+        @test BellScenario.dimension(filter(v -> bg_correlated.β == bg_correlated[:]'*v, vertices)) == 59
+        @test length(filter(v -> bg_correlated.β < bg_correlated[:]'*v, vertices)) == 0
+
+
+        bg_witness = BellScenario.BellGame([
+            3 0 0 0;
+            0 3 0 0;
+            0 0 0 3;
+            1 1 0 2;
+            1 1 0 2;
+            1 1 0 2;
+            2 1 0 2;
+            1 3 0 2;
+            1 0 2 0;
+            0 1 2 0;
+            0 0 0 3;
+            1 1 0 2;
+            2 1 0 2;
+            1 2 0 2;
+            1 1 1 2;
+            2 2 1 2;
+        ], 8)
+
+        # inequality is proper half-space and tight facet
+        @test BellScenario.dimension(filter(v -> bg_witness.β == bg_witness[:]'*v, vertices)) == 59
+        @test length(filter(v -> bg_witness.β < bg_witness[:]'*v, vertices)) == 0
 
     end
 
