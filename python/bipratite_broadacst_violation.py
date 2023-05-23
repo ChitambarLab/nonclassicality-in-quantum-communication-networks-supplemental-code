@@ -97,7 +97,7 @@ if __name__=="__main__":
     ]
 
     # true entanglement-assistance witness
-    #
+    # 8 no violation without entanglement-assistance
     # 8.5 violation entanglement-assisted separable broadcast
     # 8.5 violataion when entanglement assists general broadcast
     inequality = (8, np.array(
