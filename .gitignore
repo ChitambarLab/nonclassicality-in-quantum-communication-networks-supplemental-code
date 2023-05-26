@@ -2,7 +2,7 @@
 **/.ipynb_checkpoints
 .DS_STORE
 .vscode/*
-dask-worker-space/*
+**/dask-worker-space/*
 porta_tmp/*
 porta.log
 
