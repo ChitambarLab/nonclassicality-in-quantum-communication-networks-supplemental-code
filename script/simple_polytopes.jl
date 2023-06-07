@@ -50,6 +50,35 @@ include("../src/MultiAccessChannels.jl")
         ]
     end
 
+    @testset "(2,2) -> (2,2) -> (2,2) -> (2,2) interference only has non-negativity facets" begin
+        (X1, X2, Z1, Z2, dA1, dA2, dB1, dB2) = (2, 2, 2, 2, 2, 2, 2, 2)
+
+        vertices = interference_vertices(X1,X2,Z1,Z2,dA1,dA2,dB1,dB2)
+
+        @test length(vertices) == 256
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 16
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(4,4),rep="normalized"), facets)
+        println(bell_games)
+
+        @test bell_games == [
+            [0 0 0 0; 1 0 0 0; 1 0 0 0; 1 0 0 0], [1 0 0 0; 0 0 0 0; 1 0 0 0; 1 0 0 0],
+            [1 0 0 0; 1 0 0 0; 0 0 0 0; 1 0 0 0], [0 0 0 0; 0 1 0 0; 0 1 0 0; 0 1 0 0],
+            [0 1 0 0; 0 0 0 0; 0 1 0 0; 0 1 0 0], [0 1 0 0; 0 1 0 0; 0 0 0 0; 0 1 0 0],
+            [0 0 0 0; 0 0 1 0; 0 0 1 0; 0 0 1 0], [0 0 1 0; 0 0 0 0; 0 0 1 0; 0 0 1 0],
+            [0 0 1 0; 0 0 1 0; 0 0 0 0; 0 0 1 0], [0 0 0 0; 0 0 0 1; 0 0 0 1; 0 0 0 1],
+            [0 0 0 1; 0 0 0 0; 0 0 0 1; 0 0 0 1], [0 0 0 1; 0 0 0 1; 0 0 0 0; 0 0 0 1],
+            [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0], [0 0 1 0; 0 0 1 0; 0 0 1 0; 0 0 0 0],
+            [0 1 0 0; 0 1 0 0; 0 1 0 0; 0 0 0 0], [1 0 0 0; 1 0 0 0; 1 0 0 0; 0 0 0 0]
+        ]
+    end
+
     @testset "(2,2) -> (2,2) -> 3 only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 3, 2, 2)
 
@@ -294,6 +323,48 @@ include("../src/MultiAccessChannels.jl")
         @test bg3.β == 6
     end
 
+    @testset "(5,2) -> (2,2) -> 2" begin
+        (X, Y, Z, dA, dB) = (3, 3, 3, 2, 3)
+
+        vertices = multi_access_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 88
+        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 136
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(2,9),rep="normalized"), facets)
+
+        classes_dict = facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 3
+
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [
+            0  0  0  0  0  0  0  0;
+            1  0  0  0  0  0  0  0;
+        ]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [
+            0  0  0  1  0  0  1  0;
+            1  1  1  0  0  0  0  0;
+        ]
+        @test bg2.β == 4
+
+        bg3 = bell_games[findfirst(bg -> bg in classes_dict[3], bell_games)]
+        @test bg3 == [
+            0  0  0  1  1  0  1  1;
+            1  1  1  0  0  1  0  0;
+        ]
+        @test bg3.β == 6
+    end
+
     @testset "(3,3) -> (2,2) -> 2" begin
         (X, Y, Z, dA, dB) = (3, 3, 2, 2, 2)
 
@@ -467,6 +538,29 @@ include("../src/MultiAccessChannels.jl")
         # facet computation is too expensive
     end
 
+    @testset "(4,4) -> (2,2) -> 2" begin
+        (X, Y, Z, dA, dB) = (4, 4, 2, 2, 2)
+
+        vertices = multi_access_vertices(X,Y,Z,dA,dB)
+
+        verts = Array{Vector{Int}}([])
+        for v in vertices
+            test = sum(v'*[2,-1,-1,-1,-1,2,-1,-1,-1,-1,2,-1,-1,-1,-1,2])
+            if test +12 == 16
+                println(v)
+            end
+            push!(verts, [test + 12])
+        end
+        max(verts...)
+
+        @test length(vertices) == 633
+        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
+        
+        vertices[1]'*[2,-1,-1,-1,-1,2,-1,-1,-1,-1,2,-1,-1,-1,-1,2] + 12
+
+        # facet computation is too expensive
+    end
+
     @testset "2 -> (2,2) -> (3,3) positivity only" begin
         (X, Y, Z, dA, dB) = (2, 3, 3, 2, 2)
 
@@ -503,6 +597,68 @@ include("../src/MultiAccessChannels.jl")
             [1 0;1 0;1 0;1 0;1 0;1 0;1 0;1 0;0 0],
         ]
         
+    end
+
+    @testset "(3,3) -> (2,2) -> (2,2) -> (3,3) interference" begin
+        (X1, X2, Z1, Z2, dA1, dA2, dB1, dB2) = (3, 3, 3, 3, 2, 2, 2, 2)
+
+        vertices = interference_vertices(X1,X2,Z1,Z2,dA1,dA2,dB1,dB2)
+
+        ma_vertices = multi_access_vertices(3,3,9,2,2)
+
+        @test length(vertices) == 256
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 16
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(4,4),rep="normalized"), facets)
+        println(bell_games)
+
+        @test bell_games == [
+            [0 0 0 0; 1 0 0 0; 1 0 0 0; 1 0 0 0], [1 0 0 0; 0 0 0 0; 1 0 0 0; 1 0 0 0],
+            [1 0 0 0; 1 0 0 0; 0 0 0 0; 1 0 0 0], [0 0 0 0; 0 1 0 0; 0 1 0 0; 0 1 0 0],
+            [0 1 0 0; 0 0 0 0; 0 1 0 0; 0 1 0 0], [0 1 0 0; 0 1 0 0; 0 0 0 0; 0 1 0 0],
+            [0 0 0 0; 0 0 1 0; 0 0 1 0; 0 0 1 0], [0 0 1 0; 0 0 0 0; 0 0 1 0; 0 0 1 0],
+            [0 0 1 0; 0 0 1 0; 0 0 0 0; 0 0 1 0], [0 0 0 0; 0 0 0 1; 0 0 0 1; 0 0 0 1],
+            [0 0 0 1; 0 0 0 0; 0 0 0 1; 0 0 0 1], [0 0 0 1; 0 0 0 1; 0 0 0 0; 0 0 0 1],
+            [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0], [0 0 1 0; 0 0 1 0; 0 0 1 0; 0 0 0 0],
+            [0 1 0 0; 0 1 0 0; 0 1 0 0; 0 0 0 0], [1 0 0 0; 1 0 0 0; 1 0 0 0; 0 0 0 0]
+        ]
+    end
+
+    @testset "(3,3) -> (2,2) -> (2,2) -> (3,3) interference2" begin
+        (X1, X2, Z1, Z2, dA1, dA2, dB, dC1, dC2) = (3, 3, 3, 3, 2, 2, 2, 2, 2)
+
+        vertices = interference2_vertices(X1,X2,Z1,Z2,dA1,dA2,dB,dC1,dC2)
+
+        ma_vertices = multi_access_vertices(3,3,9,2,2)
+
+        @test length(vertices) == 256
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 16
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(4,4),rep="normalized"), facets)
+        println(bell_games)
+
+        @test bell_games == [
+            [0 0 0 0; 1 0 0 0; 1 0 0 0; 1 0 0 0], [1 0 0 0; 0 0 0 0; 1 0 0 0; 1 0 0 0],
+            [1 0 0 0; 1 0 0 0; 0 0 0 0; 1 0 0 0], [0 0 0 0; 0 1 0 0; 0 1 0 0; 0 1 0 0],
+            [0 1 0 0; 0 0 0 0; 0 1 0 0; 0 1 0 0], [0 1 0 0; 0 1 0 0; 0 0 0 0; 0 1 0 0],
+            [0 0 0 0; 0 0 1 0; 0 0 1 0; 0 0 1 0], [0 0 1 0; 0 0 0 0; 0 0 1 0; 0 0 1 0],
+            [0 0 1 0; 0 0 1 0; 0 0 0 0; 0 0 1 0], [0 0 0 0; 0 0 0 1; 0 0 0 1; 0 0 0 1],
+            [0 0 0 1; 0 0 0 0; 0 0 0 1; 0 0 0 1], [0 0 0 1; 0 0 0 1; 0 0 0 0; 0 0 0 1],
+            [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0], [0 0 1 0; 0 0 1 0; 0 0 1 0; 0 0 0 0],
+            [0 1 0 0; 0 1 0 0; 0 1 0 0; 0 0 0 0], [1 0 0 0; 1 0 0 0; 1 0 0 0; 0 0 0 0]
+        ]
     end
 
     @testset "3 -> (2,2) -> (3,3)" begin

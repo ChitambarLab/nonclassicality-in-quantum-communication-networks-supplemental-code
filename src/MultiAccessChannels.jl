@@ -7,6 +7,11 @@ using Base.Iterators: flatten
 using Convex
 using SCS
 
+
+
+using JuMP
+using HiGHS
+
 """
     multi_access_vertices()
 
@@ -70,6 +75,104 @@ function broadcast_vertices(
     id = 1
     for v_A in P_A_vertices, v_B in P_B_vertices, v_C in P_C_vertices
         V = kron(v_B,v_C) * v_A
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        id += 1
+    end
+
+    unique(verts)
+end
+
+function interference_vertices(
+    X1 :: Int64,
+    X2 :: Int64,
+    Z1 :: Int64,
+    Z2 :: Int64,
+    dA1 :: Int64,
+    dA2 :: Int64,
+    dB1 :: Int64,
+    dB2 :: Int64;
+    normalize=true :: Bool
+) :: Vector{Vector{Int64}}
+
+    P_A1 = BlackBox(dA1,X1)
+    P_A2 = BlackBox(dA2,X2)
+
+    P_B = BlackBox(dB1*dB2,dA1*dA2)
+    P_C1 = BlackBox(Z1,dB1)
+    P_C2 = BlackBox(Z2,dB2)
+
+
+    P_A1_vertices = deterministic_strategies(P_A1)
+    P_A2_vertices = deterministic_strategies(P_A2)
+
+    P_B_vertices = deterministic_strategies(P_B)
+
+    P_C1_vertices = deterministic_strategies(P_C1)
+    P_C2_vertices = deterministic_strategies(P_C2)
+
+
+    num_verts_raw = dA1^X1 * dA2^X2 * (dB1*dB2)^(dA1*dA2) * Z1^dB1 * Z2^dB2
+    # num_verts_raw = dA^X*dB^Y*Z^(dA*dB)
+    println(num_verts_raw)
+    verts = Vector{Vector{Int64}}(undef, num_verts_raw)
+
+
+    id = 1
+    for v_A1 in P_A1_vertices, v_A2 in P_A2_vertices, v_B in P_B_vertices, v_C1 in P_C1_vertices, v_C2 in P_C2_vertices
+        V = kron(v_C1,v_C2) * v_B * kron(v_A1, v_A2)
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        id += 1
+    end
+
+    unique(verts)
+end
+
+function interference2_vertices(
+    X1 :: Int64,
+    X2 :: Int64,
+    Z1 :: Int64,
+    Z2 :: Int64,
+    dA1 :: Int64,
+    dA2 :: Int64,
+    dB :: Int64,
+    dC1 :: Int64,
+    dC2 :: Int64;
+    normalize=true :: Bool
+) :: Vector{Vector{Int64}}
+
+    P_A1 = BlackBox(dA1,X1)
+    P_A2 = BlackBox(dA2,X2)
+
+    P_B1 = BlackBox(dB,dA1*dA2)
+    P_B2 = BlackBox(dC1*dC2,dB)
+    P_C1 = BlackBox(Z1,dC1)
+    P_C2 = BlackBox(Z2,dC2)
+
+
+    P_A1_vertices = deterministic_strategies(P_A1)
+    P_A2_vertices = deterministic_strategies(P_A2)
+
+    P_B1_vertices = deterministic_strategies(P_B1)
+    P_B2_vertices = deterministic_strategies(P_B2)
+
+
+    P_C1_vertices = deterministic_strategies(P_C1)
+    P_C2_vertices = deterministic_strategies(P_C2)
+
+
+    num_verts_raw = dA1^X1 * dA2^X2 * dB^(dA1*dA2)*(dC1*dC2)^(dB) * Z1^dC1 * Z2^dC2
+    # num_verts_raw = dA^X*dB^Y*Z^(dA*dB)
+    println(num_verts_raw)
+    verts = Vector{Vector{Int64}}(undef, num_verts_raw)
+
+
+    id = 1
+    for v_A1 in P_A1_vertices, v_A2 in P_A2_vertices, v_B1 in P_B1_vertices, v_B2 in P_B2_vertices, v_C1 in P_C1_vertices, v_C2 in P_C2_vertices
+        V = kron(v_C1,v_C2) * v_B2 * v_B1 * kron(v_A1, v_A2)
 
         verts[id] = normalize ? V[1:end-1,:][:] : V[:]
 
@@ -481,4 +584,31 @@ function multi_access_optimize_measurement(
         "scenario" => (X,Y,Z,dA,dB),
         "states" => ρ_states
     )
+end
+
+function optimize_linear_witness(vertices, test_point)
+    dim_v = length(vertices[1]) + 1
+
+    # initializing modell
+    model = Model(HiGHS.Optimizer)
+
+    # adding variable for inequality
+    @variable(model, s[1:dim_v])
+
+    # adding constraints to model
+    for v in vertices
+        va = [v..., -1]
+        @constraint(model, sum(s.*va) <= 0)
+    end
+
+    @constraint(model, c, sum(s.*[test_point..., -1]) <= 1)
+
+    # defining the optimization objective
+    @objective(model, Max, sum(s.*[test_point..., -1]))
+
+    # optimizing
+    optimize!(model)
+
+    # return optimized linear inequality
+    return value.(s)
 end

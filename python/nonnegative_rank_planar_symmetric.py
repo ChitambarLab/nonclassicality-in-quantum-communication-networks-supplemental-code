@@ -59,7 +59,7 @@ def certify_nonnegative_rank(M, n_workers=5, n_jobs=10, n_threads_per_worker=Non
     while lb < ub:
         print("lb <= k <= ub : ", lb, " <= ", k, " <= ", ub)
         
-        nmf = nmf_fn(M, k, max_iter=300000, tol=1e-18, init="random")
+        nmf = nmf_fn(M, k, max_iter=500000, tol=1e-18, init="random")
 
         nmf_jobs = client.map(nmf, range(n_jobs))
         nmf_results = client.gather(nmf_jobs)
@@ -105,11 +105,27 @@ if __name__ == "__main__":
 
     data_path = "data/nonnegative_rank/qubit_planar_symmetric/"
 
-    for n in range(7, 33):
+    for n in range(3, 11):
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         P = planar_sym_behavior(n)
-        data_dict = certify_nonnegative_rank(P)
-        filename = data_path + "n_" + str(n) + "_" + datetime_ext
-        with open(filename + ".json", "w") as file:
-            file.write(json.dumps(data_dict, indent=2))
+
+        white_noise_P = np.ones((n,n))
+
+
+        # data_dict = certify_nonnegative_rank(P)
+        # filename = data_path + "n_" + str(n) + "_" + datetime_ext
+        # with open(filename + ".json", "w") as file:
+        #     file.write(json.dumps(data_dict, indent=2))
+
+        noisy_P_10 = 0.9*P + 0.1*white_noise_P
+        noisy_10_data_dict = certify_nonnegative_rank(noisy_P_10)
+        noisy_10_filename = data_path + "n_" + str(n) + "_noisy_10__" + datetime_ext
+        with open(noisy_10_filename + ".json", "w") as file:
+            file.write(json.dumps(noisy_10_data_dict, indent=2))
+
+        noisy_P_50 = 0.5*P + 0.5*white_noise_P
+        noisy_50_data_dict = certify_nonnegative_rank(noisy_P_50)
+        noisy_50_filename = data_path + "n_" + str(n) + "_noisy_50__" + datetime_ext
+        with open(noisy_50_filename + ".json", "w") as file:
+            file.write(json.dumps(noisy_50_data_dict, indent=2))
 

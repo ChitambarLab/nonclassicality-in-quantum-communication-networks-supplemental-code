@@ -1,0 +1,17 @@
+
+Presolving model
+14 rows, 8 cols, 47 nonzeros
+14 rows, 8 cols, 47 nonzeros
+Presolve : Reductions: rows 14(-620); columns 8(-11); elements 47(-4392)
+Solving the presolved LP
+WARNING: Number of OMP threads available = 0 < 1 = Number of HiGHS threads to be used: Parallel performance will be less than anticipated
+Using EKK dual simplex solver - serial
+LP  has all |entries|=1; max column count = 14 (limit 24); average column count = 5.9 (limit 6): So is a candidate for LiDSE
+  Iteration        Objective     Infeasibilities num(sum)
+          0    -7.0000000000e+03 Ph1: 14(33000); Du: 7(7) 0s
+         13    -1.0000000000e+00 Pr: 0(0) 0s
+Solving the original LP from the solution after postsolve
+Model   status      : Optimal
+Simplex   iterations: 13
+Objective value     :  1.0000000000e+00
+HiGHS run time      :          0.00
