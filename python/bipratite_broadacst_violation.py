@@ -30,9 +30,9 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
 
     return opt_dict
 
-def optimize_inequality(prep_nodes, meas_nodes, postmap, inequality, **gradient_kwargs):
+def optimize_inequality(nodes, postmap, inequality, **gradient_kwargs):
 
-    broadcast_ansatz = qnetvo.NetworkAnsatz(prep_nodes, meas_nodes)
+    broadcast_ansatz = qnetvo.NetworkAnsatz(*nodes)
 
     def opt_fn(placeholder_param):
 

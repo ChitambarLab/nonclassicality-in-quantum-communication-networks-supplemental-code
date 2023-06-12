@@ -661,6 +661,141 @@ include("../src/MultiAccessChannels.jl")
         ]
     end
 
+    # lifted version of signaling polytope facets
+    @testset "3 -> (2,2) -> (3,2)" begin
+        (X, Y, Z, dA, dB) = (3, 3, 2, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+
+        @test length(vertices) == 168
+        @test length(vertices[1]) == 15
+        @test length(vertices[1]) == BellScenario.dimension(vertices)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 24
+        @test length(facet_dict["equalities"]) == 0
+
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(6,3),rep="normalized"), facets)
+
+
+        classes_dict = bipartite_broadcast_facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 2
+
+        # nonnegativity game
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [0 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [0 0 1;0 0 1;0 1 0;0 1 0;1 0 0;1 0 0]
+        @test bg2.β == 2
+    end
+
+    @testset "3 -> (2,2) -> (2,3)" begin
+        (X, Y, Z, dA, dB) = (3, 2, 3, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+
+        @test length(vertices) == 168
+        @test length(vertices[1]) == 15
+        @test length(vertices[1]) == BellScenario.dimension(vertices)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 24
+        @test length(facet_dict["equalities"]) == 0
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(6,3),rep="normalized"), facets)
+
+        classes_dict = bipartite_broadcast_facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 2
+
+        # nonnegativity game
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [0 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [0 0 1;0 1 0;1 0 0;0 0 1;0 1 0;1 0 0]
+        @test bg2.β == 2
+    end
+
+    @testset "3 -> (2,2) -> (4,2)" begin
+        (X, Y, Z, dA, dB) = (3, 4, 2, 2, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+
+        @test length(vertices) == 320
+        @test length(vertices[1]) == 21
+        @test length(vertices[1]) == BellScenario.dimension(vertices)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 84
+        @test length(facet_dict["equalities"]) == 0
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(8,3),rep="normalized"), facets)
+        classes_dict = bipartite_broadcast_facet_classes(X, Y, Z, bell_games)
+        @test length(keys(classes_dict)) == 3
+
+        # nonnegativity game
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [0 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [0 0 1;0 0 1;0 1 0;0 1 0;1 0 0;1 0 0;1 0 0;1 0 0]
+        @test bg2.β == 2
+
+        bg3 = bell_games[findfirst(bg -> bg in classes_dict[3], bell_games)]
+        @test bg3 == [0 0 2;0 0 2;0 2 0;0 2 0;2 0 0;2 0 0;1 1 1;1 1 1]
+        @test bg3.β == 4
+    end
+
+    @testset "3 -> (2,3) -> (3,3)" begin
+        (X, Y, Z, dA, dB) = (3, 3, 3, 2, 3)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+
+        @test length(vertices) == 567
+        @test length(vertices[1]) == 24
+        @test length(vertices[1]) == BellScenario.dimension(vertices)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 33
+        @test length(facet_dict["equalities"]) == 0
+
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(9,3),rep="normalized"), facets)
+
+
+        classes_dict = bipartite_broadcast_facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 2
+
+        # nonnegativity game
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [0 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [0 0 1;0 0 1;0 0 1;0 1 0;0 1 0;0 1 0;1 0 0;1 0 0;1 0 0]
+        @test bg2.β == 2
+    end
+
     @testset "3 -> (2,2) -> (3,3)" begin
         (X, Y, Z, dA, dB) = (3, 3, 3, 2, 2)
 

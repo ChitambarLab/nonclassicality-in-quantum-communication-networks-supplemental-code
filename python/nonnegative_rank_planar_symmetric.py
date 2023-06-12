@@ -105,24 +105,51 @@ if __name__ == "__main__":
 
     data_path = "data/nonnegative_rank/qubit_planar_symmetric/"
 
-    for n in range(3, 11):
+    for n in range(20, 23):
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         P = planar_sym_behavior(n)
 
         white_noise_P = np.ones((n,n))
 
-
+        """
+        Noiseless
+        """
         # data_dict = certify_nonnegative_rank(P)
         # filename = data_path + "n_" + str(n) + "_" + datetime_ext
         # with open(filename + ".json", "w") as file:
         #     file.write(json.dumps(data_dict, indent=2))
 
+        """
+        1% white noise
+        """
+        noisy_P_01 = 0.99*P + 0.01*white_noise_P
+        noisy_01_data_dict = certify_nonnegative_rank(noisy_P_01)
+        noisy_01_filename = data_path + "n_" + str(n) + "_noisy_01__" + datetime_ext
+        with open(noisy_01_filename + ".json", "w") as file:
+            file.write(json.dumps(noisy_01_data_dict, indent=2))
+
+        """
+        5% white noise
+        """
+        noisy_P_05 = 0.95*P + 0.05*white_noise_P
+        noisy_05_data_dict = certify_nonnegative_rank(noisy_P_05)
+        noisy_05_filename = data_path + "n_" + str(n) + "_noisy_05__" + datetime_ext
+        with open(noisy_05_filename + ".json", "w") as file:
+            file.write(json.dumps(noisy_05_data_dict, indent=2))
+
+        """
+        10% white noise
+        """
         noisy_P_10 = 0.9*P + 0.1*white_noise_P
         noisy_10_data_dict = certify_nonnegative_rank(noisy_P_10)
         noisy_10_filename = data_path + "n_" + str(n) + "_noisy_10__" + datetime_ext
         with open(noisy_10_filename + ".json", "w") as file:
             file.write(json.dumps(noisy_10_data_dict, indent=2))
 
+
+        """
+        50% white noise
+        """
         noisy_P_50 = 0.5*P + 0.5*white_noise_P
         noisy_50_data_dict = certify_nonnegative_rank(noisy_P_50)
         noisy_50_filename = data_path + "n_" + str(n) + "_noisy_50__" + datetime_ext

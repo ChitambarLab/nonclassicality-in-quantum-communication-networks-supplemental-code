@@ -5,7 +5,7 @@ using Test
 
 include("./MultiAccessChannels.jl")
 
-@testset begin
+@testset "4 -> (2,2) -> (4,4) Broadcast Facet"  begin
     p = [0.2,0.5,0.3,-1]
     d1 = [1,0,0,-1]
     d2 = [0.5,0.5,0,-1]
@@ -148,7 +148,7 @@ include("./MultiAccessChannels.jl")
     σy
 end
 
-@testset "summer game" begin
+@testset "(3,3) -> (2,2) -> (2,2) -> (3,3) Interference summer game" begin
     (X1, X2, Z1, Z2, dA1, dA2, dB1, dB2) = (3, 3, 3, 2, 2, 2, 2, 2)
 
     vertices = interference_vertices(X1,X2,Z1,Z2,dA1,dA2,dB1,dB2)
@@ -161,6 +161,15 @@ end
         0 0 0 0 0 0 0 0 1;
         0 0 0 0 0 0 0 0 0;
     ]
+    p2_mat = [ # multiplication game
+        1 1 1 1 0 0 1 0 0;
+        0 0 0 0 1 0 0 0 0;
+        0 0 0 0 0 1 0 1 0;
+        0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 0 1;
+        0 0 0 0 0 0 0 0 0;
+    ]
+
 
     p = p1_mat[1:end-1,:][:]
     p = p2_mat[1:end-1,:][:]
@@ -193,10 +202,12 @@ end
     println(value.(s))
     print(round.(Int, 8 * value.(s)))
 
-    # bg1 = convert(BellGame, round.(Int, 7*value.(s)), BlackBox(9,9), rep="normalized")
     bg1 = convert(BellGame, round.(Int, 8*value.(s)), BlackBox(6,9), rep="normalized")
+    bg2 = convert(BellGame, round.(Int, 4*value.(s)), BlackBox(6,9), rep="normalized")
+
 
     bg.β
+    bg1.β
 
     objective_value(model)
 
@@ -219,6 +230,7 @@ end
     @test all(bg.game == bg1)
 
     bg.game == bg1
+    bg.β
 
 
     bg1_game_match = [
@@ -231,7 +243,7 @@ end
     ]
 end
 
-@testset begin
+@testset "(3,3) -> (2,2) -> (2,2) -> (3,3) Interference" begin
     (X1, X2, Z1, Z2, dA1, dA2, dB1, dB2) = (3, 3, 3, 3, 2, 2, 2, 2)
 
     vertices = interference_vertices(X1,X2,Z1,Z2,dA1,dA2,dB1,dB2)
@@ -248,9 +260,22 @@ end
         0 1 1 1 0 1 1 1 0;
         0 0 0 0 0 0 0 0 6;
     ]/6
+    p3_mat = [ # multiplication game
+        1 0 0 0 0 0 0 0 0;
+        0 1 0 1 0 0 0 0 0;
+        0 0 1 0 0 0 1 0 0;
+        0 0 0 0 1 0 0 0 0;
+        0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 1 0 1 0;
+        0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 0 1;
+    ]
+    
 
     p = p1_mat[1:end-1,:][:]
-    p = p2_mat[1:end-1,:][:]
+    # p = p2_mat[1:end-1,:][:]
+    # p = p3_mat[1:end-1,:][:]
 
     num_v = length(vertices)
     dim_v = length(vertices[1]) + 1 
@@ -277,13 +302,15 @@ end
     @objective(model, Max, sum(s.*[p..., -1]))
 
     optimize!(model)
-    println(value.(s)*13/3)
+    println(value.(s)*7)
     print(round.(Int, 13/3 * value.(s)))
 
     # bg1 = convert(BellGame, round.(Int, 7*value.(s)), BlackBox(9,9), rep="normalized")
     bg2 = convert(BellGame, round.(Int, 13/3*value.(s)), BlackBox(9,9), rep="normalized")
+    bg3 = convert(BellGame, round.(Int, 7*value.(s)), BlackBox(9,9), rep="normalized")
 
-    bg.β
+
+    bg3.β
 
     objective_value(model)
 
@@ -307,6 +334,17 @@ end
 
 
     bg1_game_match = [
+        3  0  0  0  2  0  1  0  1;
+        0  3  0  2  0  0  0  1  1;
+        0  0  4  1  1  0  1  1  0;
+        1  1  2  2  0  0  1  0  1;
+        1  1  2  0  2  0  0  1  1;
+        1  2  2  0  0  2  1  1  0;
+        0  1  3  0  1  1  2  0  0;
+        1  0  3  1  0  1  0  2  0;
+        2  2  3  1  1  1  1  1  0;
+    ]
+    bg3_game_match = [
         3  0  0  0  2  0  1  0  1;
         0  3  0  2  0  0  0  1  1;
         0  0  4  1  1  0  1  1  0;

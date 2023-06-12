@@ -3,6 +3,7 @@ using Combinatorics
 using QBase
 using BellScenario
 using Base.Iterators: flatten
+using SparseArrays
 
 using Convex
 using SCS
@@ -175,6 +176,128 @@ function interference2_vertices(
         V = kron(v_C1,v_C2) * v_B2 * v_B1 * kron(v_A1, v_A2)
 
         verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        id += 1
+    end
+
+    unique(verts)
+end
+
+function butterfly_vertices(
+    X1 :: Int64,
+    X2 :: Int64,
+    Z1 :: Int64,
+    Z2 :: Int64,
+    dA1 :: Int64,
+    dA2 :: Int64,
+    dA3 :: Int64,
+    dA4 :: Int64,
+    dB :: Int64,
+    dC1 :: Int64,
+    dC2 :: Int64;
+    normalize=true :: Bool
+) :: Vector{Vector{Int64}}
+
+    P_A1 = BlackBox(dA1*dA2,X1)
+    P_A2 = BlackBox(dA3*dA4,X2)
+
+    P_B1 = BlackBox(dB,dA2*dA3)
+    P_B2 = BlackBox(dC1*dC2,dB)
+    P_C1 = BlackBox(Z1,dC1*dA1)
+    P_C2 = BlackBox(Z2,dC2*dA4)
+
+
+
+    P_A1_dA1_vertices = BellScenario.stirling2_matrices(X1, dA1)
+    P_A1_dA2_vertices = BellScenario.stirling2_matrices(X1, dA2)
+    P_A2_dA3_vertices = BellScenario.stirling2_matrices(X2, dA3)
+    P_A2_dA4_vertices = BellScenario.stirling2_matrices(X2, dA4)
+
+    # P_A1_vertices = deterministic_strategies(P_A1)
+    P_A2_vertices = deterministic_strategies(P_A2)
+
+    P_B1_vertices = deterministic_strategies(P_B1)
+    P_B2_vertices = deterministic_strategies(P_B2)
+
+
+    P_C1_vertices = deterministic_strategies(P_C1)
+    P_C2_vertices = deterministic_strategies(P_C2)
+
+
+
+
+    num_interference_node_verts_raw = dB^(dA2*dA3)*(dC1*dC2)^(dB)
+    interference_node_vertices = Vector{Matrix{Int64}}(undef, num_interference_node_verts_raw)
+    id = 1
+    for v_B1 in P_B1_vertices, v_B2 in P_B2_vertices
+        interference_node_vertices[id] = sparse(kron(I(dA1), v_B2 * v_B1, I(dA4)))
+        id += 1
+    end
+    interference_node_vertices = unique(interference_node_vertices)
+    println(length(interference_node_vertices))
+    println(size(interference_node_vertices[1]))
+
+
+    num_encoder_verts_raw = length(P_A1_dA1_vertices) * length(P_A1_dA2_vertices) * length(P_A2_dA3_vertices) * length(P_A2_dA4_vertices)
+    # num_encoder_verts_raw = length(P_A1_dA1_vertices) * length(P_A1_dA2_vertices) * length(P_A2_vertices)
+    println(num_encoder_verts_raw)
+    encoder_vertices = Vector{Matrix{Int64}}(undef, num_encoder_verts_raw)
+
+
+    id = 1
+    for v_A1_d1 in P_A1_dA1_vertices, v_A1_d2 in P_A1_dA2_vertices, v_A2_d3 in P_A2_dA3_vertices, v_A2_d4 in P_A2_dA4_vertices
+
+        v_A1 = hcat(map(i -> kron(v_A1_d1[:,i], v_A1_d2[:,i]), 1:X1)...)
+        # v_A1 = [kron(v_A1_d1[:,1], v_A1_d2[:,1]) kron(v_A1_d1[:,2], v_A1_d2[:,2]) kron(v_A1_d1[:,3], v_A1_d2[:,3])]
+        # v_A2 = [kron(v_A2_d3[:,1], v_A2_d4[:,1]) kron(v_A2_d3[:,2], v_A2_d4[:,2]) kron(v_A2_d3[:,3], v_A2_d4[:,3])]
+        v_A2 = hcat(map(i -> kron(v_A2_d3[:,i], v_A2_d4[:,i]), 1:X2)...)
+
+
+        encoder_vertices[id] = sparse(kron(v_A1, v_A2))
+        id += 1
+    end
+    println("length of encoder vertices  : ", length(encoder_vertices[1]))
+    encoder_vertices = unique(encoder_vertices)
+    println(length(encoder_vertices))
+    println("size encoder ", size(encoder_vertices[1]) )
+
+    num_decoder_vertices_raw = Z1^(dC1*dA1) * Z2^(dC2*dA4)
+    decoder_vertices = Vector{Matrix{Int64}}(undef, num_decoder_vertices_raw)
+    id = 1
+    for v_C1 in P_C1_vertices, v_C2 in P_C2_vertices
+        decoder_vertices[id] = sparse(kron(v_C1,v_C2))
+
+        id += 1
+    end
+    decoder_vertices = unique(decoder_vertices)
+    println("num decoder vertices = ", length(decoder_vertices))
+
+    num_decoder_vertices_raw2 = length(decoder_vertices) * length(interference_node_vertices)
+    decoder_vertices2 = Vector{Matrix{Int64}}(undef, num_decoder_vertices_raw2)
+    id = 1
+    for v_C in decoder_vertices, v_B in interference_node_vertices
+        decoder_vertices2[id] = sparse(v_C * v_B)
+
+        id += 1
+    end
+    decoder_vertices2 = unique(decoder_vertices2)
+    println("num decoder vertices2 = ", length(decoder_vertices2))
+
+    num_verts_raw = length(encoder_vertices) * length(decoder_vertices2)
+    println(num_verts_raw)
+    verts = Vector{Vector{Int64}}(undef, num_verts_raw)
+
+
+    id = 1
+    for v_A in encoder_vertices, v_BC in decoder_vertices2
+        V = sparse(v_BC * v_A)
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        if id % 100000 == 0
+            println(id)
+        end
+
 
         id += 1
     end
