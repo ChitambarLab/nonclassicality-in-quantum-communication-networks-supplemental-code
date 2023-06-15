@@ -61,6 +61,11 @@ if __name__=="__main__":
     postmap3 = np.array([
         [1,0,0,1],[0,1,0,0],[0,0,1,0],
     ])
+    postmap38 = np.array([
+        [1,1,0,0,0,0,0,0],
+        [0,0,1,1,0,0,0,0],
+        [0,0,0,0,1,1,1,1],
+    ])
 
     butterfly_wire_set_nodes = [
         qnetvo.PrepareNode(wires=[0,1,2,3,4])
@@ -88,6 +93,28 @@ if __name__=="__main__":
         qnetvo.ProcessingNode(num_in=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
         qnetvo.ProcessingNode(num_in=3, wires=[2,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
+
+    earx_butterfly_wires_set_nodes = [
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6])
+    ]
+    earx_butterfly_source_nodes = [
+        qnetvo.PrepareNode(wires=[2,6],ansatz_fn = qnetvo.ghz_state),
+    ]
+    earx_butterfly_prep_nodes = [
+        qnetvo.PrepareNode(num_in=3, wires=[0,1], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=3, wires=[3,5], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+    ]
+    earx_butterfly_B_nodes = [
+        qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    ]
+    earx_butterfly_C_nodes = [
+        qnetvo.ProcessingNode(wires=[1,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    ]
+    earx_butterfly_meas_nodes = [
+        qnetvo.MeasureNode(num_out=3, wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.MeasureNode(num_out=3, wires=[4,5,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    ]
+
 
 
     butterfly_game_inequalities = [
@@ -265,7 +292,7 @@ if __name__=="__main__":
     game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
     
 
-    for i in range(7,8):
+    for i in range(0,8):
         butterfly_game_inequality = butterfly_game_inequalities[i]
         butterfly_facet_inequality = butterfly_facet_inequalities[i]
 
@@ -360,23 +387,109 @@ if __name__=="__main__":
 
         # print("iteration time  : ", time.time() - time_start)
 
+        # """
+        # eatx_quantum butterfly game
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # eatx_qbf_game_opt_fn = optimize_inequality(
+        #     [
+        #         butterfly_wire_set_nodes,
+        #         eatx_butterfly_source_nodes,
+        #         eatx_butterfly_prep_nodes,
+        #         butterfly_B_nodes,
+        #         butterfly_C_nodes,
+        #         butterfly_meas_nodes
+        #     ],
+        #     np.kron(postmap3,postmap3),
+        #     butterfly_game_inequality,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # eatx_qbf_game_opt_jobs = client.map(eatx_qbf_game_opt_fn, range(n_workers))
+        # eatx_qbf_game_opt_dicts = client.gather(eatx_qbf_game_opt_jobs)
+
+        # max_opt_dict = eatx_qbf_game_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(eatx_qbf_game_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(qbf_game_opt_dicts[j]["scores"])
+        #         max_opt_dict = eatx_qbf_game_opt_dicts[j]
+
+        # scenario = "eatx_qbf_game_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
+        # """
+        # eatx quantum butterfly facet
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # eatx_qbf_facet_opt_fn = optimize_inequality(
+        #     [
+        #         butterfly_wire_set_nodes,
+        #         eatx_butterfly_source_nodes,
+        #         eatx_butterfly_prep_nodes,
+        #         butterfly_B_nodes,
+        #         butterfly_C_nodes,
+        #         butterfly_meas_nodes
+        #     ],
+        #     np.kron(postmap3,postmap3),
+        #     butterfly_facet_inequality,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # eatx_qbf_facet_opt_jobs = client.map(eatx_qbf_facet_opt_fn, range(n_workers))
+        # eatx_qbf_facet_opt_dicts = client.gather(eatx_qbf_facet_opt_jobs)
+
+        # max_opt_dict = eatx_qbf_facet_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(eatx_qbf_facet_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(eatx_qbf_facet_opt_dicts[j]["scores"])
+        #         max_opt_dict = eatx_qbf_facet_opt_dicts[j]
+
+        # scenario = "eatx_qbf_facet_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
         """
-        eatx_quantum butterfly game
+        earx_quantum butterfly game
         """
         client.restart()
 
         time_start = time.time()
 
-        eatx_qbf_game_opt_fn = optimize_inequality(
+        earx_qbf_game_opt_fn = optimize_inequality(
             [
-                butterfly_wire_set_nodes,
-                eatx_butterfly_source_nodes,
-                eatx_butterfly_prep_nodes,
-                butterfly_B_nodes,
-                butterfly_C_nodes,
-                butterfly_meas_nodes
+                earx_butterfly_wires_set_nodes,
+                earx_butterfly_source_nodes,
+                earx_butterfly_prep_nodes,
+                earx_butterfly_B_nodes,
+                earx_butterfly_C_nodes,
+                earx_butterfly_meas_nodes
             ],
-            np.kron(postmap3,postmap3),
+            np.kron(postmap38,postmap38),
             butterfly_game_inequality,
             num_steps=150,
             step_size=0.1,
@@ -384,17 +497,17 @@ if __name__=="__main__":
             verbose=True
         )
 
-        eatx_qbf_game_opt_jobs = client.map(eatx_qbf_game_opt_fn, range(n_workers))
-        eatx_qbf_game_opt_dicts = client.gather(eatx_qbf_game_opt_jobs)
+        earx_qbf_game_opt_jobs = client.map(earx_qbf_game_opt_fn, range(n_workers))
+        earx_qbf_game_opt_dicts = client.gather(earx_qbf_game_opt_jobs)
 
-        max_opt_dict = eatx_qbf_game_opt_dicts[0]
+        max_opt_dict = earx_qbf_game_opt_dicts[0]
         max_score = max(max_opt_dict["scores"])
         for j in range(1,n_workers):
-            if max(eatx_qbf_game_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(qbf_game_opt_dicts[j]["scores"])
-                max_opt_dict = eatx_qbf_game_opt_dicts[j]
+            if max(earx_qbf_game_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(earx_qbf_game_opt_dicts[j]["scores"])
+                max_opt_dict = earx_qbf_game_opt_dicts[j]
 
-        scenario = "eatx_qbf_game_"
+        scenario = "earx_qbf_game_"
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         qnetvo.write_optimization_json(
             max_opt_dict,
@@ -404,22 +517,22 @@ if __name__=="__main__":
         print("iteration time  : ", time.time() - time_start)
 
         """
-        eatx quantum butterfly facet
+        earx quantum butterfly facet
         """
         client.restart()
 
         time_start = time.time()
 
-        eatx_qbf_facet_opt_fn = optimize_inequality(
+        earx_qbf_facet_opt_fn = optimize_inequality(
             [
-                butterfly_wire_set_nodes,
-                eatx_butterfly_source_nodes,
-                eatx_butterfly_prep_nodes,
-                butterfly_B_nodes,
-                butterfly_C_nodes,
-                butterfly_meas_nodes
+                earx_butterfly_wires_set_nodes,
+                earx_butterfly_source_nodes,
+                earx_butterfly_prep_nodes,
+                earx_butterfly_B_nodes,
+                earx_butterfly_C_nodes,
+                earx_butterfly_meas_nodes
             ],
-            np.kron(postmap3,postmap3),
+            np.kron(postmap38,postmap38),
             butterfly_facet_inequality,
             num_steps=150,
             step_size=0.1,
@@ -427,17 +540,17 @@ if __name__=="__main__":
             verbose=True
         )
 
-        eatx_qbf_facet_opt_jobs = client.map(eatx_qbf_facet_opt_fn, range(n_workers))
-        eatx_qbf_facet_opt_dicts = client.gather(eatx_qbf_facet_opt_jobs)
+        earx_qbf_facet_opt_jobs = client.map(earx_qbf_facet_opt_fn, range(n_workers))
+        earx_qbf_facet_opt_dicts = client.gather(earx_qbf_facet_opt_jobs)
 
-        max_opt_dict = eatx_qbf_facet_opt_dicts[0]
+        max_opt_dict = earx_qbf_facet_opt_dicts[0]
         max_score = max(max_opt_dict["scores"])
         for j in range(1,n_workers):
-            if max(eatx_qbf_facet_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(eatx_qbf_facet_opt_dicts[j]["scores"])
-                max_opt_dict = eatx_qbf_facet_opt_dicts[j]
+            if max(earx_qbf_facet_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(earx_qbf_facet_opt_dicts[j]["scores"])
+                max_opt_dict = earx_qbf_facet_opt_dicts[j]
 
-        scenario = "eatx_qbf_facet_"
+        scenario = "earx_qbf_facet_"
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         qnetvo.write_optimization_json(
             max_opt_dict,

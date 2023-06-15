@@ -105,6 +105,7 @@ include("../src/MultiAccessChannels.jl")
         (X, Y, Z, dA, dB) = (3, 2, 2, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 64 
 
         facet_dict = LocalPolytope.facets(vertices)
 
@@ -161,6 +162,7 @@ include("../src/MultiAccessChannels.jl")
         (X, Y, Z, dA, dB) = (4, 2, 2, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 256
 
         facet_dict = LocalPolytope.facets(vertices)
 

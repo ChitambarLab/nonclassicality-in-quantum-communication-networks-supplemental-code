@@ -66,16 +66,29 @@ function broadcast_vertices(
     P_B = BlackBox(Y,dA)
     P_C = BlackBox(Z,dB)
 
-    P_A_vertices = deterministic_strategies(P_A)
+    # P_A_vertices = deterministic_strategies(P_A)
+    # P_A_vertices = BellScenario.stirling2_matrices(X, dA*dB)
+    
+    num_A_vertices_raw = BellScenario.stirling2(X,dA) * BellScenario.stirling2(X,dB)
+    P_A_vertices = Vector{Matrix{Int64}}(undef, num_A_vertices_raw)
+    id = 1
+    for v_A_dA in BellScenario.stirling2_matrices(X,dA), v_B_dB in BellScenario.stirling2_matrices(X,dB)
+        v_encoder = hcat(map(i -> kron(v_A_dA[:,i], v_B_dB[:,i]), 1:X)...)
+
+        P_A_vertices[id] = sparse(v_encoder)
+        id += 1
+    end
+
     P_B_vertices = deterministic_strategies(P_B)
     P_C_vertices = deterministic_strategies(P_C)
 
-    num_verts_raw = (dA*dB)^X * Y^dA * Z^dB
+    # num_verts_raw = (dA*dB)^X * Y^dA * Z^dB
+    num_verts_raw = length(P_A_vertices) * Y^dA * Z^dB 
     verts = Vector{Vector{Int64}}(undef, num_verts_raw)
 
     id = 1
     for v_A in P_A_vertices, v_B in P_B_vertices, v_C in P_C_vertices
-        V = kron(v_B,v_C) * v_A
+        V = sparse(kron(v_B,v_C)) * v_A
 
         verts[id] = normalize ? V[1:end-1,:][:] : V[:]
 
