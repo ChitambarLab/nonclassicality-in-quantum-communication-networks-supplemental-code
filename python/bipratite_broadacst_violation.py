@@ -87,9 +87,10 @@ if __name__=="__main__":
 
         qml.ArbitraryUnitary(settings[0:15], [wires[0], wires[3]])
         # qnetvo.ghz_state([], wires=[wires[1],wires[2]])
+        # qnetvo.max_entangled_state(settings, [wires[0], wires[3]])
 
     prep_nodes = [
-        qnetvo.PrepareNode(num_in=4, wires=[0,1,2,3], ansatz_fn=prep_ansatz, num_settings=15)
+        qnetvo.PrepareNode(num_in=4, wires=[0,1,2,3], ansatz_fn=prep_ansatz, num_settings15)
     ]
     meas_nodes = [
         qnetvo.MeasureNode(num_out=4, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
@@ -144,33 +145,34 @@ if __name__=="__main__":
 
     # # embedded chsh game
     # # 2 : not violated by separable quantum broadcast
+    # 1.5 : not violated by max entangled broadcast
     # # 3 : violated by entangled broadcast
     # # 2 sqrt(2) : violataed by entanglement assisted separable brodacast
     # # 3 : violated by entangelement assisted quantum broadcast 
-    # inequality = (2, np.array([
-    #     [1,0,0,0],
-    #     [0,1,0,0],
-    #     [-1,0,0,0],
-    #     [0,-1,0,0],
-    #     [-1,0,0,0],
-    #     [0,-1,0,0],
-    #     [1,0,0,0],
-    #     [0,1,0,0],
-    #     [0,0,1,0],
-    #     [0,0,0,-1],
-    #     [0,0,-1,0],
-    #     [0,0,0,1],
-    #     [0,0,-1,0],
-    #     [0,0,0,1],
-    #     [0,0,1,0],
-    #     [0,0,0,-1],
-    # ]))
+    inequality = (2, np.array([
+        [1,0,0,0],
+        [0,1,0,0],
+        [-1,0,0,0],
+        [0,-1,0,0],
+        [-1,0,0,0],
+        [0,-1,0,0],
+        [1,0,0,0],
+        [0,1,0,0],
+        [0,0,1,0],
+        [0,0,0,-1],
+        [0,0,-1,0],
+        [0,0,0,1],
+        [0,0,-1,0],
+        [0,0,0,1],
+        [0,0,1,0],
+        [0,0,0,-1],
+    ]))
 
     postmap = np.eye(16)
 
-    opt_dict = optimize_inequality(prep_nodes, meas_nodes, postmap, inequality,
+    opt_dict = optimize_inequality([prep_nodes, meas_nodes], postmap, inequality,
         sample_width=1,
-        step_size=0.2,
+        step_size=0.4,
         num_steps=70,
         verbose=True,
     )([])

@@ -85,20 +85,20 @@ include("../src/MultiAccessChannels.jl")
     ]
     cv_test = I(9)
 
-    function facet_dimension(unnormalized_vertices, bell_game)
+    function facet_dimension(normalized_vertices, normalized_bell_game)
 
         facet_verts = Array{Vector{Int}}([])
-        for v in unnormalized_vertices
-            score = sum(bell_game.game[:].*v)
-            if isapprox(score, bell_game.β, atol=1e-6)
-                push!(facet_verts, v)
-            elseif score > bell_game.β
+        for v in normalized_vertices
+            if isapprox(sum([v...,-1].*normalized_bell_game), 0, atol=1e-6)
+                push!(facet_verts, convert.(Int, v))
+            elseif sum([v...,-1].*normalized_bell_game) > 0
                 println("not a polytope bound")
-                @test false
             end
         end
 
-        return BellScenario.dimension(facet_verts)
+        facet_dim = BellScenario.dimension(facet_verts)
+
+        return facet_dim
     end
 
     @testset "(3,3)->(2,2)->(2,2) -> (2,2) " begin
@@ -1363,15 +1363,15 @@ include("../src/MultiAccessChannels.jl")
         @test polytope_dim == facet_dim + 1 
 
         bell_game_adder_match = [
-            2  0  0  0  2  0  0  0  2
-            0  2  0  2  0  0  0  0  2
-            0  0  2  0  2  0  2  0  0
-            2  0  0  0  0  2  0  2  0
-            2  0  0  0  2  0  0  0  2
-            2  0  0  0  2  0  0  0  2
-            2  0  0  0  2  0  0  0  2
-            2  0  0  0  2  0  0  0  2
-            1  1  1  1  1  1  1  1  1
+            2  0  0  0  2  0  0  0  2;
+            0  2  0  2  0  0  0  0  2;
+            0  0  2  0  2  0  2  0  0;
+            2  0  0  0  0  2  0  2  0;
+            2  0  0  0  2  0  0  0  2;
+            2  0  0  0  2  0  0  0  2;
+            2  0  0  0  2  0  0  0  2;
+            2  0  0  0  2  0  0  0  2;
+            1  1  1  1  1  1  1  1  1;
         ]
         @test bell_game_adder_match == bell_game_adder
         @test bell_game_adder.β == 10
@@ -1465,6 +1465,80 @@ include("../src/MultiAccessChannels.jl")
         bc_9_22_33_vertices = broadcast_vertices(9,3,3,2,2)
         bc_9_22_33_vertices_unnormalized = broadcast_vertices(9,3,3,2,2, normalize=false)
         polytope_dim = BellScenario.dimension(bc_9_22_33_vertices)
+        polytope_dim2 = BellScenario.dimension(bc_9_22_33_vertices_unnormalized)
+
+        test_mat = [
+            1/3 0   0   1/3 0   0   1/3 0   0;
+            0   1/3 0   0   1/3 0   1/3 0   0;
+            0   0   1/3 0   0   1/3 1/3 0   0;
+            0   0   1/3 1/3 0   0   0   1/3 0;
+            1/3 0   0   0   1/3 0   0   1/3 0;
+            0   1/3 0   0   0   1/3 0   1/3 0;
+            0   1/3 0   1/3 0   0   0   0   1/3;
+            0   0   1/3 0   1/3 0   0   0   1/3;
+            1/3 0   0   0   0   1/3 0   0   1/3;
+        ]
+        test_mat2 = [
+            1 0 0 1 0 0 1 0 0;
+            0 0 0 0 1 0 0 0 0;
+            0 0 0 0 0 1 0 0 0;
+            0 0 0 0 0 0 0 1 0;
+            0 1 0 0 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 1;
+            0 0 0 0 0 0 0 0 0;
+            0 0 1 0 0 0 0 0 0;
+        ]
+
+        test_mat = [
+            2/9 1/18   1/18;  
+            1/18   2/9 1/18;  
+            1/18   1/18   2/9;
+            1/18   1/18   2/9;
+            2/9 1/18   1/18;
+            1/18   2/9 1/18;  
+            1/18   2/9 1/18;  
+            1/18   1/18   2/9;
+            2/9 1/18   1/18;  
+        ]
+
+        test_mat_max_violation = max(map(v -> sum(test_mat[:] .* v), bc_9_22_33_vertices_unnormalized)...)
+        raw_game_test_mat = optimize_linear_witness(bc_9_22_33_vertices, test_mat[1:end-1,:][:])
+        bell_game_test_mat = convert(BellGame, round.(Int, raw_game_test_mat), BlackBox(9,9), rep="normalized")
+        bell_game_test_mat.β
+        bell_game_test_mat.game
+
+        raw_game_test_mat2 = optimize_linear_witness(bc_9_22_33_vertices, test_mat2[1:end-1,:][:])
+
+        println(raw_game_test_mat2)
+        bell_game_test_mat2 = convert(BellGame, round.(Int, 3*raw_game_test_mat2), BlackBox(9,9), rep="normalized")
+        bell_game_test_mat2.β
+        bell_game_test_mat2.game
+
+        @test bell_game_test_mat == [
+            0 0 0 1 0 0 0 0 0;
+            0 0 0 0 1 0 0 0 0;
+            0 0 0 0 0 1 0 0 0;
+            0 0 0 1 0 0 0 0 0;
+            0 0 0 0 1 0 0 0 0;
+            0 0 0 0 0 1 0 0 0;
+            0 0 0 1 0 0 0 0 0;
+            0 0 0 0 1 0 0 0 0;
+            0 0 0 0 0 1 0 0 0;
+        ]
+
+
+        @test bell_game_test_mat2 == [
+            1  0  0  1  0  0  0  0  0;
+            0  0  0  0  1  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            0  0  0  0  0  0  0  1  0;
+            0  2  0  0  0  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            1  1  3  0  0  0  0  0  0;
+        ]
 
         @test polytope_dim == length(bc_9_22_33_vertices[1])
 
@@ -1488,182 +1562,195 @@ include("../src/MultiAccessChannels.jl")
         @test cv_max_violation == 4
 
         raw_game_mult0 = optimize_linear_witness(bc_9_22_33_vertices, mult0_test[1:end-1,:][:])
-        raw_game_mult1 = optimize_linear_witness(bc_9_22_33_vertices, mult1_test[1:end-1,:][:])
-        raw_game_swap = optimize_linear_witness(bc_9_22_33_vertices, swap_test[1:end-1,:][:])
-        raw_game_adder = optimize_linear_witness(bc_9_22_33_vertices, adder_test[1:end-1,:][:])
-        raw_game_compare = optimize_linear_witness(bc_9_22_33_vertices, compare_test[1:end-1,:][:])
-        raw_game_perm = optimize_linear_witness(bc_9_22_33_vertices, perm_test[1:end-1,:][:])
-        raw_game_diff = optimize_linear_witness(bc_9_22_33_vertices, diff_test[1:end-1,:][:])
-        raw_game_cv = optimize_linear_witness(bc_9_22_33_vertices, cv_test[1:end-1,:][:])
 
-        println(raw_game_mult0)
-        bell_game_mult0 = convert(BellGame, round.(Int, 4*raw_game_mult0), BlackBox(9,9), rep="normalized")
+
+        println(raw_game_mult0*2)
+        bell_game_mult0 = convert(BellGame, round.(Int, 2*raw_game_mult0), BlackBox(9,9), rep="normalized")
         bell_game_mult0.β
         bell_game_mult0.game
 
-        facet_dim = facet_dimension(bc_9_22_33_vertices_unnormalized, bell_game_mult0)
+        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_mult0)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_mult0_match = [
-            0  2  1  2  0  0  0  0  1;
-            0  0  0  0  3  0  0  0  2;
-            0  0  0  0  1  2  0  2  0;
-            0  0  0  0  3  0  0  0  2;
-            0  0  0  0  3  0  0  0  2;
-            0  0  0  0  3  0  0  0  2;
-            0  0  0  0  3  0  0  0  2;
-            0  0  0  0  3  0  0  0  2;
-            0  1  1  1  2  1  1  1  1;
+            1  0  0  1  0  0  0  0  0;
+            0  0  0  0  2  0  0  0  0;
+            0  0  0  0  0  2  0  0  0;
+            1  0  0  0  0  0  0  0  1;
+            0  0  0  0  1  0  0  0  1;
+            0  0  0  0  0  2  0  0  1;
+            1  0  0  0  1  1  0  0  0;
+            1  0  0  0  1  1  0  0  0;
+            1  0  0  0  1  2  0  0  0;
         ]
         @test bell_game_mult0_match == bell_game_mult0
-        @test bell_game_mult0.β == 10
+        @test bell_game_mult0.β == 5
+
+        raw_game_mult1 = optimize_linear_witness(bc_9_22_33_vertices, mult1_test[1:end-1,:][:])
+
 
         println(raw_game_mult1)
-        bell_game_mult1 = convert(BellGame, round.(Int, 7*raw_game_mult1), BlackBox(9,9), rep="normalized")
+        bell_game_mult1 = convert(BellGame, round.(Int, 2*raw_game_mult1), BlackBox(9,9), rep="normalized")
         bell_game_mult1.β
 
-        facet_dim = facet_dimension(bc_9_22_33_vertices_unnormalized, bell_game_mult1)
+        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_mult1)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_mult1_match = [
-            2  0  0  0  2  0  0  0  2;
-            0  2  0  2  0  0  0  0  2;
-            0  0  2  0  2  0  2  0  0;
-            2  0  0  0  2  0  0  0  2;
-            2  0  0  0  2  0  0  0  2;
-            2  0  0  0  0  2  0  2  0;
-            2  0  0  0  2  0  0  0  2;
-            2  0  0  0  2  0  0  0  2;
-            1  1  1  1  1  1  1  1  1;
+            2  0  0  0  0  0  0  0  0;
+            0  2  0  0  0  0  0  0  0;
+            0  0  2  0  0  0  0  0  0;
+            1  0  0  0  0  1  0  0  0;
+            0  1  0  0  0  1  0  0  0;
+            0  0  2  0  0  1  0  0  0;
+            1  1  1  0  0  0  0  0  0;
+            1  1  1  0  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
         ]
         @test bell_game_mult1_match == bell_game_mult1
-        @test bell_game_mult1.β == 10
+        @test bell_game_mult1.β == 5
 
-        println(raw_game_swap)
-        bell_game_swap = convert(BellGame, round.(Int, 7*raw_game_swap), BlackBox(9,9), rep="normalized")
+        raw_game_swap = optimize_linear_witness(bc_9_22_33_vertices, swap_test[1:end-1,:][:])
+
+        println(raw_game_swap*3)
+        bell_game_swap = convert(BellGame, round.(Int, 3*raw_game_swap), BlackBox(9,9), rep="normalized")
         bell_game_swap.β
 
-        facet_dim = facet_dimension(bc_9_22_33_vertices_unnormalized, bell_game_swap)
+        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_swap)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_swap_match = [
-            2  0  0  0  2  0  0  0  2;
-            0  2  0  2  0  0  0  0  2;
-            0  2  0  0  0  2  2  0  0;
-            0  2  0  2  0  0  0  0  2;
-            2  0  0  0  2  0  0  0  2;
-            2  0  0  0  0  2  0  2  0;
-            0  0  2  2  0  0  0  2  0;
-            2  0  0  0  0  2  0  2  0;
-            1  1  1  1  1  1  1  1  1;
+            2  0  0  0  0  0  0  0  0;
+            1  0  0  1  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
+            0  2  0  0  0  0  0  0  0;
+            0  1  0  0  1  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            1  1  3  0  0  0  0  0  0;
         ]
         @test bell_game_swap_match == bell_game_swap
-        @test bell_game_swap.β == 10
+        @test bell_game_swap.β == 6
+
+        raw_game_adder = optimize_linear_witness(bc_9_22_33_vertices, adder_test[1:end-1,:][:])
+
 
         println(raw_game_adder)
-        bell_game_adder = convert(BellGame, round.(Int, 8*raw_game_adder), BlackBox(9,9), rep="normalized")
+        bell_game_adder = convert(BellGame, round.(Int, 3*raw_game_adder), BlackBox(9,9), rep="normalized")
         bell_game_adder.β
 
-        facet_dim = facet_dimension(bc_9_22_33_vertices_unnormalized, bell_game_adder)
+        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_adder)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_adder_match = [
-            2  0  0  0  2  0  0  0  2
-            0  2  0  2  0  0  0  0  2
-            0  0  2  0  2  0  2  0  0
-            2  0  0  0  0  2  0  2  0
-            2  0  0  0  2  0  0  0  2
-            2  0  0  0  2  0  0  0  2
-            2  0  0  0  2  0  0  0  2
-            2  0  0  0  2  0  0  0  2
-            1  1  1  1  1  1  1  1  1
+            2  0  0  0  0  0  0  0  0;
+            0  1  0  1  0  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            1  0  0  0  0  1  0  0  0;
+            0  1  0  0  0  0  0  0  1;
+            0  0  3  0  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
+            1  1  3  0  0  0  0  0  0;
         ]
         @test bell_game_adder_match == bell_game_adder
-        @test bell_game_adder.β == 10
+        @test bell_game_adder.β == 6
+
+        raw_game_compare = optimize_linear_witness(bc_9_22_33_vertices, compare_test[1:end-1,:][:])
+
 
         println(raw_game_compare)
-        bell_game_compare = convert(BellGame, round.(Int, 4*raw_game_compare), BlackBox(9,9), rep="normalized")
+        bell_game_compare = convert(BellGame, round.(Int, raw_game_compare), BlackBox(9,9), rep="normalized")
         bell_game_compare.β
 
-        facet_dim = facet_dimension(bc_9_22_33_vertices_unnormalized, bell_game_compare)
+        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_compare)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_compare_match = [
-            2  0  0  0  2  0  0  0  1;
-            1  1  0  1  0  1  0  1  1;
-            1  1  0  1  0  1  0  1  1;
-            1  1  0  1  0  1  0  1  1;
-            1  1  0  1  0  1  0  1  1;
-            0  2  0  0  0  2  1  0  0;
-            1  1  0  1  0  1  0  1  1;
-            0  0  1  2  0  0  0  2  0;
-            1  1  1  1  1  1  1  1  0;
+            1  0  0  0  0  0  0  0  0;
+            0  0  0  2  0  0  0  0  0;
+            0  2  0  0  0  0  0  0  0;
+            0  0  0  0  0  0  0  0  1;
+            0  0  0  2  0  0  0  0  0;
+            0  2  0  0  0  0  0  0  0;
+            0  1  0  1  0  0  0  0  0;
+            0  1  0  2  0  0  0  0  0;
+            0  2  0  1  0  0  0  0  0;
         ]
         @test bell_game_compare_match == bell_game_compare
-        @test bell_game_compare.β == 9
+        @test bell_game_compare.β == 4
+
+        raw_game_perm = optimize_linear_witness(bc_9_22_33_vertices, perm_test[1:end-1,:][:])
+
 
         println(raw_game_perm)
-        bell_game_perm = convert(BellGame, round.(Int, 7*raw_game_perm), BlackBox(9,9), rep="normalized")
+        bell_game_perm = convert(BellGame, round.(Int, 3*raw_game_perm), BlackBox(9,9), rep="normalized")
         bell_game_perm.β
-
-        facet_dim = facet_dimension(bc_9_22_33_vertices_unnormalized, bell_game_perm)
+        
+        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_perm)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_perm_match = [
-            2  0  0  0  2  0  0  0  2;
-            0  2  0  1  0  0  1  0  2;
-            0  0  2  1  1  0  1  1  0;
-            1  0  0  0  2  0  1  0  2;
-            1  1  0  0  0  2  1  1  0;
-            0  2  0  2  0  0  0  0  2;
-            1  0  0  0  2  0  1  0  2;
-            0  1  1  0  1  1  2  0  1;
-            1  1  1  1  1  1  1  1  1;
+            2  0  0  0  0  0  0  0  0;
+            0  2  0  0  0  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            1  0  0  0  1  0  0  0  0;
+            0  1  0  0  0  1  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
+            1  1  3  0  0  0  0  0  0;
         ]
         @test bell_game_perm_match == bell_game_perm
-        @test bell_game_perm.β == 10
+        @test bell_game_perm.β == 6
+
+        raw_game_diff = optimize_linear_witness(bc_9_22_33_vertices, diff_test[1:end-1,:][:])
 
         println(raw_game_diff)
-        bell_game_diff = convert(BellGame, round.(Int, 2*raw_game_diff), BlackBox(9,9), rep="normalized")
+        bell_game_diff = convert(BellGame, round.(Int, raw_game_diff), BlackBox(9,9), rep="normalized")
         bell_game_diff.β
 
-        facet_dim = facet_dimension(bc_9_22_33_vertices_unnormalized, bell_game_diff)
+        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_diff)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_diff_match = [
-            2  0  0  0  2  0  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            0  0  1  2  0  1  0  1  0;
-            1  0  1  1  0  2  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            1  1  1  1  1  2  1  0  0;
+            1  0  0  0  1  0  0  0  0;
+            0  0  0  0  0  0  0  0  1;
+            0  0  2  0  0  0  0  0  0;
+            0  0  0  0  0  0  0  0  1;
+            0  2  0  0  0  0  0  0  0;
+            0  0  2  0  0  0  0  0  0;
+            0  0  2  0  0  0  0  0  0;
+            0  0  2  0  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
         ]
         @test bell_game_diff_match == bell_game_diff
-        @test bell_game_diff.β == 9
+        @test bell_game_diff.β == 5
+
+        raw_game_cv = optimize_linear_witness(bc_9_22_33_vertices, cv_test[1:end-1,:][:])
+
 
         println(raw_game_cv)
-        bell_game_cv = convert(BellGame, round.(Int, 7*raw_game_cv), BlackBox(9,9), rep="normalized")
+        bell_game_cv = convert(BellGame, round.(Int, 3*raw_game_cv), BlackBox(9,9), rep="normalized")
         bell_game_cv.β
 
-        facet_dim = facet_dimension(bc_9_22_33_vertices_unnormalized, bell_game_cv)
+        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_cv)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_cv_match = [
-            2  0  0  0  2  0  0  0  2;
-            0  2  0  2  0  0  0  0  2;
-            0  0  2  2  0  0  0  2  0;
-            0  2  0  2  0  0  0  0  2;
-            2  0  0  0  2  0  0  0  2;
-            2  0  0  0  0  2  0  2  0;
-            0  2  0  0  0  2  2  0  0;
-            2  0  0  0  0  2  0  2  0;
-            1  1  1  1  1  1  1  1  1;
+            2  0  0  0  0  0  0  0  0;
+            0  2  0  0  0  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            1  0  0  1  0  0  0  0  0;
+            0  1  0  0  1  0  0  0  0;
+            0  0  3  0  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
+            1  1  2  0  0  0  0  0  0;
+            1  1  3  0  0  0  0  0  0;
         ]
         @test bell_game_cv_match == bell_game_cv
-        @test bell_game_cv.β == 10
+        @test bell_game_cv.β == 6
     end
 
 

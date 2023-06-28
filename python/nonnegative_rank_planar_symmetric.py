@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
     data_path = "data/nonnegative_rank/qubit_planar_symmetric/"
 
-    for n in range(20, 23):
+    for n in range(19, 22):
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         P = planar_sym_behavior(n)
 
@@ -147,12 +147,12 @@ if __name__ == "__main__":
             file.write(json.dumps(noisy_10_data_dict, indent=2))
 
 
-        """
-        50% white noise
-        """
-        noisy_P_50 = 0.5*P + 0.5*white_noise_P
-        noisy_50_data_dict = certify_nonnegative_rank(noisy_P_50)
-        noisy_50_filename = data_path + "n_" + str(n) + "_noisy_50__" + datetime_ext
-        with open(noisy_50_filename + ".json", "w") as file:
-            file.write(json.dumps(noisy_50_data_dict, indent=2))
+        # """
+        # 50% white noise
+        # """
+        # noisy_P_50 = 0.5*P + 0.5*white_noise_P
+        # noisy_50_data_dict = certify_nonnegative_rank(noisy_P_50)
+        # noisy_50_filename = data_path + "n_" + str(n) + "_noisy_50__" + datetime_ext
+        # with open(noisy_50_filename + ".json", "w") as file:
+        #     file.write(json.dumps(noisy_50_data_dict, indent=2))
 
