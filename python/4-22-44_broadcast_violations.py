@@ -435,8 +435,8 @@ if __name__=="__main__":
             inequality,
             # fixed_setting_ids=eacc_fixed_setting_ids,
             # fixed_settings=eacc_fixed_settings,
-            num_steps=150,
-            step_size=0.4,
+            num_steps=250,
+            step_size=0.2,
             sample_width=1,
             verbose=True
         )
@@ -523,8 +523,8 @@ if __name__=="__main__":
             inequality,
             # fixed_setting_ids=eacc_fixed_setting_ids,
             # fixed_settings=eacc_fixed_settings,
-            num_steps=150,
-            step_size=0.2,
+            num_steps=250,
+            step_size=0.1,
             sample_width=1,
             verbose=True
         )
@@ -568,8 +568,8 @@ if __name__=="__main__":
             inequality,
             # fixed_setting_ids=eacc_fixed_setting_ids,
             # fixed_settings=eacc_fixed_settings,
-            num_steps=200,
-            step_size=0.2,
+            num_steps=250,
+            step_size=0.1,
             sample_width=1,
             verbose=True
         )
