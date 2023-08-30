@@ -97,9 +97,9 @@ if __name__=="__main__":
         qml.RY(settings[1], wires=[wires[5]])
         qml.ctrl(qml.SWAP, (wires[5]))(wires=wires[3:5])
 
-        # qml.ArbitraryUnitary(settings[2:5], wires=[wires[0]])
-        # qml.ArbitraryUnitary(settings[5:8], wires=[wires[3]])
-        qml.ArbitraryUnitary(settings[2:17], wires=[wires[0],wires[3]])
+        qml.ArbitraryUnitary(settings[2:5], wires=[wires[0]])
+        qml.ArbitraryUnitary(settings[5:8], wires=[wires[3]])
+        # qml.ArbitraryUnitary(settings[2:17], wires=[wires[0],wires[3]])
 
         b0 = qml.measure(wires[0])
         b1 = qml.measure(wires[3])
@@ -107,7 +107,7 @@ if __name__=="__main__":
         return [b0, b1]
 
     eacc_bc_tx_nodes = [
-        qnetvo.CCSenderNode(num_in=3, wires=[4,6,7,5,8,9], ansatz_fn=eacc_tx_circ, num_settings=17, cc_wires_out=[0,1]),
+        qnetvo.CCSenderNode(num_in=3, wires=[4,6,7,5,8,9], ansatz_fn=eacc_tx_circ, num_settings=8, cc_wires_out=[0,1]),
     ]
 
     def eacc_rx_circ(settings, wires, cc_wires):
@@ -153,7 +153,7 @@ if __name__=="__main__":
         qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6])
     ]
     ghzacc_bc_source_nodes = [
-        qnetvo.PrepareNode(wires=[0,2,4], ansatz_fn=qnetvo.ghz_state),
+        qnetvo.PrepareNode(wires=[0,2,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=63)#ansatz_fn=qnetvo.ghz_state),
     ]
 
     def ghzacc_tx_circ(settings, wires):
@@ -214,7 +214,7 @@ if __name__=="__main__":
         qnetvo.PrepareNode(wires=[0,1,2,3,4])
     ]
     ghzaqc_bc_source_nodes = [
-        qnetvo.PrepareNode(wires=[0,2,4], ansatz_fn=qnetvo.ghz_state),
+        qnetvo.PrepareNode(wires=[0,2,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=63), #ansatz_fn=qnetvo.ghz_state),
     ]
     ghzaqc_bc_prep_nodes = [
         qnetvo.ProcessingNode(num_in=3, wires=[1,3,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
@@ -238,7 +238,7 @@ if __name__=="__main__":
 
     inequalities = mac.bipartite_broadcast_bounds()
 
-    for i in range(1, len(inequalities)):
+    for i in range(6, len(inequalities)):
         inequality = inequalities[i]
         num_in = inequality[1].shape[1]
 
@@ -350,7 +350,7 @@ if __name__=="__main__":
         #     # fixed_setting_ids=eacc_fixed_setting_ids,
         #     # fixed_settings=eacc_fixed_settings,
         #     num_steps=150,
-        #     step_size=0.4,
+        #     step_size=0.2,
         #     sample_width=1,
         #     verbose=True
         # )
@@ -480,8 +480,8 @@ if __name__=="__main__":
         #     inequality,
         #     # fixed_setting_ids=eacc_fixed_setting_ids,
         #     # fixed_settings=eacc_fixed_settings,
-        #     num_steps=150,
-        #     step_size=0.4,
+        #     num_steps=250,
+        #     step_size=0.1,
         #     sample_width=1,
         #     verbose=True
         # )
@@ -496,7 +496,8 @@ if __name__=="__main__":
         #         max_score = max(ghzaqc_bc_opt_dicts[j]["scores"])
         #         max_opt_dict = ghzaqc_bc_opt_dicts[j]
 
-        # scenario = "ghzaqc_bc_arb_"
+        # # scenario = "ghzaqc_bc_arb_"
+        # scenario = "gea3_bc_arb_"
         # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         # qnetvo.write_optimization_json(
         #     max_opt_dict,

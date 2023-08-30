@@ -39,7 +39,7 @@ include("../src/MultiAccessChannels.jl")
                 0 0 0 0;0 0 0 0;0 0 0 0;0 0 0 1;
             ]
 
-            perm_max_violation = max(map(v -> sum(perm_test[:] .* v), vertices_4_22_44_unnormalized[1])...)
+            perm_max_violation = max(map(v -> sum(perm_test[:] .* v), vertices_4_22_44_unnormalized)...)
             @test perm_max_violation ==4
 
             raw_game_cv_4_22_44 = optimize_linear_witness(vertices_4_22_44, cv_test[1:end-1,:][:])
@@ -121,6 +121,7 @@ include("../src/MultiAccessChannels.jl")
 
     @testset "" begin
         vertices_9_22_44 = broadcast_vertices(9,4,4,2,2)
+        vertices_9_22_44_unnormalized = broadcast_vertices(9,4,4,2,2, normalize=false)
 
         @test length(vertices_9_22_44) == 9388096
 
@@ -148,10 +149,32 @@ include("../src/MultiAccessChannels.jl")
                 if a_bits[y] == b_bits[x]
                     magic_squares_game[i, col_id] = 1
                 end
-
-
             end
         end
+        ms_test = [
+            1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0;
+            1.0 1.0 1.0 0.0 0.0 0.0 1.0 1.0 1.0;
+            0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0;
+            0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 
+            .0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 1.0;
+            1.0 0.0 0.0 0.0 1.0 1.0 1.0 0.0 0.0;
+            0.0 1.0 1.0 1.0 0.0 0.0 1.0 0.0 0.0;
+            0.0 1.0 1.0 0.0 1.0 1.0 0.0 1.0 1.0;
+            0.0 1.0 0.0 0.0 1.0 0.0 1.0 0.0 1.0;
+            0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0;
+            1.0 0.0 1.0 0.0 1.0 0.0 0.0 1.0 0.0;
+            1.0 0.0 1.0 1.0 0.0 1.0 1.0 0.0 1.0;
+            0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0 0.0;
+            0.0 0.0 1.0 1.0 1.0 0.0 0.0 0.0 1.0;
+            1.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 1.0;
+            1.0 1.0 0.0 1.0 1.0 0.0 1.0 1.0 0.0;
+        ]
+        println(magic_squares_game)
+
+        # no advantageg
+        ms_max_violation = max(map(v -> sum(magic_squares_game[:] .* v), vertices_9_22_44_unnormalized)...)
+        @test ms_max_violation == 9
+
 
     end
 

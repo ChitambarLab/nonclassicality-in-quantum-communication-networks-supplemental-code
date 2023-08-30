@@ -77,3 +77,50 @@ end
 
     println(raw_game)
 end
+
+@testset "(6,3)->(2,3)->2 qmac  " begin
+    
+    vertices = multi_access_vertices(6,3,2,2,3)
+
+    diff_test = [
+        1 0 0 0 1 1 0 1 0 1 0 1 0 0 1 1 1 0;
+        0 1 1 1 0 0 1 0 1 0 1 0 1 1 0 0 0 1;
+    ]
+
+    raw_game = optimize_linear_witness(vertices, diff_test[1,:][:])
+    bell_game = convert(BellGame, round.(Int, 2*raw_game), BlackBox(2,18), rep="normalized")
+
+
+    println(raw_game)
+
+    @test raw_game ≈ [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] 
+end
+
+@testset "(8,3)->(2,3)->2 qmac  " begin
+    
+    vertices = multi_access_vertices(8,3,2,2,3)
+    gen_vertices = multi_access_vertices(8,3,2,2,3, normalize=false)
+
+    diff_test = [
+        1 1 1  1 1 0  1 0 1  1 0 0  0 1 1  0 1 0  0 0 1  0 0 0;
+        0 0 0  0 0 1  0 1 0  0 1 1  1 0 0  1 0 1  1 1 0  1 1 1;
+    ]
+
+    max_score = 0
+    for v in gen_vertices
+        score = sum(diff_test[:].*v[:])
+        if score > max_score
+            max_score = score
+        end
+    end
+    max_score
+
+    raw_game = optimize_linear_witness(vertices, diff_test[1,:][:])
+    bell_game = convert(BellGame, round.(Int, 2*raw_game), BlackBox(2,24), rep="normalized")
+    bell_game.β
+
+
+    println(raw_game)
+
+    @test raw_game ≈ [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] 
+end

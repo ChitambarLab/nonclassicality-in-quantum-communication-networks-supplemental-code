@@ -1490,7 +1490,7 @@ include("../src/MultiAccessChannels.jl")
             0 0 1 0 0 0 0 0 0;
         ]
 
-        test_mat = [
+        test_mat3 = [
             2/9 1/18   1/18;  
             1/18   2/9 1/18;  
             1/18   1/18   2/9;
@@ -1501,6 +1501,7 @@ include("../src/MultiAccessChannels.jl")
             1/18   1/18   2/9;
             2/9 1/18   1/18;  
         ]
+        test_mat4 = hcat(test_mat3, test_mat3, test_mat3)
 
         test_mat_max_violation = max(map(v -> sum(test_mat[:] .* v), bc_9_22_33_vertices_unnormalized)...)
         raw_game_test_mat = optimize_linear_witness(bc_9_22_33_vertices, test_mat[1:end-1,:][:])
@@ -1526,6 +1527,9 @@ include("../src/MultiAccessChannels.jl")
             0 0 0 0 1 0 0 0 0;
             0 0 0 0 0 1 0 0 0;
         ]
+
+        raw_game_test_mat4 = optimize_linear_witness(bc_9_22_33_vertices, test_mat4[1:end-1,:][:])
+
 
 
         @test bell_game_test_mat2 == [

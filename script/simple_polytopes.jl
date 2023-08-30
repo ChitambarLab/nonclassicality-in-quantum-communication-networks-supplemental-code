@@ -529,6 +529,135 @@ include("../src/MultiAccessChannels.jl")
         @test bg20.β == 17
     end
 
+
+    @testset "(3,3) -> (2,3) -> 2" begin
+        (X, Y, Z, dA, dB) = (3, 3, 2, 2, 3)
+
+        vertices = multi_access_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 176
+        @test length(vertices[1]) == 9
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 186
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(2,9),rep="normalized"), facets)
+
+        classes_dict = facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 6
+
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [
+            0  0  0  0  0  0 0 0 0;
+            1  0  0  0  0  0 0 0 0;
+        ]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [
+            0  0  0  0  1  0  1  0  0;
+            1  1  0  1  0  0  0  0  0;
+        ]
+        @test bg2.β == 4
+
+        bg3 = bell_games[findfirst(bg -> bg in classes_dict[3], bell_games)]
+        @test bg3 == [
+            0 0 1 0 1 0 1 0 0;
+            1 1 0 1 0 1 0 1 1;
+        ]
+        @test bg3.β == 7
+
+        bg4 = bell_games[findfirst(bg -> bg in classes_dict[4], bell_games)]
+        @test bg4 == [
+            0 0 0 0 1 0 1 0 1;
+            1 1 0 0 0 1 0 0 0;
+        ]
+        @test bg4.β == 5
+
+        bg5 = bell_games[findfirst(bg -> bg in classes_dict[5], bell_games)]
+        @test bg5 == [
+            0 0 1 0 1 0 1 0 0;
+            1 0 0 0 0 1 0 1 0;
+        ]
+        @test bg5.β == 5
+
+        bg6 = bell_games[findfirst(bg -> bg in classes_dict[6], bell_games)]
+        @test bg6 == [
+            0 0 0 0 1 1 1 0 1;
+            1 1 1 1 0 0 0 1 0;
+        ]
+        @test bg6.β == 7
+    end
+
+    @testset "(3,3) -> (2,3) -> 2" begin
+        (X, Y, Z, dA, dB) = (4, 3, 2, 2, 3)
+
+        vertices = multi_access_vertices(X,Y,Z,dA,dB)
+        @test length(vertices) == 400
+        @test length(vertices[1]) == 12
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 186
+        @test facet_dict["equalities"] == []
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(2,9),rep="normalized"), facets)
+
+        classes_dict = facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 6
+
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [
+            0  0  0  0  0  0 0 0 0;
+            1  0  0  0  0  0 0 0 0;
+        ]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [
+            0  0  0  0  1  0  1  0  0;
+            1  1  0  1  0  0  0  0  0;
+        ]
+        @test bg2.β == 4
+
+        bg3 = bell_games[findfirst(bg -> bg in classes_dict[3], bell_games)]
+        @test bg3 == [
+            0 0 1 0 1 0 1 0 0;
+            1 1 0 1 0 1 0 1 1;
+        ]
+        @test bg3.β == 7
+
+        bg4 = bell_games[findfirst(bg -> bg in classes_dict[4], bell_games)]
+        @test bg4 == [
+            0 0 0 0 1 0 1 0 1;
+            1 1 0 0 0 1 0 0 0;
+        ]
+        @test bg4.β == 5
+
+        bg5 = bell_games[findfirst(bg -> bg in classes_dict[5], bell_games)]
+        @test bg5 == [
+            0 0 1 0 1 0 1 0 0;
+            1 0 0 0 0 1 0 1 0;
+        ]
+        @test bg5.β == 5
+
+        bg6 = bell_games[findfirst(bg -> bg in classes_dict[6], bell_games)]
+        @test bg6 == [
+            0 0 0 0 1 1 1 0 1;
+            1 1 1 1 0 0 0 1 0;
+        ]
+        @test bg6.β == 7
+    end
+
+
+
     @testset "(3,3) -> (2,2) -> 3" begin
         (X, Y, Z, dA, dB) = (3, 3, 3, 2, 2)
 
