@@ -917,6 +917,50 @@ def mac_33_22_9_network_bounds():
 
     return mac_game_inequalities, mac_facet_inequalities, game_names
 
+def broadcast_4_22_44_network_bounds():
+    bc_facet_inequalities = [
+        (2, np.array([ # correlated communication value
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,1,0,0],
+            [1,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,1,0],
+            [0,0,0,1],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,1],
+            [0,0,1,0],
+        ])),
+        (8, np.array(  # derived from PR-box-asissted receiver CHSH violation
+            [
+                [3,0,0,0],
+                [0,3,0,0],
+                [0,0,0,3],
+                [1,1,0,2],
+                [1,1,0,2],
+                [1,1,0,2],
+                [2,1,0,2],
+                [1,3,0,2],
+                [1,0,2,0],
+                [0,1,2,0],
+                [0,0,0,3],
+                [1,1,0,2],
+                [2,1,0,2],
+                [1,2,0,2],
+                [1,1,1,2],
+                [2,2,1,2],
+            ]
+        )),
+    ]
+
+    return bc_facet_inequalities
+
 def broadcast_9_22_33_network_bounds():
     bc_game_inequalities = [
         (7, np.array([ # multiplication with zero 
