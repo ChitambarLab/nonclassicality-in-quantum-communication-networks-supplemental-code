@@ -1137,3 +1137,110 @@ def broadcast_9_22_33_network_bounds():
     game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
 
     return bc_game_inequalities, bc_facet_inequalities, game_names
+
+def rac_game(n):
+    X = 2**n
+    Y = n
+
+    game = np.zeros((2, X*Y))
+    col_id = 0
+    for x in range(X):
+        for y in range(Y):
+            bin_string = [int(i) for i in np.binary_repr(x, width=n)]
+
+            row_id = bin_string[y]
+            game[row_id, col_id] = 1
+
+            col_id += 1
+    
+    if n == 2:
+        bound = 6
+    elif n == 3:
+        bound = 18
+    elif n == 4:
+        bound = 28
+    else:
+        bound = X*Y - 2
+
+    return (bound, game)
+
+
+def multiaccess_33_23_2_bounds():
+    return [
+        (4, np.array([
+            [0,  0,  0,  0,  1,  0,  1,  0,  0],
+            [1,  1,  0,  1,  0,  0,  0,  0,  0],
+        ])),
+        (7, np.array([
+            [0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [1, 1, 0, 1, 0, 1, 0, 1, 1],
+        ])),
+        (5, np.array([
+            [0, 0, 0, 0, 1, 0, 1, 0, 1],
+            [1, 1, 0, 0, 0, 1, 0, 0, 0],
+        ])),
+        (5, np.array([
+            [0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [1, 0, 0, 0, 0, 1, 0, 1, 0],
+        ])),
+        (7, np.array([
+            [0, 0, 0, 0, 1, 1, 1, 0, 1],
+            [1, 1, 1, 1, 0, 0, 0, 1, 0],
+        ])),
+    ]
+
+def multiaccess_33_32_2_bounds():
+    return [
+        (4, np.array([
+            [0,  0,  1, 0,  1,  0,  0,  0,  0],
+            [1,  1,  0, 1,  0,  0,  0,  0,  0],
+        ])),
+        (7, np.array([
+            [0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [1, 1, 0, 1, 0, 1, 0, 1, 1],
+        ])),
+        (5, np.array([
+            [0, 0, 1, 0, 1, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 1, 0],
+        ])),
+        (5, np.array([
+            [0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [1, 0, 0, 0, 0, 1, 0, 1, 0],
+        ])),
+        (7, np.array([
+            [0, 0, 1, 0, 1, 0, 0, 1, 1],
+            [1, 1, 0, 1, 0, 1, 1, 0, 0],
+        ])),
+    ]
+
+def multiaccess_twotrit_witnesses():
+    return [
+        (6, np.array([
+            [0,  0,  0,  0,  1,  0,  1,  0,  0],
+            [1,  1,  0,  1,  0,  1,  0,  0,  1],
+        ])),
+        (7, np.array([
+            [0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [1, 1, 0, 1, 0, 1, 0, 1, 1],
+        ])),
+        (5, np.array([
+            [0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [1, 1, 0, 1, 0, 0, 0, 0, 0],
+        ])),
+        (5, np.array([
+            [0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [1, 0, 0, 0, 0, 1, 0, 1, 0],
+        ])),
+        (9, np.array([
+            [0, 0, 2, 0, 1, 0, 2, 0, 0],
+            [2, 1, 0, 1, 0, 1, 0, 1, 0],
+        ])),
+        (11, np.array([
+            [0, 0, 1, 1, 0, 0, 2, 0, 2],
+            [2, 1, 0, 0, 1, 2, 0, 1, 0],
+        ])),
+        (11, np.array([
+            [0, 1, 2, 0, 0, 0, 1, 0, 2],
+            [2, 0, 0, 1, 1, 1, 0, 2, 0],
+        ])),
+    ]

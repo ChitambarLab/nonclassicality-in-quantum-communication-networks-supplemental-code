@@ -61,6 +61,10 @@ if __name__=="__main__":
         [1,0,0,1,0,1,1,0],
         [0,1,1,0,1,0,0,1],
     ])
+    parity_postmap4 = np.array([
+        [1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1],
+        [0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0],
+    ])
     and_postmap3 = np.array([
         [1,1,1,1,1,1,1,0],
         [0,0,0,0,0,0,0,1],
@@ -193,37 +197,79 @@ if __name__=="__main__":
 
 
     ea_rxtx_proc_cmac_nodes = [
-        qnet.CCSenderNode(num_in=3, wires=[0], ansatz_fn=cctx_circuit, num_settings=3, cc_wires_out=[0]),
-        qnet.CCSenderNode(num_in=3, wires=[2], ansatz_fn=cctx_circuit, num_settings=3, cc_wires_out=[1]),
+        qnet.CCSenderNode(num_in=3, wires=[0,4,5], ansatz_fn=cctx_swap_circuit, num_settings=4, cc_wires_out=[0]),
+        qnet.CCSenderNode(num_in=3, wires=[2,6,7], ansatz_fn=cctx_swap_circuit, num_settings=4, cc_wires_out=[1]),
     ]
 
 
     def ea_rxtx_circuit(settings, wires, cc_wires):
         # apply quantum operations conditioned on classical communication
-        qml.cond(cc_wires[0], qml.ArbitraryUnitary)(settings[0:3], wires=wires[0:1])
-        qml.cond(cc_wires[1], qml.ArbitraryUnitary)(settings[3:6], wires=wires[1:2])
+        # qml.cond(cc_wires[0], qml.ArbitraryUnitary)(settings[0:3], wires=wires[0:1])
+        # qml.cond(cc_wires[1], qml.ArbitraryUnitary)(settings[3:6], wires=wires[1:2])
+        qml.cond(cc_wires[0] == 0, qml.ArbitraryUnitary)(settings[0:15], wires=[wires[0], wires[2]])
+        qml.cond(cc_wires[0] == 1, qml.ArbitraryUnitary)(settings[15:30], wires=[wires[0], wires[2]])
+        qml.cond(cc_wires[1] == 0, qml.ArbitraryUnitary)(settings[30:45], wires=[wires[1], wires[3]])
+        qml.cond(cc_wires[1] == 1, qml.ArbitraryUnitary)(settings[45:60], wires=[wires[1], wires[3]])
+        # qml.cond(cc_wires[0], qml.ArbitraryUnitary)(settings[0:63], wires=wires[0:3])
+        # qml.cond(cc_wires[1], qml.ArbitraryUnitary)(settings[63:126], wires=wires[0:3])
 
-        qml.ArbitraryUnitary(settings[6:21], wires=wires[0:2])
+        # qml.cond(cc_wires[0] == 0 and cc_wires[1] == 0, qml.ArbitraryUnitary)(settings[0:63], wires=wires[0:3])
+        # qml.cond(cc_wires[0] == 0 and cc_wires[1] == 1, qml.ArbitraryUnitary)(settings[63:126], wires=wires[0:3])
+        # qml.cond(cc_wires[0] == 1 and cc_wires[1] == 0, qml.ArbitraryUnitary)(settings[126:189], wires=wires[0:3])
+        # qml.cond(cc_wires[0] == 1 and cc_wires[1] == 1, qml.ArbitraryUnitary)(settings[189:252], wires=wires[0:3])
+       
+
+        def rx_circ(settings, wires):
+            # qml.ArbitraryUnitary(settings[0:3], wires=[wires[0]])
+            # qml.ArbitraryStatePreparation(settings[3:5], wires=[wires[1]])
+            qml.ArbitraryUnitary(settings[0:63], wires=wires[0:2])
+            qml.ArbitraryStatePreparation(settings[15:21], wires=wires[2:4])
+
+        # qml.cond(cc_wires[0] == 0 and cc_wires[1] == 0, qml.ArbitraryUnitary)(settings[0:255], wires=wires[0:4])
+        # qml.cond(cc_wires[0] == 0 and cc_wires[1] == 1, qml.ArbitraryUnitary)(settings[255:510], wires=wires[0:4])
+        # qml.cond(cc_wires[0] == 1 and cc_wires[1] == 0, qml.ArbitraryUnitary)(settings[510:765], wires=wires[0:4])
+        # qml.cond(cc_wires[0] == 1 and cc_wires[1] == 1, qml.ArbitraryUnitary)(settings[765:1020], wires=wires[0:4])
+        
+        # qml.cond(cc_wires[0], rx_circ)(settings[0:21], wires=wires[0:4])
+        # qml.cond(cc_wires[1], rx_circ)(settings[21:42], wires=wires[0:4])
+
+        # qml.cond(cc_wires[0]==0, rx_circ)(settings[0:21], wires=[wires[0], wires[2]])
+        # qml.cond(cc_wires[0]==1, rx_circ)(settings[6:12], wires=[wires[0], wires[2]])
+        # qml.cond(cc_wires[1]==0, rx_circ)(settings[12:18], wires=[wires[1], wires[3]])
+        # qml.cond(cc_wires[1]==1, rx_circ)(settings[18:24], wires=[wires[1], wires[3]])
+
+        qml.ArbitraryUnitary(settings[60:315], wires=wires[0:4])
+
+
+        # qml.ArbitraryUnitary(settings[60:75], wires=wires[0:2])
+
+
+
+        # qml.cond(cc_wires[0] == 0 and cc_wires[1] == 0, qml.ArbitraryUnitary)(settings[0:15], wires=wires[0:2])
+        # qml.cond(cc_wires[0] == 0 and cc_wires[1] == 1, qml.ArbitraryUnitary)(settings[15:30], wires=wires[0:2])
+        # qml.cond(cc_wires[0] == 1 and cc_wires[1] == 0, qml.ArbitraryUnitary)(settings[30:45], wires=wires[0:2])
+        # qml.cond(cc_wires[0] == 1 and cc_wires[1] == 1, qml.ArbitraryUnitary)(settings[45:60], wires=wires[0:2])
+
 
 
     
     ea_rxtx_rec_cmac_nodes = [
-        qnet.CCReceiverNode(wires=[1,3], ansatz_fn=ea_rxtx_circuit, num_settings=21, cc_wires_in=[0,1]),
+        qnet.CCReceiverNode(wires=[1,3,8,9], ansatz_fn=ea_rxtx_circuit, num_settings=315, cc_wires_in=[0,1]),
     ]
     ea_rxtx_meas_cmac_nodes = [
-        qnet.MeasureNode(num_in=1, num_out=4, wires=[1,3])
+        qnet.MeasureNode(num_in=1, num_out=2, wires=[1,3,8,9])
     ]
 
     inequalities = [(7, mac.finger_printing_matrix(2,3))] + mac.bisender_mac_bounds()
     
-    for i in range(0,20):
+    for i in range(14,20):
         inequality = inequalities[i]
 
         print("i = ", i)
         inequality_tag = "I_fp_" if i == 0 else "I_" + str(i) + "_"
 
 
-        for postmap_tag in ["xor_", "and_"]:
+        for postmap_tag in ["xor_"]:#, "and_"]:
             postmap = parity_postmap if postmap_tag == "xor_" else and_postmap
             postmap3 = parity_postmap3 if postmap_tag == "xor_" else and_postmap3
 
@@ -413,44 +459,45 @@ if __name__=="__main__":
 
             # print("iteration time  : ", time.time() - time_start)
 
-            # """
-            # EA TX RX CMAC
-            # """
-            # time_start = time.time()
+            """
+            EA TX RX CMAC
+            """
+            time_start = time.time()
 
-            # ea_txrx_cmac_opt_fn = optimize_inequality(
-            #     [
-            #         ghza_rxtx_cmac_prep_nodes,
-            #         ea_rxtx_proc_cmac_nodes,
-            #         ea_rxtx_rec_cmac_nodes,
-            #         ea_rxtx_meas_cmac_nodes,
-            #     ],
-            #     postmap,
-            #     inequality,
-            #     num_steps=170,
-            #     step_size=0.12,
-            #     sample_width=1,
-            #     verbose=False
-            # )
+            ea_txrx_cmac_opt_fn = optimize_inequality(
+                [
+                    ghza_rxtx_cmac_prep_nodes,
+                    ea_rxtx_proc_cmac_nodes,
+                    ea_rxtx_rec_cmac_nodes,
+                    ea_rxtx_meas_cmac_nodes,
+                ],
+                parity_postmap4,
+                # np.eye(2),
+                inequality,
+                num_steps=170,
+                step_size=0.2,
+                sample_width=1,
+                verbose=True,
+            )
 
-            # ea_txrx_cmac_opt_jobs = client.map(ea_txrx_cmac_opt_fn, range(n_workers))
-            # ea_txrx_cmac_opt_dicts = client.gather(ea_txrx_cmac_opt_jobs)
+            ea_txrx_cmac_opt_jobs = client.map(ea_txrx_cmac_opt_fn, range(n_workers))
+            ea_txrx_cmac_opt_dicts = client.gather(ea_txrx_cmac_opt_jobs)
 
-            # max_opt_dict = ea_txrx_cmac_opt_dicts[0]
-            # max_score = max(max_opt_dict["scores"])
-            # for j in range(1,n_workers):
-            #     if max(ea_txrx_cmac_opt_dicts[j]["scores"]) > max_score:
-            #         max_score = max(ea_txrx_cmac_opt_dicts[j]["scores"])
-            #         max_opt_dict = ea_txrx_cmac_opt_dicts[j]
+            max_opt_dict = ea_txrx_cmac_opt_dicts[0]
+            max_score = max(max_opt_dict["scores"])
+            for j in range(1,n_workers):
+                if max(ea_txrx_cmac_opt_dicts[j]["scores"]) > max_score:
+                    max_score = max(ea_txrx_cmac_opt_dicts[j]["scores"])
+                    max_opt_dict = ea_txrx_cmac_opt_dicts[j]
 
-            # scenario = "ghza_txrx_cmac_"
-            # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-            # qnet.write_optimization_json(
-            #     max_opt_dict,
-            #     data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-            # )
+            scenario = "ghza_txrx_cmac_"
+            datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+            qnet.write_optimization_json(
+                max_opt_dict,
+                data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+            )
 
-            # print("iteration time  : ", time.time() - time_start)
+            print("iteration time  : ", time.time() - time_start)
 
             # """
             # GHZA CMAC
@@ -494,47 +541,47 @@ if __name__=="__main__":
 
             #     print("iteration time  : ", time.time() - time_start)
 
-            """
-            EA3 CMAC
-            """
-            # there is only one qubit being measured.
-            if postmap_tag == "xor_":
-                time_start = time.time()
+            # """
+            # EA3 CMAC
+            # """
+            # # there is only one qubit being measured.
+            # if postmap_tag == "xor_":
+            #     time_start = time.time()
 
-                ea3_cmac_opt_fn = optimize_inequality(
-                    [
-                        ea3_mac_prep_nodes,
-                        ea3_mac_cctx_nodes,
-                        ghza_mac_ccrx_nodes,
-                        ghza_mac_meas_nodes,
-                    ],
-                    np.eye(2),
-                    inequality,
-                    num_steps=160,
-                    step_size=0.05,
-                    sample_width=1,
-                    verbose=False
-                )
+            #     ea3_cmac_opt_fn = optimize_inequality(
+            #         [
+            #             ea3_mac_prep_nodes,
+            #             ea3_mac_cctx_nodes,
+            #             ghza_mac_ccrx_nodes,
+            #             ghza_mac_meas_nodes,
+            #         ],
+            #         np.eye(2),
+            #         inequality,
+            #         num_steps=160,
+            #         step_size=0.05,
+            #         sample_width=1,
+            #         verbose=False
+            #     )
 
 
-                ea3_cmac_opt_jobs = client.map(ea3_cmac_opt_fn, range(n_workers))
-                ea3_cmac_opt_dicts = client.gather(ea3_cmac_opt_jobs)
+            #     ea3_cmac_opt_jobs = client.map(ea3_cmac_opt_fn, range(n_workers))
+            #     ea3_cmac_opt_dicts = client.gather(ea3_cmac_opt_jobs)
 
-                max_opt_dict = ea3_cmac_opt_dicts[0]
-                max_score = max(max_opt_dict["scores"])
-                for j in range(1,n_workers):
-                    if max(ea3_cmac_opt_dicts[j]["scores"]) > max_score:
-                        max_score = max(ea3_cmac_opt_dicts[j]["scores"])
-                        max_opt_dict = ea3_cmac_opt_dicts[j]
+            #     max_opt_dict = ea3_cmac_opt_dicts[0]
+            #     max_score = max(max_opt_dict["scores"])
+            #     for j in range(1,n_workers):
+            #         if max(ea3_cmac_opt_dicts[j]["scores"]) > max_score:
+            #             max_score = max(ea3_cmac_opt_dicts[j]["scores"])
+            #             max_opt_dict = ea3_cmac_opt_dicts[j]
 
-                scenario = "ea3_cmac_"
-                datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-                qnet.write_optimization_json(
-                    max_opt_dict,
-                    data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-                )
+            #     scenario = "ea3_cmac_"
+            #     datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+            #     qnet.write_optimization_json(
+            #         max_opt_dict,
+            #         data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+            #     )
 
-                print("iteration time  : ", time.time() - time_start)
+            #     print("iteration time  : ", time.time() - time_start)
 
             # """
             # GHZ CMAC no LOCC

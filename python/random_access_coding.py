@@ -68,7 +68,7 @@ def rac_game(n):
     if n == 2:
         bound = 6
     elif n == 3:
-        bound = 14
+        bound = 18
     elif n == 4:
         bound = 28
     else:
