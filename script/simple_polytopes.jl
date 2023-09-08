@@ -1007,6 +1007,76 @@ include("../src/MultiAccessChannels.jl")
         @test bg2.β == 2
     end
 
+    @testset "3 -> (3,2) -> (3,3)" begin
+        (X, Y, Z, dA, dB) = (3, 3, 3, 3, 2)
+
+        vertices = broadcast_vertices(X,Y,Z,dA,dB)
+
+        @test length(vertices) == 567
+        @test length(vertices[1]) == 24
+        @test length(vertices[1]) == BellScenario.dimension(vertices)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 33
+        @test length(facet_dict["equalities"]) == 0
+
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(9,3),rep="normalized"), facets)
+
+
+        classes_dict = bipartite_broadcast_facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 2
+
+        # nonnegativity game
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [0 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [0 0 1;0 1 0;1 0 0;0 0 1;0 1 0;1 0 0;0 0 1;0 1 0;1 0 0]
+        @test bg2.β == 2
+    end
+
+    @testset "3 -> (3/2,2/3) -> (3,3)" begin
+
+        vertices_a = broadcast_vertices(3,3,3,3,2)
+        vertices_b = broadcast_vertices(3,3,3,2,3)
+
+        vertices = cat(vertices_a,vertices_b, dims=1)
+
+        @test length(vertices) == 1134
+        @test length(vertices[1]) == 24
+        @test length(vertices[1]) == BellScenario.dimension(vertices)
+
+        facet_dict = LocalPolytope.facets(vertices)
+
+        facets = facet_dict["facets"]
+
+        @test length(facets) == 63
+        @test length(facet_dict["equalities"]) == 0
+
+
+        bell_games = map(f -> convert(BellGame, f, BlackBox(9,3),rep="normalized"), facets)
+
+
+        classes_dict = bipartite_broadcast_facet_classes(X, Y, Z, bell_games)
+
+        @test length(keys(classes_dict)) == 2
+
+        # nonnegativity game
+        bg1 = bell_games[findfirst(bg -> bg in classes_dict[1], bell_games)]
+        @test bg1 == [0 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0;1 0 0]
+        @test bg1.β == 1
+
+        bg2 = bell_games[findfirst(bg -> bg in classes_dict[2], bell_games)]
+        @test bg2 == [0 0 1;0 0 0;0 0 0;0 0 0;0 1 0;0 0 0;0 0 0;0 0 0;1 0 0]
+        @test bg2.β == 2
+    end
+
     @testset "3 -> (2,2) -> (3,3)" begin
         (X, Y, Z, dA, dB) = (3, 3, 3, 2, 2)
 

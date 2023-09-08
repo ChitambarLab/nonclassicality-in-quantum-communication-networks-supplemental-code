@@ -233,10 +233,19 @@ if __name__=="__main__":
     onesided_eaqc_bc_prep_nodes = [
         qnetvo.PrepareNode(num_in=3, wires=[1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
+    def local_prep_circ(settings, wires):
+        qml.ArbitraryUnitary(settings[0:3], wires=wires[0:1])
+        qml.ArbitraryStatePreparation(settings[3:5], wires=wires[1:2])
+
+
+    onesided_eaqc_bc_sep_prep_nodes = [
+        qnetvo.PrepareNode(num_in=3, wires=[1,2], ansatz_fn=local_prep_circ, num_settings=5),
+    ]
     onesided_eaqc_bc_meas_nodes = [
         qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
         qnetvo.MeasureNode(num_out=3, wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
+    
 
 
     inequalities = mac.bipartite_broadcast_bounds()
@@ -421,49 +430,49 @@ if __name__=="__main__":
 
         # print("iteration time  : ", time.time() - time_start)
 
-        # """
-        # entanglement-assisted receivers quantum communication broadcast
-        # """
-        # client.restart()
+        """
+        entanglement-assisted receivers quantum communication broadcast
+        """
+        client.restart()
 
-        # time_start = time.time()
+        time_start = time.time()
 
-        # earx_qc_bc_opt_fn = optimize_inequality(
-        #     [
-        #         earx_qc_bc_set_wires,
-        #         earx_qc_bc_source_nodes,
-        #         earx_qc_bc_prep_nodes,
-        #         earx_qc_bc_proc_nodes,
-        #         earx_qc_bc_meas_nodes
-        #     ],
-        #     np.kron(postmap3,postmap3),
-        #     inequality,
-        #     # fixed_setting_ids=eacc_fixed_setting_ids,
-        #     # fixed_settings=eacc_fixed_settings,
-        #     num_steps=150,
-        #     step_size=0.4,
-        #     sample_width=1,
-        #     verbose=True
-        # )
+        earx_qc_bc_opt_fn = optimize_inequality(
+            [
+                earx_qc_bc_set_wires,
+                earx_qc_bc_source_nodes,
+                earx_qc_bc_prep_nodes,
+                earx_qc_bc_proc_nodes,
+                earx_qc_bc_meas_nodes
+            ],
+            np.kron(postmap3,postmap3),
+            inequality,
+            # fixed_setting_ids=eacc_fixed_setting_ids,
+            # fixed_settings=eacc_fixed_settings,
+            num_steps=150,
+            step_size=0.4,
+            sample_width=1,
+            verbose=True
+        )
 
-        # earx_qc_bc_opt_jobs = client.map(earx_qc_bc_opt_fn, range(n_workers))
-        # earx_qc_bc_opt_dicts = client.gather(earx_qc_bc_opt_jobs)
+        earx_qc_bc_opt_jobs = client.map(earx_qc_bc_opt_fn, range(n_workers))
+        earx_qc_bc_opt_dicts = client.gather(earx_qc_bc_opt_jobs)
 
-        # max_opt_dict = earx_qc_bc_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(earx_qc_bc_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(earx_qc_bc_opt_dicts[j]["scores"])
-        #         max_opt_dict = earx_qc_bc_opt_dicts[j]
+        max_opt_dict = earx_qc_bc_opt_dicts[0]
+        max_score = max(max_opt_dict["scores"])
+        for j in range(1,n_workers):
+            if max(earx_qc_bc_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(earx_qc_bc_opt_dicts[j]["scores"])
+                max_opt_dict = earx_qc_bc_opt_dicts[j]
 
-        # scenario = "earx_qc_bc_arb_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
+        scenario = "earx_qc_bc_arb_"
+        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        qnetvo.write_optimization_json(
+            max_opt_dict,
+            data_dir + scenario + inequality_tag + datetime_ext,
+        )
 
-        # print("iteration time  : ", time.time() - time_start)
+        print("iteration time  : ", time.time() - time_start)
 
         # """
         # tripartite entanglement-assisted quantum communication broadcast
@@ -552,44 +561,86 @@ if __name__=="__main__":
 
         # print("iteration time  : ", time.time() - time_start)
 
-        """
-        one-sided 2 entanglement-assisted quantum communication broadcast
-        """
-        client.restart()
+        # """
+        # one-sided entanglement-assisted quantum communication broadcast with separable measurements
+        # """
+        # client.restart()
 
-        time_start = time.time()
+        # time_start = time.time()
 
-        onesided_eaqc_bc_opt_fn = optimize_inequality(
-            [
-                onesided2_eaqc_bc_source_nodes,
-                onesided_eaqc_bc_prep_nodes,
-                onesided_eaqc_bc_meas_nodes
-            ],
-            np.kron(postmap3,postmap3),
-            inequality,
-            # fixed_setting_ids=eacc_fixed_setting_ids,
-            # fixed_settings=eacc_fixed_settings,
-            num_steps=150,
-            step_size=0.2,
-            sample_width=1,
-            verbose=True
-        )
+        # onesided_eaqc_bc_opt_fn = optimize_inequality(
+        #     [
+        #         onesided_eaqc_bc_source_nodes,
+        #         onesided_eaqc_bc_sep_prep_nodes,
+        #         onesided_eaqc_bc_meas_nodes
+        #     ],
+        #     np.kron(postmap3,postmap3),
+        #     inequality,
+        #     # fixed_setting_ids=eacc_fixed_setting_ids,
+        #     # fixed_settings=eacc_fixed_settings,
+        #     num_steps=150,
+        #     step_size=0.2,
+        #     sample_width=1,
+        #     verbose=True
+        # )
 
-        onesided_eaqc_bc_opt_jobs = client.map(onesided_eaqc_bc_opt_fn, range(n_workers))
-        onesided_eaqc_bc_opt_dicts = client.gather(onesided_eaqc_bc_opt_jobs)
+        # onesided_eaqc_bc_opt_jobs = client.map(onesided_eaqc_bc_opt_fn, range(n_workers))
+        # onesided_eaqc_bc_opt_dicts = client.gather(onesided_eaqc_bc_opt_jobs)
 
-        max_opt_dict = onesided_eaqc_bc_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(onesided_eaqc_bc_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(onesided_eaqc_bc_opt_dicts[j]["scores"])
-                max_opt_dict = onesided_eaqc_bc_opt_dicts[j]
+        # max_opt_dict = onesided_eaqc_bc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(onesided_eaqc_bc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(onesided_eaqc_bc_opt_dicts[j]["scores"])
+        #         max_opt_dict = onesided_eaqc_bc_opt_dicts[j]
 
-        scenario = "onesided2_eaqc_bc_arb_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
+        # scenario = "onesided_eaqc_bc_sep_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
 
-        print("iteration time  : ", time.time() - time_start)
+        # print("iteration time  : ", time.time() - time_start)
+
+        # """
+        # one-sided 2 entanglement-assisted quantum communication broadcast
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # onesided_eaqc_bc_opt_fn = optimize_inequality(
+        #     [
+        #         onesided2_eaqc_bc_source_nodes,
+        #         onesided_eaqc_bc_prep_nodes,
+        #         onesided_eaqc_bc_meas_nodes
+        #     ],
+        #     np.kron(postmap3,postmap3),
+        #     inequality,
+        #     # fixed_setting_ids=eacc_fixed_setting_ids,
+        #     # fixed_settings=eacc_fixed_settings,
+        #     num_steps=150,
+        #     step_size=0.2,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # onesided_eaqc_bc_opt_jobs = client.map(onesided_eaqc_bc_opt_fn, range(n_workers))
+        # onesided_eaqc_bc_opt_dicts = client.gather(onesided_eaqc_bc_opt_jobs)
+
+        # max_opt_dict = onesided_eaqc_bc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(onesided_eaqc_bc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(onesided_eaqc_bc_opt_dicts[j]["scores"])
+        #         max_opt_dict = onesided_eaqc_bc_opt_dicts[j]
+
+        # scenario = "onesided2_eaqc_bc_arb_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
