@@ -73,6 +73,9 @@ if __name__=="__main__":
     arb_prep_node = [
         qnetvo.PrepareNode(wires=[0,1], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
+    ea3_prep_node = [
+        qnetvo.PrepareNode(wires=[0,1,3], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=14),
+    ]
 
 
     def eacc_arb_tx(settings, wires):
@@ -300,7 +303,7 @@ if __name__=="__main__":
     #     [np.pi,0,0,0,0,np.pi]
     # ]
 
-    for i in range(0,len(inequalities)):
+    for i in range(4,5):
         inequality = inequalities[i]
         num_in = inequality[1].shape[1]
 
@@ -316,46 +319,46 @@ if __name__=="__main__":
         num_in_b = num_in_list[i][1]
 
 
-        """
-        Quantum Signaling
-        """
-        client.restart()
+        # """
+        # Quantum Signaling
+        # """
+        # client.restart()
 
-        time_start = time.time()
+        # time_start = time.time()
 
-        qc_opt_fn = optimize_inequality(
-            [
-                qc_tx_nodes(num_in_a),
-                qc_rx_nodes(num_in_b),
-            ],
-            postmap,
-            inequality,
-            # fixed_setting_ids=fixed_setting_ry_ids[i],
-            # fixed_settings=fixed_settings[i],
-            num_steps=150,
-            step_size=0.75,
-            sample_width=1,
-            verbose=True,
-        )
+        # qc_opt_fn = optimize_inequality(
+        #     [
+        #         qc_tx_nodes(num_in_a),
+        #         qc_rx_nodes(num_in_b),
+        #     ],
+        #     postmap,
+        #     inequality,
+        #     # fixed_setting_ids=fixed_setting_ry_ids[i],
+        #     # fixed_settings=fixed_settings[i],
+        #     num_steps=150,
+        #     step_size=0.75,
+        #     sample_width=1,
+        #     verbose=True,
+        # )
 
-        qc_opt_jobs = client.map(qc_opt_fn, range(n_workers))
-        qc_opt_dicts = client.gather(qc_opt_jobs)
+        # qc_opt_jobs = client.map(qc_opt_fn, range(n_workers))
+        # qc_opt_dicts = client.gather(qc_opt_jobs)
 
-        max_opt_dict = qc_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(qc_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(qc_opt_dicts[j]["scores"])
-                max_opt_dict = qc_opt_dicts[j]
+        # max_opt_dict = qc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(qc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(qc_opt_dicts[j]["scores"])
+        #         max_opt_dict = qc_opt_dicts[j]
 
-        scenario = "qc_arb_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
+        # scenario = "qc_arb_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
 
-        print("iteration time  : ", time.time() - time_start)
+        # print("iteration time  : ", time.time() - time_start)
 
         """
         Entanglement-Assisted Classical Signaling
@@ -371,7 +374,11 @@ if __name__=="__main__":
                 eacc_rx_nodes(num_in_b, ansatz_fn=eacc_arb_rx, num_settings=30),
                 twoqubit_measure_node,
             ],
-            parity_postmap,
+            # parity_postmap,
+            np.array([
+                [0,1,0,1],
+                [1,0,1,0],
+            ]),
             inequality,
             # fixed_setting_ids=fixed_setting_ry_ids[i],
             # fixed_settings=fixed_settings[i],
@@ -400,45 +407,90 @@ if __name__=="__main__":
 
         print("iteration time  : ", time.time() - time_start)
 
-        """
-        Entanglement-Assisted Quantum Signaling
-        """
-        client.restart()
+        # """
+        # Entanglement-Assisted Quantum Signaling
+        # """
+        # client.restart()
         
-        time_start = time.time()
+        # time_start = time.time()
 
-        eaqc_opt_fn = optimize_inequality(
-            [
-                ghz_prep_node,
-                eaqc_tx_nodes(num_in_a),
-                eaqc_rx_nodes(num_in_b),
-            ],
-            parity_postmap,
-            inequality,
-            num_steps=150,
-            step_size=0.2,
-            sample_width=1,
-            verbose=True,
-        )
+        # eaqc_opt_fn = optimize_inequality(
+        #     [
+        #         ghz_prep_node,
+        #         eaqc_tx_nodes(num_in_a),
+        #         # eaqc_rx_nodes(num_in_b),
+        #         eaqc2_rx_nodes(num_in_b),
+        #     ],
+        #     # parity_postmap,
+        #     np.array([
+        #         [0,1,0,1,0,1,0,1],
+        #         [1,0,1,0,1,0,1,0],
+        #     ]),
+        #     inequality,
+        #     num_steps=150,
+        #     step_size=0.2,
+        #     sample_width=1,
+        #     verbose=True,
+        # )
 
-        eaqc_opt_jobs = client.map(eaqc_opt_fn, range(n_workers))
-        eaqc_opt_dicts = client.gather(eaqc_opt_jobs)
+        # eaqc_opt_jobs = client.map(eaqc_opt_fn, range(n_workers))
+        # eaqc_opt_dicts = client.gather(eaqc_opt_jobs)
 
-        max_opt_dict = eaqc_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(eaqc_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(eaqc_opt_dicts[j]["scores"])
-                max_opt_dict = eaqc_opt_dicts[j]
+        # max_opt_dict = eaqc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(eaqc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(eaqc_opt_dicts[j]["scores"])
+        #         max_opt_dict = eaqc_opt_dicts[j]
 
-        scenario = "eaqc_arb_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
+        # scenario = "eaqc_arb_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
 
-        print("iteration time  : ", time.time() - time_start)
+        # print("iteration time  : ", time.time() - time_start)
+
+        # """
+        # Entanglement-Assisted 3 Quantum Signaling
+        # """
+        # client.restart()
+        
+        # time_start = time.time()
+
+        # eaqc_opt_fn = optimize_inequality(
+        #     [
+        #         ea3_prep_node,
+        #         eaqc_tx_nodes(num_in_a),
+        #         eaqc2_rx_nodes(num_in_b),
+        #     ],
+        #     parity_postmap3,
+        #     inequality,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True,
+        # )
+
+        # eaqc_opt_jobs = client.map(eaqc_opt_fn, range(n_workers))
+        # eaqc_opt_dicts = client.gather(eaqc_opt_jobs)
+
+        # max_opt_dict = eaqc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(eaqc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(eaqc_opt_dicts[j]["scores"])
+        #         max_opt_dict = eaqc_opt_dicts[j]
+
+        # scenario = "eaqc3_arb_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
 
         # """
         # Two Entanglement-Assisted Quantum Signaling

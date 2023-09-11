@@ -98,6 +98,76 @@ function broadcast_vertices(
     unique(verts)
 end
 
+function quadpartitie_connected_vertices(
+    X1 :: Int64,
+    X2 :: Int64,
+    Y1 :: Int64,
+    Y2 :: Int64,
+    dA11 :: Int64,
+    dA12 :: Int64,
+    dA21 :: Int64,
+    dA22 :: Int64;
+    normalize=true :: Bool
+) :: Vector{Vector{Int64}}
+
+    P_A1 = BlackBox(dA11*dA12,X1)
+    P_A2 = BlackBox(dA21*dA22,X2)
+
+
+    P_A1_dA11_vertices = BellScenario.stirling2_matrices(X1, dA11)
+    P_A1_dA12_vertices = BellScenario.stirling2_matrices(X1, dA12)
+    P_A2_dA21_vertices = BellScenario.stirling2_matrices(X2, dA21)
+    P_A2_dA22_vertices = BellScenario.stirling2_matrices(X2, dA22)
+
+    P_B1 = BlackBox(Y1, dA11*dA21)
+    P_B2 = BlackBox(Y2, dA12*dA22)
+
+    P_A1_vertices = deterministic_strategies(P_A1)
+    P_A2_vertices = deterministic_strategies(P_A2)
+
+    P_B1_vertices = deterministic_strategies(P_B1)
+    P_B2_vertices = deterministic_strategies(P_B2)
+
+
+    num_encoder_verts_raw = length(P_A1_dA11_vertices) * length(P_A1_dA12_vertices) * length(P_A2_dA21_vertices) * length(P_A2_dA22_vertices)
+    println(num_encoder_verts_raw)
+    encoder_vertices = Vector{Matrix{Int64}}(undef, num_encoder_verts_raw)
+
+
+    id = 1
+    for v_A1_d11 in P_A1_dA11_vertices, v_A1_d12 in P_A1_dA12_vertices, v_A2_d21 in P_A2_dA21_vertices, v_A2_d22 in P_A2_dA22_vertices
+
+        v_A1 = hcat(map(i -> kron(v_A1_d11[:,i], v_A1_d12[:,i]), 1:X1)...)
+        # v_A1 = [kron(v_A1_d1[:,1], v_A1_d2[:,1]) kron(v_A1_d1[:,2], v_A1_d2[:,2]) kron(v_A1_d1[:,3], v_A1_d2[:,3])]
+        # v_A2 = [kron(v_A2_d3[:,1], v_A2_d4[:,1]) kron(v_A2_d3[:,2], v_A2_d4[:,2]) kron(v_A2_d3[:,3], v_A2_d4[:,3])]
+        v_A2 = hcat(map(i -> kron(v_A2_d21[:,i], v_A2_d22[:,i]), 1:X2)...)
+
+
+        encoder_vertices[id] = sparse(kron(v_A1, v_A2))
+        id += 1
+    end
+
+
+    num_verts_raw = length(encoder_vertices) * Y1^(dA11*dA21) * Y2^(dA12*dA22)
+
+    println(num_verts_raw)
+    verts = Vector{Vector{Int64}}(undef, num_verts_raw)
+
+    id = 1
+
+    swap = sparse([1 0 0 0;0 0 1 0;0 1 0 0;0 0 0 1])
+    int_layer = kron(I(2), swap ,I(2))
+    for v_enc in encoder_vertices, v_B1 in P_B1_vertices, v_B2 in P_B2_vertices
+        V = sparse(kron(v_B1,v_B2)) * int_layer * v_enc
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        id += 1
+    end
+
+    unique(verts)
+end
+
 function interference_vertices(
     X1 :: Int64,
     X2 :: Int64,
@@ -747,4 +817,30 @@ function optimize_linear_witness(vertices, test_point)
 
     # return optimized linear inequality
     return value.(s)
+end
+
+function bacon_and_toner_vertices(X1,X2,Y1,Y2, normalize=true)
+
+    P_A = BlackBox(2*Y1, X1)
+    P_B = BlackBox(Y2, 2*X2)
+
+
+    P_A_vertices = deterministic_strategies(P_A)
+    P_B_vertices = deterministic_strategies(P_B)
+
+    num_verts_raw = (2*Y1)^X1 * Y2^(2*X2)
+
+    verts = Vector{Vector{Int64}}(undef, num_verts_raw)
+
+    id = 1
+    for v_A in P_A_vertices, v_B in P_B_vertices
+
+        V = kron(I(Y1), v_B) * kron(v_A, I(X2))
+
+        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+
+        id += 1
+    end
+
+    unique(verts)
 end

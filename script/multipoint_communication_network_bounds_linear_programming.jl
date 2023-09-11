@@ -101,6 +101,11 @@ include("../src/MultiAccessChannels.jl")
         return facet_dim
     end
 
+    @testset "butterfly 33->2222->22" begin
+        vertices = quadpartitie_connected_vertices(3,3,2,2,2,2,2,2)
+
+    end
+
     @testset "(3,3)->(2,2)->(2,2) -> (2,2) " begin
         
         vertices = butterfly_vertices(3,3,2,2,2,2,2,2,2,2,2)
@@ -122,6 +127,7 @@ include("../src/MultiAccessChannels.jl")
         
         butterfly_vertices_4422 = butterfly_vertices(4,4,2,2,2,2,2,2,2,2,2)
         butterfly_vertices_4422_unnormalized = butterfly_vertices(4,4,2,2,2,2,2,2,2,2,2, normalize=false)
+        polytope_dim = BellScenario.dimension(butterfly_vertices_4422)
 
         @test length(butterfly_vertices_4422) == 506176
 
