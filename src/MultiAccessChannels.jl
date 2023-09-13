@@ -32,11 +32,15 @@ function multi_access_vertices(
     P_B = BlackBox(dB,Y)
     P_C = BlackBox(Z,dA*dB)
 
-    P_A_vertices = deterministic_strategies(P_A)
-    P_B_vertices = deterministic_strategies(P_B)
+    # P_A_vertices = deterministic_strategies(P_A)
+    P_A_vertices = BellScenario.stirling2_matrices(X,dA)
+    # P_B_vertices = deterministic_strategies(P_B)
+    P_B_vertices = BellScenario.stirling2_matrices(Y,dB)
     P_C_vertices = deterministic_strategies(P_C)
 
-    num_verts_raw = dA^X*dB^Y*Z^(dA*dB)
+    # num_verts_raw = dA^X*dB^Y*Z^(dA*dB)
+    num_verts_raw = length(P_A_vertices) * length(P_B_vertices) * length(P_C_vertices)
+    println(num_verts_raw)
     verts = Vector{Vector{Int64}}(undef, num_verts_raw)
 
     id = 1

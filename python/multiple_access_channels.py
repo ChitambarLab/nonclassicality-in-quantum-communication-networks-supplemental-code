@@ -1156,6 +1156,7 @@ def broadcast_9_22_33_network_bounds():
 
     return bc_game_inequalities, bc_facet_inequalities, game_names
 
+
 def rac_game(n):
     X = 2**n
     Y = n
@@ -1170,15 +1171,24 @@ def rac_game(n):
             game[row_id, col_id] = 1
 
             col_id += 1
+
+    # https://arxiv.org/abs/0810.2937 (Eq. 25) 
+    multiplier = n * 2**n
+    bound = multiplier * (1/2 + 1 / (2**n) * math.comb(n-1, int(np.floor((n-1)/2))))
+
+    # if n % 2 == 0:
+    #     bound = rac_bound_even(n)
+    # else:
+    #     bound = rac_bound_odd(n)
     
-    if n == 2:
-        bound = 6
-    elif n == 3:
-        bound = 18
-    elif n == 4:
-        bound = 28
-    else:
-        bound = X*Y - 2
+    # if n == 2:
+    #     bound = 6
+    # elif n == 3:
+    #     bound = 18
+    # elif n == 4:
+    #     bound = 28
+    # else:
+    #     bound = X*Y - 2
 
     return (bound, game)
 
