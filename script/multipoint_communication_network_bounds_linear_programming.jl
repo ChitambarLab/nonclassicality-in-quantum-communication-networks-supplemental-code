@@ -104,6 +104,96 @@ include("../src/MultiAccessChannels.jl")
     @testset "butterfly 33->2222->22" begin
         vertices = quadpartitie_connected_vertices(3,3,2,2,2,2,2,2)
 
+        diff_test = [
+            1 0 0 0 1 0 0 0 1;
+            0 1 0 1 0 1 0 1 0;
+            0 0 1 0 0 0 1 0 0;
+            0 0 0 0 0 0 0 0 0;
+        ]
+
+        @test length(vertices) == 10816
+
+        raw_diff_game = optimize_linear_witness(vertices, diff_test[1:3,:][:])
+
+        println(raw_diff_game)
+
+        bell_diff_game = convert(BellGame, round.(Int, 2*raw_diff_game), BlackBox(4,9), rep="normalized")
+
+        diff_game_match = [
+            0  1  0  1  1  0  0  1  3;
+            0  2  0  2  0  1  0  1  2;
+            0  0  2  0  1  0  2  0  0;
+            1  1  2  1  1  0  2  0  0;
+        ]
+
+        @test bell_diff_game == diff_game_match
+
+        @test bell_diff_game.β == 12
+
+    end
+
+    @testset "butterfly 44->2222->22" begin
+        vertices = quadpartitie_connected_vertices(4,4,2,2,2,2,2,2)
+
+        diff_test = [
+            1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
+            0 1 0 0 1 0 1 0 0 1 0 1 0 0 1 0;
+            0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 0;
+            0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0;
+        ]
+
+        @test length(vertices) == 270400
+
+        raw_diff_game = optimize_linear_witness(vertices, diff_test[1:3,:][:])
+
+        println(raw_diff_game)
+
+        bell_diff_game = convert(BellGame, round.(Int, 2*raw_diff_game), BlackBox(4,16), rep="normalized")
+
+        diff_game_match = [
+            1  0  0  0  0  1  1  1  0  1  1  0  1  0  0  1;
+            0  1  0  0  1  0  2  0  0  1  0  0  0  0  0  1;
+            0  0  1  1  0  1  0  2  1  0  1  0  1  1  0  0;
+            0  1  2  2  1  1  1  2  1  0  1  0  1  1  0  0;
+        ]
+
+        @test bell_diff_game == diff_game_match
+
+        @test bell_diff_game.β == 15
+
+    end
+
+    @testset "butterfly 33->2222->33" begin
+        vertices = quadpartitie_connected_vertices(3,3,3,3,2,2,2,2)
+
+        polytope_dim = BellScenario.dimension(vertices)
+        @test polytope_dim == 72
+
+
+        @test length(vertices) == 400689
+
+        raw_mult1_game = optimize_linear_witness(vertices, mult1_test[1:8,:][:])
+
+        println(raw_mult1_game)
+
+        bell_mult1_game = convert(BellGame, round.(Int, 4*raw_mult1_game), BlackBox(9,9), rep="normalized")
+
+        mult1_game_match = [
+            3  0  0  1  1  0  0  0  1;
+            0  3  0  2  0  0  0  0  1;
+            1  1  2  1  0  0  1  1  1;
+            2  1  0  0  1  1  0  1  1;
+            0  2  0  1  0  1  0  1  1;
+            1  1  1  0  0  2  1  2  0;
+            2  0  0  1  1  1  0  1  1;
+            0  2  0  1  1  0  0  1  1;
+            2  2  2  1  1  1  1  1  1;
+        ]
+
+        @test bell_mult1_game == mult1_game_match
+
+        @test bell_mult1_game.β == 13
+
     end
 
     @testset "(3,3)->(2,2)->(2,2) -> (2,2) " begin

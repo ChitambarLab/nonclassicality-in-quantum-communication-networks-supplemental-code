@@ -545,89 +545,89 @@ if __name__=="__main__":
 
             # print("iteration time  : ", time.time() - time_start)
 
-            """
-            GHZA CMAC
-            """
-            # there is only one qubit being measured.
-            if postmap_tag == "xor_":
-                time_start = time.time()
+            # """
+            # GHZA CMAC
+            # """
+            # # there is only one qubit being measured.
+            # if postmap_tag == "xor_":
+            #     time_start = time.time()
 
-                ghza_mac_opt_fn = optimize_inequality(
-                    [
-                        ghza_mac_prep_nodes,
-                        ghza_mac_cctx_nodes,
-                        ghza_mac_ccrx_nodes,
-                        ghza_mac_meas_nodes,
-                    ],
-                    np.eye(2),
-                    inequality,
-                    num_steps=160,
-                    step_size=0.05,
-                    sample_width=1,
-                    verbose=True
-                )
-
-
-                ghza_mac_opt_jobs = client.map(ghza_mac_opt_fn, range(n_workers))
-                ghza_mac_opt_dicts = client.gather(ghza_mac_opt_jobs)
-
-                max_opt_dict = ghza_mac_opt_dicts[0]
-                max_score = max(max_opt_dict["scores"])
-                for j in range(1,n_workers):
-                    if max(ghza_mac_opt_dicts[j]["scores"]) > max_score:
-                        max_score = max(ghza_mac_opt_dicts[j]["scores"])
-                        max_opt_dict = ghza_mac_opt_dicts[j]
-
-                scenario = "ghza_cmac_"
-                datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-                qnet.write_optimization_json(
-                    max_opt_dict,
-                    data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-                )
-
-                print("iteration time  : ", time.time() - time_start)
-
-            """
-            GEA CMAC
-            """
-            # there is only one qubit being measured.
-            if postmap_tag == "xor_":
-                time_start = time.time()
-
-                ea3_cmac_opt_fn = optimize_inequality(
-                    [
-                        ea3_mac_prep_nodes,
-                        ea3_mac_cctx_nodes,
-                        ghza_mac_ccrx_nodes,
-                        ghza_mac_meas_nodes,
-                    ],
-                    np.eye(2),
-                    inequality,
-                    num_steps=200,
-                    step_size=0.08,
-                    sample_width=1,
-                    verbose=True
-                )
+            #     ghza_mac_opt_fn = optimize_inequality(
+            #         [
+            #             ghza_mac_prep_nodes,
+            #             ghza_mac_cctx_nodes,
+            #             ghza_mac_ccrx_nodes,
+            #             ghza_mac_meas_nodes,
+            #         ],
+            #         np.eye(2),
+            #         inequality,
+            #         num_steps=160,
+            #         step_size=0.05,
+            #         sample_width=1,
+            #         verbose=True
+            #     )
 
 
-                ea3_cmac_opt_jobs = client.map(ea3_cmac_opt_fn, range(n_workers))
-                ea3_cmac_opt_dicts = client.gather(ea3_cmac_opt_jobs)
+            #     ghza_mac_opt_jobs = client.map(ghza_mac_opt_fn, range(n_workers))
+            #     ghza_mac_opt_dicts = client.gather(ghza_mac_opt_jobs)
 
-                max_opt_dict = ea3_cmac_opt_dicts[0]
-                max_score = max(max_opt_dict["scores"])
-                for j in range(1,n_workers):
-                    if max(ea3_cmac_opt_dicts[j]["scores"]) > max_score:
-                        max_score = max(ea3_cmac_opt_dicts[j]["scores"])
-                        max_opt_dict = ea3_cmac_opt_dicts[j]
+            #     max_opt_dict = ghza_mac_opt_dicts[0]
+            #     max_score = max(max_opt_dict["scores"])
+            #     for j in range(1,n_workers):
+            #         if max(ghza_mac_opt_dicts[j]["scores"]) > max_score:
+            #             max_score = max(ghza_mac_opt_dicts[j]["scores"])
+            #             max_opt_dict = ghza_mac_opt_dicts[j]
 
-                scenario = "gea_cmac_"
-                datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-                qnet.write_optimization_json(
-                    max_opt_dict,
-                    data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-                )
+            #     scenario = "ghza_cmac_"
+            #     datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+            #     qnet.write_optimization_json(
+            #         max_opt_dict,
+            #         data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+            #     )
 
-                print("iteration time  : ", time.time() - time_start)
+            #     print("iteration time  : ", time.time() - time_start)
+
+            # """
+            # GEA CMAC
+            # """
+            # # there is only one qubit being measured.
+            # if postmap_tag == "xor_":
+            #     time_start = time.time()
+
+            #     ea3_cmac_opt_fn = optimize_inequality(
+            #         [
+            #             ea3_mac_prep_nodes,
+            #             ea3_mac_cctx_nodes,
+            #             ghza_mac_ccrx_nodes,
+            #             ghza_mac_meas_nodes,
+            #         ],
+            #         np.eye(2),
+            #         inequality,
+            #         num_steps=200,
+            #         step_size=0.08,
+            #         sample_width=1,
+            #         verbose=True
+            #     )
+
+
+            #     ea3_cmac_opt_jobs = client.map(ea3_cmac_opt_fn, range(n_workers))
+            #     ea3_cmac_opt_dicts = client.gather(ea3_cmac_opt_jobs)
+
+            #     max_opt_dict = ea3_cmac_opt_dicts[0]
+            #     max_score = max(max_opt_dict["scores"])
+            #     for j in range(1,n_workers):
+            #         if max(ea3_cmac_opt_dicts[j]["scores"]) > max_score:
+            #             max_score = max(ea3_cmac_opt_dicts[j]["scores"])
+            #             max_opt_dict = ea3_cmac_opt_dicts[j]
+
+            #     scenario = "gea_cmac_"
+            #     datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+            #     qnet.write_optimization_json(
+            #         max_opt_dict,
+            #         data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+            #     )
+
+            #     print("iteration time  : ", time.time() - time_start)
 
             # """
             # GHZ CMAC no LOCC
@@ -668,82 +668,82 @@ if __name__=="__main__":
 
             # print("iteration time  : ", time.time() - time_start)
 
-            # """
-            # GHZA QMAC
-            # """
-            # time_start = time.time()
+            """
+            GHZA QMAC
+            """
+            time_start = time.time()
 
-            # ghza_qmac_opt_fn = optimize_inequality(
-            #     [
-            #         ghza_qmac_prep_nodes,
-            #         ghza_qmac_proc_nodes,
-            #         ghza_qmac_meas_nodes,
-            #     ],
-            #     postmap3,
-            #     inequality,
-            #     num_steps=300,
-            #     step_size=0.08,
-            #     sample_width=1,
-            #     verbose=True
-            # )
+            ghza_qmac_opt_fn = optimize_inequality(
+                [
+                    ghza_qmac_prep_nodes,
+                    ghza_qmac_proc_nodes,
+                    ghza_qmac_meas_nodes,
+                ],
+                postmap3,
+                inequality,
+                num_steps=300,
+                step_size=0.08,
+                sample_width=1,
+                verbose=True
+            )
 
-            # ghza_qmac_opt_jobs = client.map(ghza_qmac_opt_fn, range(n_workers))
-            # ghza_qmac_opt_dicts = client.gather(ghza_qmac_opt_jobs)
+            ghza_qmac_opt_jobs = client.map(ghza_qmac_opt_fn, range(n_workers))
+            ghza_qmac_opt_dicts = client.gather(ghza_qmac_opt_jobs)
 
-            # max_opt_dict = ghza_qmac_opt_dicts[0]
-            # max_score = max(max_opt_dict["scores"])
-            # for j in range(1,n_workers):
-            #     if max(ghza_qmac_opt_dicts[j]["scores"]) > max_score:
-            #         max_score = max(ghza_qmac_opt_dicts[j]["scores"])
-            #         max_opt_dict = ghza_qmac_opt_dicts[j]
+            max_opt_dict = ghza_qmac_opt_dicts[0]
+            max_score = max(max_opt_dict["scores"])
+            for j in range(1,n_workers):
+                if max(ghza_qmac_opt_dicts[j]["scores"]) > max_score:
+                    max_score = max(ghza_qmac_opt_dicts[j]["scores"])
+                    max_opt_dict = ghza_qmac_opt_dicts[j]
 
-            # scenario = "ghza_qmac_"
-            # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-            # qnet.write_optimization_json(
-            #     max_opt_dict,
-            #     data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-            # )
+            scenario = "ghza_qmac_"
+            datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+            qnet.write_optimization_json(
+                max_opt_dict,
+                data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+            )
 
-            # print("iteration time  : ", time.time() - time_start)
+            print("iteration time  : ", time.time() - time_start)
 
-            # """
-            # GEA QMAC
-            # """
-            # if postmap_tag == "xor_":
-            #     time_start = time.time()
+            """
+            GEA QMAC
+            """
+            if postmap_tag == "xor_":
+                time_start = time.time()
 
-            #     ea3_qmac_opt_fn = optimize_inequality(
-            #         [
-            #             ea3_mac_prep_nodes,
-            #             ghza_qmac_proc_nodes,
-            #             ghza_qmac_meas_nodes,
-            #         ],
-            #         postmap3,
-            #         inequality,
-            #         num_steps=225,
-            #         step_size=0.08,
-            #         sample_width=1,
-            #         verbose=True,
-            #     )
+                ea3_qmac_opt_fn = optimize_inequality(
+                    [
+                        ea3_mac_prep_nodes,
+                        ghza_qmac_proc_nodes,
+                        ghza_qmac_meas_nodes,
+                    ],
+                    postmap3,
+                    inequality,
+                    num_steps=225,
+                    step_size=0.08,
+                    sample_width=1,
+                    verbose=True,
+                )
 
-            #     ea3_qmac_opt_jobs = client.map(ea3_qmac_opt_fn, range(n_workers))
-            #     ea3_qmac_opt_dicts = client.gather(ea3_qmac_opt_jobs)
+                ea3_qmac_opt_jobs = client.map(ea3_qmac_opt_fn, range(n_workers))
+                ea3_qmac_opt_dicts = client.gather(ea3_qmac_opt_jobs)
 
-            #     max_opt_dict = ea3_qmac_opt_dicts[0]
-            #     max_score = max(max_opt_dict["scores"])
-            #     for j in range(1,n_workers):
-            #         if max(ea3_qmac_opt_dicts[j]["scores"]) > max_score:
-            #             max_score = max(ea3_qmac_opt_dicts[j]["scores"])
-            #             max_opt_dict = ea3_qmac_opt_dicts[j]
+                max_opt_dict = ea3_qmac_opt_dicts[0]
+                max_score = max(max_opt_dict["scores"])
+                for j in range(1,n_workers):
+                    if max(ea3_qmac_opt_dicts[j]["scores"]) > max_score:
+                        max_score = max(ea3_qmac_opt_dicts[j]["scores"])
+                        max_opt_dict = ea3_qmac_opt_dicts[j]
 
-            #     scenario = "gea_qmac_"
-            #     datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-            #     qnet.write_optimization_json(
-            #         max_opt_dict,
-            #         data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-            #     )
+                scenario = "gea_qmac_"
+                datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+                qnet.write_optimization_json(
+                    max_opt_dict,
+                    data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+                )
 
-            #     print("iteration time  : ", time.time() - time_start)
+                print("iteration time  : ", time.time() - time_start)
 
             # """
             # GHZA QMAC
@@ -782,4 +782,4 @@ if __name__=="__main__":
             #         data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
             #     )
 
-            #     print("iteration time  : ", time.time() - time_start)
+                print("iteration time  : ", time.time() - time_start)

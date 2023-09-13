@@ -742,6 +742,43 @@ function bipartite_broadcast_facet_classes(X, Y, Z, bell_games :: Vector{BellSce
     facet_class_dict
 end
 
+function bipartite_interference_facet_classes(X1,X2,Y1,Y2, bell_games)
+    output_perms = multi_access_input_permutations(Y1, Y2)
+    input_perms = multi_access_input_permutations(X1, X2)
+
+    num_perms = length(input_perms)*length(output_perms)
+
+    facet_class_dict = Dict{Int64, Vector{Matrix{Int64}}}()
+    facet_class_id = 1
+
+    for bell_game in bell_games
+        facet_considered = false
+
+        for facet_class in values(facet_class_dict)
+            if bell_game in facet_class
+                facet_considered = true
+                break
+            end
+        end
+
+        if !facet_considered
+            # construct all unique permutations
+            perms = Array{Matrix{Int64}}(undef, num_perms)
+            id = 1
+            for input_perm in input_perms, output_perm in output_perms
+                perms[id] = bell_game[output_perm, input_perm]
+                id += 1
+            end
+
+            # add facet to facet dictionary
+            facet_class_dict[facet_class_id] = unique(perms)
+            facet_class_id += 1
+        end
+    end
+
+    facet_class_dict
+end
+
 function multi_access_optimize_measurement(
     X,Y,Z,dA,dB,
     game::BellGame,
@@ -821,26 +858,41 @@ end
 
 function bacon_and_toner_vertices(X1,X2,Y1,Y2, normalize=true)
 
-    P_A = BlackBox(2*Y1, X1)
-    P_B = BlackBox(Y2, 2*X2)
+    P_A1 = BlackBox(2*Y1, X1)
+    P_B1 = BlackBox(Y2, 2*X2)
+
+    P_A2 = BlackBox(Y1, 2*X1)
+    P_B2 = BlackBox(2*Y2, X2)
 
 
-    P_A_vertices = deterministic_strategies(P_A)
-    P_B_vertices = deterministic_strategies(P_B)
+    P_A1_vertices = deterministic_strategies(P_A1)
+    P_B1_vertices = deterministic_strategies(P_B1)
+    P_A2_vertices = deterministic_strategies(P_A2)
+    P_B2_vertices = deterministic_strategies(P_B2)
 
-    num_verts_raw = (2*Y1)^X1 * Y2^(2*X2)
+    num_verts_raw = (2*Y1)^X1 * Y2^(2*X2) + (Y1)^(2*X1) * (2*Y2)^X2
 
     verts = Vector{Vector{Int64}}(undef, num_verts_raw)
 
     id = 1
-    for v_A in P_A_vertices, v_B in P_B_vertices
+    for v_A1 in P_A1_vertices, v_B1 in P_B1_vertices
 
-        V = kron(I(Y1), v_B) * kron(v_A, I(X2))
+        V1 = kron(I(Y1), v_B1) * kron(v_A1, I(X2))
 
-        verts[id] = normalize ? V[1:end-1,:][:] : V[:]
+        verts[id] = normalize ? V1[1:end-1,:][:] : V1[:]
 
         id += 1
     end
+
+    for v_A2 in P_A2_vertices, v_B2 in P_B2_vertices
+        V2 = kron(v_A2, I(Y1)) * kron(I(X1), v_B2)
+
+        verts[id] = normalize ? V2[1:end-1,:][:] : V2[:]
+
+        id += 1
+    end
+
+
 
     unique(verts)
 end

@@ -1305,4 +1305,77 @@ include("../src/MultiAccessChannels.jl")
 
     end
 
+
+    @testset "bacon toner scenario 22->22" begin
+
+        bt_vertices = bacon_and_toner_vertices(2,2,2,2)
+
+        facet_dict = LocalPolytope.facets(bt_vertices)
+
+        @test facet_dict["equalities"] == []
+
+        facets = facet_dict["facets"] 
+
+        bell_games = map(f -> convert(BellGame, f, BipartiteNonSignaling(2,2,2,2),rep="normalized"), facets)
+
+        bt_facet_classes = bipartite_interference_facet_classes(2,2,2,2, bell_games)
+
+        bell_games[24].β
+
+
+        bt_facet_classes[6][4]
+
+        bell_game_match1 = BellGame([1 0 0 0;0 0 1 0;0 1 0 0;0 0 0 1], 2)
+
+        @test bell_game_match1 in bell_games
+
+
+        bell_game_match2 = BellGame([1 0 0 0;0 0 1 0;1 0 0 1;0 0 0 1], 2)
+        @test bell_game_match2 in bell_games
+
+
+
+
+
+    end
+
+    @testset  "bacon toner scenario 33->22" begin
+        bt_vertices = bacon_and_toner_vertices(3,3,2,2, true)
+        bt_vertices_unnorm = bacon_and_toner_vertices(3,3,2,2, false)
+        length(bt_vertices_unnorm[1])
+
+
+        polytope_dim = LocalPolytope.dimension(bt_vertices)
+
+
+        bell_game_match1 = BellGame([0 0 1 0 1 1 1 1 1;0 1 0 1 0 0 0 0 0;0 1 0 1 0 0 0 0 0;0 0 1 0 1 1 1 1 1], 7)
+
+        facet_vertices = Vector{Vector{Int64}}(undef, 0)
+        for v in bt_vertices_unnorm
+            if sum(bell_game_match1[:] .* v) == bell_game_match1.β
+                push!(facet_vertices, v)
+            end
+        end
+
+        facet_dim = LocalPolytope.dimension(facet_vertices)
+
+        @test facet_dim + 1 == polytope_dim
+
+        bell_game_match2 = BellGame([1 2 0 2 1 2 0 2 1;0 0 2 0 0 0 2 0 0;0 0 2 0 0 0 2 0 0;1 2 0 2 1 2 0 2 1], 13)
+    
+        facet_vertices = Vector{Vector{Int64}}(undef, 0)
+        for v in bt_vertices_unnorm
+            if sum(bell_game_match2[:] .* v) == bell_game_match2.β
+                push!(facet_vertices, v)
+            end
+        end
+
+
+        facet_dim = LocalPolytope.dimension(facet_vertices)
+
+        @test facet_dim + 1 == polytope_dim
+
+
+    end
 end
+
