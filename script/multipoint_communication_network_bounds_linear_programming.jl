@@ -101,6 +101,11 @@ include("../src/MultiAccessChannels.jl")
         return facet_dim
     end
 
+    function classical_bound(bell_game, unnormalized_vertices)
+        scores = map(v -> sum(bell_game[:] .* v) , unnormalized_vertices)
+        return max(scores...)
+    end
+
     @testset "butterfly 33->2222->22" begin
         vertices = quadpartitie_connected_vertices(3,3,2,2,2,2,2,2)
 
@@ -163,20 +168,33 @@ include("../src/MultiAccessChannels.jl")
 
     end
 
-    @testset "butterfly 33->2222->33" begin
+    @testset "min butterfly 33->2222->33" begin
         vertices = quadpartitie_connected_vertices(3,3,3,3,2,2,2,2)
+        vertices_unnormalized = quadpartitie_connected_vertices(3,3,3,3,2,2,2,2, normalize=false)
 
         polytope_dim = BellScenario.dimension(vertices)
         @test polytope_dim == 72
 
 
         @test length(vertices) == 400689
+        
+
+
+        @test classical_bound(mult0_test, vertices_unnormalized) == 7
+        @test classical_bound(mult1_test, vertices_unnormalized) == 6
+        @test classical_bound(swap_test, vertices_unnormalized) == 5
+        @test classical_bound(adder_test, vertices_unnormalized) == 5
+        @test classical_bound(compare_test, vertices_unnormalized) == 7
+        @test classical_bound(diff_test, vertices_unnormalized) == 7 
+        @test classical_bound(perm_test, vertices_unnormalized) == 5
+        @test classical_bound(cv_test, vertices_unnormalized) == 5 
+ 
 
         raw_mult1_game = optimize_linear_witness(vertices, mult1_test[1:8,:][:])
-
         println(raw_mult1_game)
-
         bell_mult1_game = convert(BellGame, round.(Int, 4*raw_mult1_game), BlackBox(9,9), rep="normalized")
+
+        @test polytope_dim = facet_dimension(vertices, raw_mult1_game) + 1
 
         mult1_game_match = [
             3  0  0  1  1  0  0  0  1;
@@ -191,8 +209,141 @@ include("../src/MultiAccessChannels.jl")
         ]
 
         @test bell_mult1_game == mult1_game_match
-
         @test bell_mult1_game.β == 13
+
+        raw_mult0_game = optimize_linear_witness(vertices, mult0_test[1:8,:][:])
+        println(3*raw_mult0_game)
+        bell_mult0_game = convert(BellGame, round.(Int, 3*raw_mult0_game), BlackBox(9,9), rep="normalized")
+
+        mult0_game_match = [
+            2  2  2  2  1  0  2  0  2;
+            1  1  1  1  2  0  1  1  2;
+            0  0  0  0  0  2  0  2  0;
+            1  1  1  1  1  1  2  1  2;
+            1  2  1  1  2  0  1  0  3;
+            1  2  1  1  1  1  1  1  2;
+            0  0  1  1  2  0  1  0  2;
+            1  1  1  2  2  1  2  1  2;
+            1  2  2  2  2  1  2  1  2;
+        ]
+
+        @test bell_mult0_game == mult0_game_match
+        @test bell_mult0_game.β == 16
+
+        raw_swap_game = optimize_linear_witness(vertices, swap_test[1:8,:][:])
+        println(raw_swap_game)
+        bell_swap_game = convert(BellGame, round.(Int, 3*raw_swap_game), BlackBox(9,9), rep="normalized")
+
+        swap_game_match = [
+            2  0  0  0  1  0  0  0  1;
+            0  0  0  2  0  0  0  0  1;
+            0  1  0  0  1  0  2  2  1;
+            0  2  0  1  0  0  0  0  1;
+            0  0  0  0  2  0  0  0  1;
+            1  0  0  1  0  0  2  2  1;
+            0  0  2  1  1  2  0  0  1;
+            1  1  2  0  0  2  0  0  1;
+            1  1  2  1  1  2  2  2  0;
+        ]
+
+        @test bell_swap_game == swap_game_match
+        @test bell_swap_game.β == 13
+
+        raw_adder_game = optimize_linear_witness(vertices, adder_test[1:8,:][:])
+        println(5*raw_adder_game)
+        bell_adder_game = convert(BellGame, round.(Int, 5*raw_adder_game), BlackBox(9,9), rep="normalized")
+
+        adder_game_match = [
+            2  0  0  0  0  2  0  1  0;
+            0  2  0  2  1  0  0  0  1;
+            0  1  2  1  2  1  1  0  0;
+            2  0  0  0  0  2  0  1  0;
+            0  2  0  1  1  1  0  0  1;
+            0  1  2  1  1  1  1  0  0;
+            2  0  0  0  0  2  0  1  0;
+            0  1  0  2  1  0  0  0  1;
+            1  1  2  1  2  1  1  0  0;
+        ]
+
+        @test bell_adder_game == adder_game_match
+        @test bell_adder_game.β == 10
+
+        raw_compare_game = optimize_linear_witness(vertices, compare_test[1:8,:][:])
+        println(3*raw_compare_game)
+        bell_compare_game = convert(BellGame, round.(Int, 3*raw_compare_game), BlackBox(9,9), rep="normalized")
+
+        compare_game_match = [
+            2  0  0  0  2  0  0  0  1;
+            0  0  1  1  1  1  0  1  0;
+            1  0  0  0  1  2  1  0  0;
+            1  0  0  0  0  2  0  0  1;
+            0  0  1  1  0  2  0  1  0;
+            1  1  1  0  1  2  1  0  0;
+            1  0  0  0  1  1  0  0  1;
+            0  0  1  2  0  1  0  1  0;
+            1  1  1  1  1  2  1  0  0;
+        ]
+
+        @test bell_compare_game == compare_game_match
+        @test bell_compare_game.β == 9
+
+        raw_diff_game = optimize_linear_witness(vertices, diff_test[1:8,:][:])
+        println(2*raw_diff_game)
+        bell_diff_game = convert(BellGame, round.(Int, 2*raw_diff_game), BlackBox(9,9), rep="normalized")
+
+        diff_game_match = [
+            2  0  0  0  1  0  0  0  1;
+            1  0  0  1  0  1  0  0  1;
+            1  0  0  0  0  1  0  0  1;
+            1  0  0  1  0  1  0  0  1;
+            0  0  1  2  0  1  0  1  0;
+            0  0  1  1  0  2  0  0  0;
+            1  0  0  0  0  1  0  0  1;
+            0  0  1  1  0  2  0  0  0;
+            1  1  1  1  0  2  1  0  0;
+        ]
+
+        @test bell_diff_game == diff_game_match
+        @test bell_diff_game.β == 8
+
+        raw_perm_game = optimize_linear_witness(vertices, perm_test[1:8,:][:])
+        println(5*raw_perm_game)
+        bell_perm_game = convert(BellGame, round.(Int, 5*raw_perm_game), BlackBox(9,9), rep="normalized")
+
+        perm_game_match = [
+            2  0  0  1  1  1  0  0  1;
+            0  2  0  0  0  2  1  0  0;
+            1  0  2  1  1  1  0  1  0;
+            1  0  0  1  2  0  0  0  1;
+            0  2  0  0  0  2  1  0  0;
+            1  1  2  2  1  1  0  1  0;
+            1  0  0  1  2  0  0  0  1;
+            0  2  0  0  0  2  1  0  0;
+            1  1  2  2  1  1  0  1  0;
+        ]
+
+        @test bell_perm_game == perm_game_match
+        @test bell_perm_game.β == 10
+
+        
+        raw_cv_game = optimize_linear_witness(vertices, cv_test[1:8,:][:])
+        println(3*raw_cv_game)
+        bell_cv_game = convert(BellGame, round.(Int, 3*raw_cv_game), BlackBox(9,9), rep="normalized")
+
+        cv_game_match = [
+            2  0  0  0  1  0  0  0  1;
+            0  2  0  1  0  0  0  0  1;
+            0  0  2  1  1  2  0  0  1;
+            0  0  0  2  0  0  0  0  1;
+            0  0  0  0  2  0  0  0  1;
+            1  1  2  0  0  2  0  0  1;
+            0  1  0  0  1  0  2  2  1;
+            1  0  0  1  0  0  2  2  1;
+            1  1  2  1  1  2  2  2  0;
+        ]
+
+        @test bell_cv_game == cv_game_match
+        @test bell_cv_game.β == 13
 
     end
 

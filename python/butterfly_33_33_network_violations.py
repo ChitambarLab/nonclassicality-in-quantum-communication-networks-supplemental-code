@@ -8,6 +8,86 @@ from datetime import datetime
 import qnetvo
 
 
+def adam_gradient_descent(
+    cost,
+    init_settings,
+    num_steps=150,
+    step_size=0.1,
+    sample_width=25,
+    grad_fn=None,
+    verbose=True,
+    interface="autograd",
+):
+    """
+    adapted from qnetvo
+    """
+
+    if interface == "autograd":
+        # opt = qml.GradientDescentOptimizer(stepsize=step_size)
+        opt = qml.AdamOptimizer(stepsize=step_size)
+    elif interface == "tf":
+        from .lazy_tensorflow_import import tensorflow as tf
+
+        opt = tf.keras.optimizers.SGD(learning_rate=step_size)
+    else:
+        raise ValueError('Interface "' + interface + '" is not supported.')
+
+    settings = init_settings
+    scores = []
+    samples = []
+    step_times = []
+    settings_history = [init_settings]
+
+    start_datetime = datetime.utcnow()
+    elapsed = 0
+
+    # performing gradient descent
+    for i in range(num_steps):
+        if i % sample_width == 0:
+            score = -(cost(*settings))
+            scores.append(score)
+            samples.append(i)
+
+            if verbose:
+                print("iteration : ", i, ", score : ", score)
+
+        start = time.time()
+        if interface == "autograd":
+            settings = opt.step(cost, *settings, grad_fn=grad_fn)
+            if not (isinstance(settings, list)):
+                settings = [settings]
+        elif interface == "tf":
+            # opt.minimize updates settings in place
+            tf_cost = lambda: cost(*settings)
+            opt.minimize(tf_cost, settings)
+
+        elapsed = time.time() - start
+
+        if i % sample_width == 0:
+            step_times.append(elapsed)
+
+            if verbose:
+                print("elapsed time : ", elapsed)
+
+        settings_history.append(settings)
+
+    opt_score = -(cost(*settings))
+    step_times.append(elapsed)
+
+    scores.append(opt_score)
+    samples.append(num_steps)
+
+    return {
+        "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "opt_score": opt_score,
+        "opt_settings": settings,
+        "scores": scores,
+        "samples": samples,
+        "settings_history": settings_history,
+        "step_times": step_times,
+        "step_size": step_size,
+    }
+
 
 def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
@@ -16,7 +96,8 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     Optimization errors will result in an empty optimization dictionary.
     """
     try:
-        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs)
+        # opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs)
+        opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
     except Exception as err:
         print("An error occurred during gradient descent.")
         print(err)
@@ -67,52 +148,149 @@ if __name__=="__main__":
         [0,0,0,0,1,1,1,1],
     ])
 
-    butterfly_wire_set_nodes = [
+    qbf_wire_set_nodes = [
         qnetvo.PrepareNode(wires=[0,1,2,3,4])
     ]
-    butterfly_prep_nodes = [
+    qbf_prep_nodes = [
         qnetvo.PrepareNode(num_in=3, wires=[0,1], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
         qnetvo.PrepareNode(num_in=3, wires=[2,4], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
-    butterfly_B_nodes = [
+    qbf_B_nodes = [
         qnetvo.ProcessingNode(wires=[1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
-    butterfly_C_nodes = [
+    qbf_C_nodes = [
         qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
 
-    butterfly_meas_nodes = [
+    qbf_meas_nodes = [
         qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
         qnetvo.MeasureNode(num_out=3, wires=[3,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
 
-    eatx_butterfly_source_nodes = [
-        qnetvo.PrepareNode(wires=[1,2], ansatz_fn=qnetvo.ghz_state)
-    ]
-    eatx_butterfly_prep_nodes = [
-        qnetvo.ProcessingNode(num_in=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
-        qnetvo.ProcessingNode(num_in=3, wires=[2,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    qbf_layers = [
+        qbf_wire_set_nodes,
+        qbf_prep_nodes,
+        qbf_B_nodes,
+        qbf_C_nodes,
+        qbf_meas_nodes,
     ]
 
-    earx_butterfly_wires_set_nodes = [
+
+    qbf_cc_wings_wire_set_nodes = [
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6]),
+    ]
+    qbf_cc_wings_prep_nodes = [
+        qnetvo.PrepareNode(num_in=3, wires=[0,5], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=3, wires=[1,6], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+    ]
+
+    def cc_wings_cctx_circ(settings, wires):
+
+        b0 = qml.measure(wires[0])
+        b1 = qml.measure(wires[1])
+
+        return [b0,b1]
+
+    qbf_cc_wings_cctx_nodes = [
+        qnetvo.CCSenderNode(wires=[5,6], cc_wires_out=[0,1], ansatz_fn=cc_wings_cctx_circ)
+    ]
+    qbf_cc_wings_B_nodes = [
+        qnetvo.ProcessingNode(wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    ]
+    qbf_cc_wings_C_nodes = [
+        qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    ]
+
+
+    def cc_wings_ccrx_circ(settings, wires, cc_wires):
+        qml.cond(cc_wires[0] == 0, qml.ArbitraryUnitary)(settings[0:15], wires=wires[0:2])
+        qml.cond(cc_wires[0] == 1, qml.ArbitraryUnitary)(settings[15:30], wires=wires[0:2])
+
+    qbf_cc_wings_ccrx_nodes = [
+        qnetvo.CCReceiverNode(cc_wires_in=[0], wires=[1,2], ansatz_fn=cc_wings_ccrx_circ, num_settings=30),
+        qnetvo.CCReceiverNode(cc_wires_in=[1], wires=[3,4], ansatz_fn=cc_wings_ccrx_circ, num_settings=30),
+    ]
+
+    qbf_cc_wings_meas_nodes = [
+        qnetvo.MeasureNode(num_out=3, wires=[1,2]),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4]),
+    ]
+
+    qbf_cc_wings_layers = [
+        qbf_cc_wings_wire_set_nodes,
+        qbf_cc_wings_prep_nodes,
+        qbf_cc_wings_cctx_nodes,
+        qbf_cc_wings_B_nodes,
+        qbf_cc_wings_C_nodes,
+        qbf_cc_wings_ccrx_nodes,
+        qbf_cc_wings_meas_nodes,
+    ]
+
+
+    eatx_qbf_wires_set_nodes = [
         qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6])
     ]
-    earx_butterfly_source_nodes = [
+    
+    eatx_qbf_source_nodes = [
+        qnetvo.PrepareNode(wires=[5,6], ansatz_fn=qnetvo.ghz_state)
+    ]
+    eatx_qbf_prep_nodes = [
+        qnetvo.ProcessingNode(num_in=3, wires=[0,1,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(num_in=3, wires=[2,4,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    ]
+    eatx_qbf_B_nodes = [
+        qnetvo.ProcessingNode(wires=[1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    ]
+    eatx_qbf_C_nodes = [
+        qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    ]
+    eatx_qbf_meas_nodes = [
+        qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    ]
+
+    eatx_qbf_layers = [
+        eatx_qbf_wires_set_nodes,
+        eatx_qbf_source_nodes,
+        eatx_qbf_prep_nodes,
+        eatx_qbf_B_nodes,
+        eatx_qbf_C_nodes,
+        eatx_qbf_meas_nodes,
+    ]
+
+    earx_qbf_wires_set_nodes = [
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6])
+    ]
+    earx_qbf_source_nodes = [
         qnetvo.PrepareNode(wires=[2,6],ansatz_fn = qnetvo.ghz_state),
     ]
-    earx_butterfly_prep_nodes = [
+    earx_qbf_prep_nodes = [
         qnetvo.PrepareNode(num_in=3, wires=[0,1], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
         qnetvo.PrepareNode(num_in=3, wires=[3,5], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
-    earx_butterfly_B_nodes = [
+    earx_qbf_B_nodes = [
         qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
-    earx_butterfly_C_nodes = [
+    earx_qbf_C_nodes = [
         qnetvo.ProcessingNode(wires=[1,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
-    earx_butterfly_meas_nodes = [
-        qnetvo.MeasureNode(num_out=3, wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
-        qnetvo.MeasureNode(num_out=3, wires=[4,5,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    earx_qbf_rx_nodes = [
+        qnetvo.ProcessingNode(wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[4,5,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    ]
+    earx_qbf_meas_nodes = [
+        qnetvo.MeasureNode(num_out=3, wires=[0,1]),
+        qnetvo.MeasureNode(num_out=3, wires=[4,5]),
+    ]
+
+    earx_qbf_layers = [
+        earx_qbf_wires_set_nodes,
+        earx_qbf_source_nodes,
+        earx_qbf_prep_nodes,
+        earx_qbf_B_nodes,
+        earx_qbf_C_nodes,
+        earx_qbf_rx_nodes,
+        earx_qbf_meas_nodes,
     ]
 
 
@@ -299,7 +477,7 @@ if __name__=="__main__":
         print("name = ", game_names[i])
         inequality_tag = "I_" + game_names[i] + "_"
 
-        n_workers = 1
+        n_workers = 2
         client = Client(processes=True, n_workers=n_workers, threads_per_worker=1)
 
 
@@ -311,13 +489,7 @@ if __name__=="__main__":
         # time_start = time.time()
 
         # qbf_game_opt_fn = optimize_inequality(
-        #     [
-        #         butterfly_wire_set_nodes,
-        #         butterfly_prep_nodes,
-        #         butterfly_B_nodes,
-        #         butterfly_C_nodes,
-        #         butterfly_meas_nodes
-        #     ],
+        #     qbf_layers,
         #     np.kron(postmap3,postmap3),
         #     butterfly_game_inequality,
         #     num_steps=150,
@@ -353,13 +525,7 @@ if __name__=="__main__":
         # time_start = time.time()
 
         # qbf_facet_opt_fn = optimize_inequality(
-        #     [
-        #         butterfly_wire_set_nodes,
-        #         butterfly_prep_nodes,
-        #         butterfly_B_nodes,
-        #         butterfly_C_nodes,
-        #         butterfly_meas_nodes
-        #     ],
+        #     qbf_layers,
         #     np.kron(postmap3,postmap3),
         #     butterfly_facet_inequality,
         #     num_steps=150,
@@ -388,6 +554,79 @@ if __name__=="__main__":
         # print("iteration time  : ", time.time() - time_start)
 
         # """
+        # quantum butterfly cc_wings game
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # qbf_game_opt_fn = optimize_inequality(
+        #     qbf_cc_wings_layers,
+        #     np.kron(postmap3,postmap3),
+        #     butterfly_game_inequality,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # qbf_game_opt_jobs = client.map(qbf_game_opt_fn, range(n_workers))
+        # qbf_game_opt_dicts = client.gather(qbf_game_opt_jobs)
+
+        # max_opt_dict = qbf_game_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(qbf_game_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(qbf_game_opt_dicts[j]["scores"])
+        #         max_opt_dict = qbf_game_opt_dicts[j]
+
+        # scenario = "qbf_cc_wings_game_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
+        # """
+        # quantum butterfly cc wings facet
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # qbf_facet_opt_fn = optimize_inequality(
+        #     qbf_cc_wings_layers,
+        #     np.kron(postmap3,postmap3),
+        #     butterfly_facet_inequality,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # qbf_facet_opt_jobs = client.map(qbf_facet_opt_fn, range(n_workers))
+        # qbf_facet_opt_dicts = client.gather(qbf_facet_opt_jobs)
+
+        # max_opt_dict = qbf_facet_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(qbf_facet_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(qbf_facet_opt_dicts[j]["scores"])
+        #         max_opt_dict = qbf_facet_opt_dicts[j]
+
+        # scenario = "qbf_cc_wings_facet_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
+
+        # """
         # eatx_quantum butterfly game
         # """
         # client.restart()
@@ -395,14 +634,7 @@ if __name__=="__main__":
         # time_start = time.time()
 
         # eatx_qbf_game_opt_fn = optimize_inequality(
-        #     [
-        #         butterfly_wire_set_nodes,
-        #         eatx_butterfly_source_nodes,
-        #         eatx_butterfly_prep_nodes,
-        #         butterfly_B_nodes,
-        #         butterfly_C_nodes,
-        #         butterfly_meas_nodes
-        #     ],
+        #     eatx_qbf_layers,
         #     np.kron(postmap3,postmap3),
         #     butterfly_game_inequality,
         #     num_steps=150,
@@ -418,7 +650,7 @@ if __name__=="__main__":
         # max_score = max(max_opt_dict["scores"])
         # for j in range(1,n_workers):
         #     if max(eatx_qbf_game_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(qbf_game_opt_dicts[j]["scores"])
+        #         max_score = max(eatx_qbf_game_opt_dicts[j]["scores"])
         #         max_opt_dict = eatx_qbf_game_opt_dicts[j]
 
         # scenario = "eatx_qbf_game_"
@@ -438,14 +670,7 @@ if __name__=="__main__":
         # time_start = time.time()
 
         # eatx_qbf_facet_opt_fn = optimize_inequality(
-        #     [
-        #         butterfly_wire_set_nodes,
-        #         eatx_butterfly_source_nodes,
-        #         eatx_butterfly_prep_nodes,
-        #         butterfly_B_nodes,
-        #         butterfly_C_nodes,
-        #         butterfly_meas_nodes
-        #     ],
+        #     eatx_qbf_layers,
         #     np.kron(postmap3,postmap3),
         #     butterfly_facet_inequality,
         #     num_steps=150,
@@ -481,15 +706,8 @@ if __name__=="__main__":
         time_start = time.time()
 
         earx_qbf_game_opt_fn = optimize_inequality(
-            [
-                earx_butterfly_wires_set_nodes,
-                earx_butterfly_source_nodes,
-                earx_butterfly_prep_nodes,
-                earx_butterfly_B_nodes,
-                earx_butterfly_C_nodes,
-                earx_butterfly_meas_nodes
-            ],
-            np.kron(postmap38,postmap38),
+            earx_qbf_layers,
+            np.kron(postmap3,postmap3),
             butterfly_game_inequality,
             num_steps=150,
             step_size=0.1,
@@ -524,15 +742,8 @@ if __name__=="__main__":
         time_start = time.time()
 
         earx_qbf_facet_opt_fn = optimize_inequality(
-            [
-                earx_butterfly_wires_set_nodes,
-                earx_butterfly_source_nodes,
-                earx_butterfly_prep_nodes,
-                earx_butterfly_B_nodes,
-                earx_butterfly_C_nodes,
-                earx_butterfly_meas_nodes
-            ],
-            np.kron(postmap38,postmap38),
+            earx_qbf_layers,
+            np.kron(postmap3,postmap3),
             butterfly_facet_inequality,
             num_steps=150,
             step_size=0.1,
