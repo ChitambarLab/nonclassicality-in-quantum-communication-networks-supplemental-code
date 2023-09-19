@@ -9,6 +9,87 @@ import qnetvo
 
 
 
+def adam_gradient_descent(
+    cost,
+    init_settings,
+    num_steps=150,
+    step_size=0.1,
+    sample_width=25,
+    grad_fn=None,
+    verbose=True,
+    interface="autograd",
+):
+    """
+    adapted from qnetvo
+    """
+
+    if interface == "autograd":
+        # opt = qml.GradientDescentOptimizer(stepsize=step_size)
+        opt = qml.AdamOptimizer(stepsize=step_size)
+    elif interface == "tf":
+        from .lazy_tensorflow_import import tensorflow as tf
+
+        opt = tf.keras.optimizers.SGD(learning_rate=step_size)
+    else:
+        raise ValueError('Interface "' + interface + '" is not supported.')
+
+    settings = init_settings
+    scores = []
+    samples = []
+    step_times = []
+    settings_history = [init_settings]
+
+    start_datetime = datetime.utcnow()
+    elapsed = 0
+
+    # performing gradient descent
+    for i in range(num_steps):
+        if i % sample_width == 0:
+            score = -(cost(*settings))
+            scores.append(score)
+            samples.append(i)
+
+            if verbose:
+                print("iteration : ", i, ", score : ", score)
+
+        start = time.time()
+        if interface == "autograd":
+            settings = opt.step(cost, *settings, grad_fn=grad_fn)
+            if not (isinstance(settings, list)):
+                settings = [settings]
+        elif interface == "tf":
+            # opt.minimize updates settings in place
+            tf_cost = lambda: cost(*settings)
+            opt.minimize(tf_cost, settings)
+
+        elapsed = time.time() - start
+
+        if i % sample_width == 0:
+            step_times.append(elapsed)
+
+            if verbose:
+                print("elapsed time : ", elapsed)
+
+        settings_history.append(settings)
+
+    opt_score = -(cost(*settings))
+    step_times.append(elapsed)
+
+    scores.append(opt_score)
+    samples.append(num_steps)
+
+    return {
+        "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "opt_score": opt_score,
+        "opt_settings": settings,
+        "scores": scores,
+        "samples": samples,
+        "settings_history": settings_history,
+        "step_times": step_times,
+        "step_size": step_size,
+    }
+
+
 def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
     handle errors during computation.
@@ -16,7 +97,8 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     Optimization errors will result in an empty optimization dictionary.
     """
     try:
-        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs)
+        # opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs)
+        opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
     except Exception as err:
         print("An error occurred during gradient descent.")
         print(err)
@@ -70,18 +152,31 @@ if __name__=="__main__":
         qnetvo.MeasureNode(num_out=3,wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
 
+    qbc_layers = [
+        qbc_wire_set_nodes,
+        qbc_prep_nodes,
+        qbc_meas_nodes,
+    ]
+
     earx_qbc_wire_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3])
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5])
     ]
     earx_qbc_source_nodes = [
-        qnetvo.PrepareNode(wires=[1,3], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(wires=[1,4], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
     earx_qbc_prep_nodes = [
-        qnetvo.PrepareNode(num_in=9, wires=[0,2], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=9, wires=[0,3], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
     earx_qbc_meas_nodes = [
-        qnetvo.MeasureNode(num_out=3,wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
-        qnetvo.MeasureNode(num_out=3,wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.MeasureNode(num_out=3,wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.MeasureNode(num_out=3,wires=[3,4,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    ]
+
+    earx_qbc_layers = [
+        earx_qbc_wire_set_nodes,
+        earx_qbc_source_nodes,
+        earx_qbc_prep_nodes,
+        earx_qbc_meas_nodes,
     ]
 
 
