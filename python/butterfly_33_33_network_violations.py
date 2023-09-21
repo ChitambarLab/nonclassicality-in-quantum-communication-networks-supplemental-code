@@ -149,22 +149,27 @@ if __name__=="__main__":
     ])
 
     qbf_wire_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3,4])
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6,7,8])
     ]
     qbf_prep_nodes = [
-        qnetvo.PrepareNode(num_in=3, wires=[0,1], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
-        qnetvo.PrepareNode(num_in=3, wires=[2,4], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=3, wires=[0,4], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=3, wires=[1,7], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
     qbf_B_nodes = [
-        qnetvo.ProcessingNode(wires=[1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.ProcessingNode(wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     qbf_C_nodes = [
-        qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.ProcessingNode(wires=[2,3,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    ]
+
+    qbf_meas_proc_nodes = [
+        qnetvo.ProcessingNode(wires=[3,4,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[6,7,8], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
 
     qbf_meas_nodes = [
-        qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
-        qnetvo.MeasureNode(num_out=3, wires=[3,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4]),
+        qnetvo.MeasureNode(num_out=3, wires=[6,7]),
     ]
 
     qbf_layers = [
@@ -172,6 +177,7 @@ if __name__=="__main__":
         qbf_prep_nodes,
         qbf_B_nodes,
         qbf_C_nodes,
+        qbf_meas_proc_nodes,
         qbf_meas_nodes,
     ]
 
@@ -228,25 +234,29 @@ if __name__=="__main__":
 
 
     eatx_qbf_wires_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6])
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6,7,8,9,10])
     ]
     
     eatx_qbf_source_nodes = [
-        qnetvo.PrepareNode(wires=[5,6], ansatz_fn=qnetvo.ghz_state)
+        qnetvo.PrepareNode(wires=[9,10], ansatz_fn=qnetvo.ghz_state)
     ]
     eatx_qbf_prep_nodes = [
-        qnetvo.ProcessingNode(num_in=3, wires=[0,1,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
-        qnetvo.ProcessingNode(num_in=3, wires=[2,4,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(num_in=3, wires=[0,4,9], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(num_in=3, wires=[1,7,10], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     eatx_qbf_B_nodes = [
-        qnetvo.ProcessingNode(wires=[1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.ProcessingNode(wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     eatx_qbf_C_nodes = [
-        qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.ProcessingNode(wires=[2,3,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    ]
+    eatx_qbf_meas_proc_nodes = [
+        qnetvo.ProcessingNode(wires=[3,4,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[6,7,8], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     eatx_qbf_meas_nodes = [
-        qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
-        qnetvo.MeasureNode(num_out=3, wires=[3,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4]),
+        qnetvo.MeasureNode(num_out=3, wires=[6,7]),
     ]
 
     eatx_qbf_layers = [
@@ -255,32 +265,33 @@ if __name__=="__main__":
         eatx_qbf_prep_nodes,
         eatx_qbf_B_nodes,
         eatx_qbf_C_nodes,
+        eatx_qbf_meas_proc_nodes,
         eatx_qbf_meas_nodes,
     ]
 
     earx_qbf_wires_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6])
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6,7,8])
     ]
     earx_qbf_source_nodes = [
-        qnetvo.PrepareNode(wires=[2,6],ansatz_fn = qnetvo.ghz_state),
+        qnetvo.PrepareNode(wires=[5,8],ansatz_fn = qnetvo.ghz_state),
     ]
     earx_qbf_prep_nodes = [
-        qnetvo.PrepareNode(num_in=3, wires=[0,1], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
-        qnetvo.PrepareNode(num_in=3, wires=[3,5], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=3, wires=[0,4], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=3, wires=[1,7], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
     earx_qbf_B_nodes = [
-        qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.ProcessingNode(wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     earx_qbf_C_nodes = [
-        qnetvo.ProcessingNode(wires=[1,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.ProcessingNode(wires=[2,3,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     earx_qbf_rx_nodes = [
-        qnetvo.ProcessingNode(wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
-        qnetvo.ProcessingNode(wires=[4,5,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[3,4,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[6,7,8], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     earx_qbf_meas_nodes = [
-        qnetvo.MeasureNode(num_out=3, wires=[0,1]),
-        qnetvo.MeasureNode(num_out=3, wires=[4,5]),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4]),
+        qnetvo.MeasureNode(num_out=3, wires=[6,7]),
     ]
 
     earx_qbf_layers = [
@@ -295,180 +306,181 @@ if __name__=="__main__":
 
 
 
-    butterfly_game_inequalities = [
-        (7, np.array([ # multiplication with zero 
-            [1, 1, 1, 1, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ])),
-        (6 , np.array([ # multiplication game [1,2,3] no zero mult1
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        ])),
-        (4, np.array([ # swap game
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        ])),
-        (6, np.array([ # adder game
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 1, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ])),
-        (7, np.array([ # compare game
-            [1, 0, 0, 0, 1, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 1, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ])),
-        (6, np.array([ # on receiver permutes output based on other receiver
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0],
-        ])),
-        (6, np.array([ # same difference game
-            [1, 0, 0, 0, 1, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 1, 0, 0],
-        ])),
-        (7, np.eye(9)), # communication value
-    ]
+    # butterfly_game_inequalities = [
+    #     (7, np.array([ # multiplication with zero 
+    #         [1, 1, 1, 1, 0, 0, 1, 0, 0],
+    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #     ])),
+    #     (6 , np.array([ # multiplication game [1,2,3] no zero mult1
+    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 0, 1, 0, 0, 0, 0, 0],
+    #         [0, 0, 1, 0, 0, 0, 1, 0, 0],
+    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #     ])),
+    #     (4, np.array([ # swap game
+    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 1, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 1, 0, 0],
+    #         [0, 1, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    #         [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #     ])),
+    #     (6, np.array([ # adder game
+    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 0, 1, 0, 0, 0, 0, 0],
+    #         [0, 0, 1, 0, 1, 0, 1, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #     ])),
+    #     (7, np.array([ # compare game
+    #         [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 1, 0, 0, 1, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 1, 0, 0, 1, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #     ])),
+    #     (6, np.array([ # on receiver permutes output based on other receiver
+    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 0, 0],
+    #         [0, 0, 0, 1, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 1, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    #     ])),
+    #     (6, np.array([ # same difference game
+    #         [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 0, 1, 0, 1, 0, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 1, 0, 0, 0, 1, 0, 0],
+    #     ])),
+    #     (7, np.eye(9)), # communication value
+    # ]
     
-    butterfly_facet_inequalities = [
-        (11, np.array([ # mult0 facet
-            [1,  3,  1,  1,  0,  0,  1,  0,  0],
-            [0,  0,  0,  1,  2,  0,  1,  0,  1],
-            [0,  1,  0,  0,  0,  1,  0,  2,  0],
-            [0,  2,  1,  0,  1,  1,  0,  1,  1],
-            [0,  1,  0,  1,  2,  0,  0,  0,  2],
-            [0,  2,  1,  1,  1,  1,  0,  1,  1],
-            [0,  2,  1,  0,  1,  1,  0,  1,  1],
-            [0,  0,  0,  1,  1,  0,  1,  0,  1],
-            [1,  2,  1,  1,  1,  1,  1,  1,  1],
-        ])),
-        (11, np.array([ # mult1 facet
-            [2,  0,  1,  1,  0,  0,  0,  0,  0],
-            [0,  1,  1,  3,  0,  0,  0,  0,  0],
-            [0,  0,  1,  1,  0,  0,  2,  0,  0],
-            [1,  0,  1,  0,  1,  1,  0,  1,  0],
-            [0,  1,  1,  1,  0,  2,  0,  1,  0],
-            [0,  0,  1,  1,  0,  2,  0,  2,  0],
-            [1,  1,  1,  1,  1,  1,  0,  0,  1],
-            [0,  1,  0,  2,  1,  1,  1,  0,  1],
-            [1,  1,  1,  2,  1,  1,  1,  1,  1],
-        ])),
-        (12, np.array([ # swap facet
-            [2,  0,  1,  0,  0,  1,  0,  1,  0],
-            [0,  0,  1,  2,  0,  1,  0,  1,  0],
-            [1,  0,  1,  1,  1,  1,  1,  1,  1],
-            [0,  2,  0,  0,  0,  1,  1,  0,  0],
-            [0,  0,  1,  0,  2,  0,  1,  0,  0],
-            [0,  1,  1,  1,  1,  1,  0,  1,  1],
-            [0,  0,  3,  0,  0,  2,  0,  1,  0],
-            [0,  0,  2,  0,  0,  3,  0,  1,  0],
-            [1,  1,  2,  1,  1,  2,  1,  1,  1],
-        ])),
-        (10, np.array([ # adder facet
-            [1,  0,  1,  0,  1,  1,  1,  1,  0],
-            [0,  2,  0,  1,  0,  0,  0,  0,  2],
-            [1,  1,  2,  0,  1,  1,  1,  1,  1],
-            [0,  1,  1,  0,  0,  2,  1,  1,  0],
-            [0,  1,  0,  0,  0,  0,  0,  0,  2],
-            [0,  1,  2,  0,  0,  1,  1,  1,  1],
-            [1,  0,  1,  0,  1,  1,  1,  1,  1],
-            [0,  1,  0,  1,  0,  0,  0,  0,  2],
-            [1,  1,  2,  0,  1,  1,  1,  1,  1],
-        ])),
-        (14, np.array([ # compare facet
-            [3,  0,  0,  0,  2,  0,  1,  0, 1],
-            [2,  1,  0,  0,  1,  0,  1,  1, 1],
-            [2,  1,  1,  0,  0,  1,  0,  1, 0],
-            [1,  1,  2,  0,  0,  2,  0,  1, 1],
-            [0,  2,  2,  0,  0,  2,  0,  1, 1],
-            [0,  3,  2,  0,  0,  3,  0,  0, 0],
-            [1,  1,  2,  0,  1,  1,  1,  1, 0],
-            [1,  2,  2,  1,  1,  1,  1,  1, 0],
-            [2,  2,  3,  1,  1,  2,  1,  1, 0],
-        ])),
-        (20, np.array([ # conditioned permutation facet
-            [2,  1,  0,  1,  3,  0,  1,  1,  2],
-            [1,  5,  2,  0,  0,  2,  1,  1,  0],
-            [0,  3,  3,  1,  3,  3,  0,  2,  0],
-            [1,  2,  0,  1,  4,  0,  1,  0,  2],
-            [0,  3,  1,  1,  1,  3,  1,  1,  0],
-            [0,  3,  3,  2,  1,  2,  0,  1,  0],
-            [1,  0,  0,  1,  3,  0,  1,  1,  1],
-            [0,  3,  1,  0,  0,  2,  2,  1,  1],
-            [2,  3,  3,  1,  3,  3,  1,  2,  0],
-        ])),
-        (12, np.array([  # same difference facet
-            [3,  0,  0,  0,  2,  0,  0,  1,  1],
-            [1,  0,  0,  1,  1,  0,  0,  1,  1],
-            [2,  0,  0,  0,  1,  0,  0,  0,  1],
-            [2,  0,  1,  0,  0,  2,  0,  1,  0],
-            [1,  0,  1,  2,  0,  1,  0,  2,  0],
-            [2,  1,  1,  1,  1,  2,  0,  1,  0],
-            [1,  0,  0,  0,  0,  1,  0,  1,  1],
-            [0,  0,  1,  1,  0,  2,  0,  1,  1],
-            [2,  1,  2,  1,  1,  2,  1,  1,  0],
-        ])),
-        (18, np.array([ # cv facet
-            [3,  0,  1,  0,  3,  1,  0,  0,  0],
-            [1,  3,  0,  0,  3,  1,  0,  0,  0],
-            [0,  0,  3,  0,  4,  1,  0,  0,  1],
-            [1,  0,  1,  3,  2,  1,  0,  0,  0],
-            [3,  1,  1,  1,  3,  0,  0,  0,  0],
-            [3,  1,  2,  0,  0,  2,  0,  0,  1],
-            [0,  0,  1,  0,  3,  1,  2,  1,  1],
-            [2,  0,  1,  0,  0,  1,  2,  1,  1],
-            [4,  1,  2,  1,  4,  1,  1,  0,  0],
-        ])),
-    ]
+    # butterfly_facet_inequalities = [
+    #     (11, np.array([ # mult0 facet
+    #         [1,  3,  1,  1,  0,  0,  1,  0,  0],
+    #         [0,  0,  0,  1,  2,  0,  1,  0,  1],
+    #         [0,  1,  0,  0,  0,  1,  0,  2,  0],
+    #         [0,  2,  1,  0,  1,  1,  0,  1,  1],
+    #         [0,  1,  0,  1,  2,  0,  0,  0,  2],
+    #         [0,  2,  1,  1,  1,  1,  0,  1,  1],
+    #         [0,  2,  1,  0,  1,  1,  0,  1,  1],
+    #         [0,  0,  0,  1,  1,  0,  1,  0,  1],
+    #         [1,  2,  1,  1,  1,  1,  1,  1,  1],
+    #     ])),
+    #     (11, np.array([ # mult1 facet
+    #         [2,  0,  1,  1,  0,  0,  0,  0,  0],
+    #         [0,  1,  1,  3,  0,  0,  0,  0,  0],
+    #         [0,  0,  1,  1,  0,  0,  2,  0,  0],
+    #         [1,  0,  1,  0,  1,  1,  0,  1,  0],
+    #         [0,  1,  1,  1,  0,  2,  0,  1,  0],
+    #         [0,  0,  1,  1,  0,  2,  0,  2,  0],
+    #         [1,  1,  1,  1,  1,  1,  0,  0,  1],
+    #         [0,  1,  0,  2,  1,  1,  1,  0,  1],
+    #         [1,  1,  1,  2,  1,  1,  1,  1,  1],
+    #     ])),
+    #     (12, np.array([ # swap facet
+    #         [2,  0,  1,  0,  0,  1,  0,  1,  0],
+    #         [0,  0,  1,  2,  0,  1,  0,  1,  0],
+    #         [1,  0,  1,  1,  1,  1,  1,  1,  1],
+    #         [0,  2,  0,  0,  0,  1,  1,  0,  0],
+    #         [0,  0,  1,  0,  2,  0,  1,  0,  0],
+    #         [0,  1,  1,  1,  1,  1,  0,  1,  1],
+    #         [0,  0,  3,  0,  0,  2,  0,  1,  0],
+    #         [0,  0,  2,  0,  0,  3,  0,  1,  0],
+    #         [1,  1,  2,  1,  1,  2,  1,  1,  1],
+    #     ])),
+    #     (10, np.array([ # adder facet
+    #         [1,  0,  1,  0,  1,  1,  1,  1,  0],
+    #         [0,  2,  0,  1,  0,  0,  0,  0,  2],
+    #         [1,  1,  2,  0,  1,  1,  1,  1,  1],
+    #         [0,  1,  1,  0,  0,  2,  1,  1,  0],
+    #         [0,  1,  0,  0,  0,  0,  0,  0,  2],
+    #         [0,  1,  2,  0,  0,  1,  1,  1,  1],
+    #         [1,  0,  1,  0,  1,  1,  1,  1,  1],
+    #         [0,  1,  0,  1,  0,  0,  0,  0,  2],
+    #         [1,  1,  2,  0,  1,  1,  1,  1,  1],
+    #     ])),
+    #     (14, np.array([ # compare facet
+    #         [3,  0,  0,  0,  2,  0,  1,  0, 1],
+    #         [2,  1,  0,  0,  1,  0,  1,  1, 1],
+    #         [2,  1,  1,  0,  0,  1,  0,  1, 0],
+    #         [1,  1,  2,  0,  0,  2,  0,  1, 1],
+    #         [0,  2,  2,  0,  0,  2,  0,  1, 1],
+    #         [0,  3,  2,  0,  0,  3,  0,  0, 0],
+    #         [1,  1,  2,  0,  1,  1,  1,  1, 0],
+    #         [1,  2,  2,  1,  1,  1,  1,  1, 0],
+    #         [2,  2,  3,  1,  1,  2,  1,  1, 0],
+    #     ])),
+    #     (20, np.array([ # conditioned permutation facet
+    #         [2,  1,  0,  1,  3,  0,  1,  1,  2],
+    #         [1,  5,  2,  0,  0,  2,  1,  1,  0],
+    #         [0,  3,  3,  1,  3,  3,  0,  2,  0],
+    #         [1,  2,  0,  1,  4,  0,  1,  0,  2],
+    #         [0,  3,  1,  1,  1,  3,  1,  1,  0],
+    #         [0,  3,  3,  2,  1,  2,  0,  1,  0],
+    #         [1,  0,  0,  1,  3,  0,  1,  1,  1],
+    #         [0,  3,  1,  0,  0,  2,  2,  1,  1],
+    #         [2,  3,  3,  1,  3,  3,  1,  2,  0],
+    #     ])),
+    #     (12, np.array([  # same difference facet
+    #         [3,  0,  0,  0,  2,  0,  0,  1,  1],
+    #         [1,  0,  0,  1,  1,  0,  0,  1,  1],
+    #         [2,  0,  0,  0,  1,  0,  0,  0,  1],
+    #         [2,  0,  1,  0,  0,  2,  0,  1,  0],
+    #         [1,  0,  1,  2,  0,  1,  0,  2,  0],
+    #         [2,  1,  1,  1,  1,  2,  0,  1,  0],
+    #         [1,  0,  0,  0,  0,  1,  0,  1,  1],
+    #         [0,  0,  1,  1,  0,  2,  0,  1,  1],
+    #         [2,  1,  2,  1,  1,  2,  1,  1,  0],
+    #     ])),
+    #     (18, np.array([ # cv facet
+    #         [3,  0,  1,  0,  3,  1,  0,  0,  0],
+    #         [1,  3,  0,  0,  3,  1,  0,  0,  0],
+    #         [0,  0,  3,  0,  4,  1,  0,  0,  1],
+    #         [1,  0,  1,  3,  2,  1,  0,  0,  0],
+    #         [3,  1,  1,  1,  3,  0,  0,  0,  0],
+    #         [3,  1,  2,  0,  0,  2,  0,  0,  1],
+    #         [0,  0,  1,  0,  3,  1,  2,  1,  1],
+    #         [2,  0,  1,  0,  0,  1,  2,  1,  1],
+    #         [4,  1,  2,  1,  4,  1,  1,  0,  0],
+    #     ])),
+    # ]
 
-    game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
+    # game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
     
+    butterfly_game_inequalities, butterfly_facet_inequalities, game_names = mac.butterfly_33_33_network_bounds()
 
     for i in range(0,8):
         butterfly_game_inequality = butterfly_game_inequalities[i]
@@ -481,77 +493,90 @@ if __name__=="__main__":
         client = Client(processes=True, n_workers=n_workers, threads_per_worker=1)
 
 
-        # """
-        # quantum butterfly game
-        # """
-        # client.restart()
+        """
+        quantum butterfly game
+        """
+        client.restart()
 
-        # time_start = time.time()
+        time_start = time.time()
 
-        # qbf_game_opt_fn = optimize_inequality(
-        #     qbf_layers,
-        #     np.kron(postmap3,postmap3),
-        #     butterfly_game_inequality,
-        #     num_steps=150,
-        #     step_size=0.1,
-        #     sample_width=1,
-        #     verbose=True
-        # )
+        postmap1 = postmap3
+        postmap2 = postmap3
 
-        # qbf_game_opt_jobs = client.map(qbf_game_opt_fn, range(n_workers))
-        # qbf_game_opt_dicts = client.gather(qbf_game_opt_jobs)
+        qbf_game_opt_fn = optimize_inequality(
+            qbf_layers,
+            np.kron(postmap1,postmap2),
+            butterfly_game_inequality,
+            num_steps=150,
+            step_size=0.1,
+            sample_width=1,
+            verbose=True
+        )
 
-        # max_opt_dict = qbf_game_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(qbf_game_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(qbf_game_opt_dicts[j]["scores"])
-        #         max_opt_dict = qbf_game_opt_dicts[j]
+        qbf_game_opt_jobs = client.map(qbf_game_opt_fn, range(n_workers))
+        qbf_game_opt_dicts = client.gather(qbf_game_opt_jobs)
 
-        # scenario = "qbf_game_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
+        max_opt_dict = qbf_game_opt_dicts[0]
+        max_score = max(max_opt_dict["scores"])
+        for j in range(1,n_workers):
+            if max(qbf_game_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(qbf_game_opt_dicts[j]["scores"])
+                max_opt_dict = qbf_game_opt_dicts[j]
+            
+        max_opt_dict["postmap1"] = postmap1.tolist()
+        max_opt_dict["postmap2"] = postmap2.tolist()
 
-        # print("iteration time  : ", time.time() - time_start)
 
-        # """
-        # quantum butterfly facet
-        # """
-        # client.restart()
+        scenario = "qbf_game_"
+        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        qnetvo.write_optimization_json(
+            max_opt_dict,
+            data_dir + scenario + inequality_tag + datetime_ext,
+        )
 
-        # time_start = time.time()
+        print("iteration time  : ", time.time() - time_start)
 
-        # qbf_facet_opt_fn = optimize_inequality(
-        #     qbf_layers,
-        #     np.kron(postmap3,postmap3),
-        #     butterfly_facet_inequality,
-        #     num_steps=150,
-        #     step_size=0.1,
-        #     sample_width=1,
-        #     verbose=True
-        # )
+        """
+        quantum butterfly facet
+        """
+        client.restart()
 
-        # qbf_facet_opt_jobs = client.map(qbf_facet_opt_fn, range(n_workers))
-        # qbf_facet_opt_dicts = client.gather(qbf_facet_opt_jobs)
+        time_start = time.time()
 
-        # max_opt_dict = qbf_facet_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(qbf_facet_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(qbf_facet_opt_dicts[j]["scores"])
-        #         max_opt_dict = qbf_facet_opt_dicts[j]
+        postmap1 = postmap3
+        postmap2 = postmap3
 
-        # scenario = "qbf_facet_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
+        qbf_facet_opt_fn = optimize_inequality(
+            qbf_layers,
+            np.kron(postmap1,postmap2),
+            butterfly_facet_inequality,
+            num_steps=150,
+            step_size=0.1,
+            sample_width=1,
+            verbose=True
+        )
 
-        # print("iteration time  : ", time.time() - time_start)
+        qbf_facet_opt_jobs = client.map(qbf_facet_opt_fn, range(n_workers))
+        qbf_facet_opt_dicts = client.gather(qbf_facet_opt_jobs)
+
+        max_opt_dict = qbf_facet_opt_dicts[0]
+        max_score = max(max_opt_dict["scores"])
+        for j in range(1,n_workers):
+            if max(qbf_facet_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(qbf_facet_opt_dicts[j]["scores"])
+                max_opt_dict = qbf_facet_opt_dicts[j]
+
+        max_opt_dict["postmap1"] = postmap1.tolist()
+        max_opt_dict["postmap2"] = postmap2.tolist()
+
+        scenario = "qbf_facet_"
+        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        qnetvo.write_optimization_json(
+            max_opt_dict,
+            data_dir + scenario + inequality_tag + datetime_ext,
+        )
+
+        print("iteration time  : ", time.time() - time_start)
 
         # """
         # quantum butterfly cc_wings game
@@ -626,77 +651,89 @@ if __name__=="__main__":
         # print("iteration time  : ", time.time() - time_start)
 
 
-        # """
-        # eatx_quantum butterfly game
-        # """
-        # client.restart()
+        """
+        eatx_quantum butterfly game
+        """
+        client.restart()
 
-        # time_start = time.time()
+        time_start = time.time()
 
-        # eatx_qbf_game_opt_fn = optimize_inequality(
-        #     eatx_qbf_layers,
-        #     np.kron(postmap3,postmap3),
-        #     butterfly_game_inequality,
-        #     num_steps=150,
-        #     step_size=0.1,
-        #     sample_width=1,
-        #     verbose=True
-        # )
+        postmap1 = postmap3
+        postmap2 = postmap3
 
-        # eatx_qbf_game_opt_jobs = client.map(eatx_qbf_game_opt_fn, range(n_workers))
-        # eatx_qbf_game_opt_dicts = client.gather(eatx_qbf_game_opt_jobs)
+        eatx_qbf_game_opt_fn = optimize_inequality(
+            eatx_qbf_layers,
+            np.kron(postmap1,postmap2),
+            butterfly_game_inequality,
+            num_steps=150,
+            step_size=0.1,
+            sample_width=1,
+            verbose=True
+        )
 
-        # max_opt_dict = eatx_qbf_game_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(eatx_qbf_game_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(eatx_qbf_game_opt_dicts[j]["scores"])
-        #         max_opt_dict = eatx_qbf_game_opt_dicts[j]
+        eatx_qbf_game_opt_jobs = client.map(eatx_qbf_game_opt_fn, range(n_workers))
+        eatx_qbf_game_opt_dicts = client.gather(eatx_qbf_game_opt_jobs)
 
-        # scenario = "eatx_qbf_game_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
+        max_opt_dict = eatx_qbf_game_opt_dicts[0]
+        max_score = max(max_opt_dict["scores"])
+        for j in range(1,n_workers):
+            if max(eatx_qbf_game_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(eatx_qbf_game_opt_dicts[j]["scores"])
+                max_opt_dict = eatx_qbf_game_opt_dicts[j]
 
-        # print("iteration time  : ", time.time() - time_start)
+        max_opt_dict["postmap1"] = postmap1.tolist()
+        max_opt_dict["postmap2"] = postmap2.tolist()
 
-        # """
-        # eatx quantum butterfly facet
-        # """
-        # client.restart()
+        scenario = "eatx_qbf_game_"
+        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        qnetvo.write_optimization_json(
+            max_opt_dict,
+            data_dir + scenario + inequality_tag + datetime_ext,
+        )
 
-        # time_start = time.time()
+        print("iteration time  : ", time.time() - time_start)
 
-        # eatx_qbf_facet_opt_fn = optimize_inequality(
-        #     eatx_qbf_layers,
-        #     np.kron(postmap3,postmap3),
-        #     butterfly_facet_inequality,
-        #     num_steps=150,
-        #     step_size=0.1,
-        #     sample_width=1,
-        #     verbose=True
-        # )
+        """
+        eatx quantum butterfly facet
+        """
+        client.restart()
 
-        # eatx_qbf_facet_opt_jobs = client.map(eatx_qbf_facet_opt_fn, range(n_workers))
-        # eatx_qbf_facet_opt_dicts = client.gather(eatx_qbf_facet_opt_jobs)
+        time_start = time.time()
 
-        # max_opt_dict = eatx_qbf_facet_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(eatx_qbf_facet_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(eatx_qbf_facet_opt_dicts[j]["scores"])
-        #         max_opt_dict = eatx_qbf_facet_opt_dicts[j]
+        postmap1 = postmap3
+        postmap2 = postmap3
 
-        # scenario = "eatx_qbf_facet_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
+        eatx_qbf_facet_opt_fn = optimize_inequality(
+            eatx_qbf_layers,
+            np.kron(postmap1,postmap2),
+            butterfly_facet_inequality,
+            num_steps=150,
+            step_size=0.1,
+            sample_width=1,
+            verbose=True
+        )
 
-        # print("iteration time  : ", time.time() - time_start)
+        eatx_qbf_facet_opt_jobs = client.map(eatx_qbf_facet_opt_fn, range(n_workers))
+        eatx_qbf_facet_opt_dicts = client.gather(eatx_qbf_facet_opt_jobs)
+
+        max_opt_dict = eatx_qbf_facet_opt_dicts[0]
+        max_score = max(max_opt_dict["scores"])
+        for j in range(1,n_workers):
+            if max(eatx_qbf_facet_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(eatx_qbf_facet_opt_dicts[j]["scores"])
+                max_opt_dict = eatx_qbf_facet_opt_dicts[j]
+
+        max_opt_dict["postmap1"] = postmap1.tolist()
+        max_opt_dict["postmap2"] = postmap2.tolist()
+
+        scenario = "eatx_qbf_facet_"
+        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        qnetvo.write_optimization_json(
+            max_opt_dict,
+            data_dir + scenario + inequality_tag + datetime_ext,
+        )
+
+        print("iteration time  : ", time.time() - time_start)
 
         """
         earx_quantum butterfly game
@@ -705,9 +742,12 @@ if __name__=="__main__":
 
         time_start = time.time()
 
+        postmap1 = postmap3
+        postmap2 = postmap3
+
         earx_qbf_game_opt_fn = optimize_inequality(
             earx_qbf_layers,
-            np.kron(postmap3,postmap3),
+            np.kron(postmap1,postmap2),
             butterfly_game_inequality,
             num_steps=150,
             step_size=0.1,
@@ -725,6 +765,9 @@ if __name__=="__main__":
                 max_score = max(earx_qbf_game_opt_dicts[j]["scores"])
                 max_opt_dict = earx_qbf_game_opt_dicts[j]
 
+        max_opt_dict["postmap1"] = postmap1.tolist()
+        max_opt_dict["postmap2"] = postmap2.tolist()
+
         scenario = "earx_qbf_game_"
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         qnetvo.write_optimization_json(
@@ -741,9 +784,12 @@ if __name__=="__main__":
 
         time_start = time.time()
 
+        postmap1 = postmap3
+        postmap2 = postmap3
+        
         earx_qbf_facet_opt_fn = optimize_inequality(
             earx_qbf_layers,
-            np.kron(postmap3,postmap3),
+            np.kron(postmap1,postmap2),
             butterfly_facet_inequality,
             num_steps=150,
             step_size=0.1,
@@ -760,6 +806,9 @@ if __name__=="__main__":
             if max(earx_qbf_facet_opt_dicts[j]["scores"]) > max_score:
                 max_score = max(earx_qbf_facet_opt_dicts[j]["scores"])
                 max_opt_dict = earx_qbf_facet_opt_dicts[j]
+        
+        max_opt_dict["postmap1"] = postmap1.tolist()
+        max_opt_dict["postmap2"] = postmap2.tolist()
 
         scenario = "earx_qbf_facet_"
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
