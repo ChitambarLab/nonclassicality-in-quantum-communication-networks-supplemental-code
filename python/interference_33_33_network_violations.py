@@ -138,23 +138,44 @@ if __name__=="__main__":
     data_dir = "data/interference_33_33_network_violations/"
 
     postmap3 = np.array([
+        [1,0,0,1],[0,1,0,0],[0,0,1,0],
+    ])
+    postmap3b = np.array([
         [1,0,0,0],[0,1,0,0],[0,0,1,1],
+    ])
+    postmap2 = np.array([
+        [1,1,0,0],[0,0,1,1],[0,0,0,0],
+    ])
+    postmap23a = np.array([
+        [1,0],[0,1],[0,0]
+    ])
+    postmap23b = np.array([
+        [1,0],[0,0],[0,1]
     ])
 
     qint_wire_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3]),
+        qnetvo.PrepareNode(wires=[0,1,2,3,4]),
     ]
     qint_prep_nodes = [
         qnetvo.PrepareNode(num_in=3, wires=[0], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2),
         qnetvo.PrepareNode(num_in=3, wires=[2], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2),
     ]
     qint_B_nodes = [
-        qnetvo.ProcessingNode(wires=[0,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.ProcessingNode(wires=[0,2,4,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=255),
     ]
 
     qint_meas_nodes = [
         qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
         qnetvo.MeasureNode(num_out=3, wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        # qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        # qnetvo.MeasureNode(num_out=3, wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    ]
+
+    qint_layers = [
+        qint_wire_set_nodes,
+        qint_prep_nodes,
+        qint_B_nodes,
+        qint_meas_nodes,
     ]
 
     # eatx_qint_wire_set_nodes = [
@@ -168,7 +189,7 @@ if __name__=="__main__":
     #     qnetvo.ProcessingNode(num_in=3, wires=[2], ansatz_fn=qml.ArbitraryUnitary, num_settings=3), 
     # ]
     eatx_qint_wire_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3,4,5]),
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6,7]),
     ]
     eatx_qint_source_nodes = [
         qnetvo.PrepareNode(wires=[0,3], ansatz_fn=qnetvo.ghz_state),
@@ -178,35 +199,52 @@ if __name__=="__main__":
         qnetvo.ProcessingNode(num_in=3, wires=[3,4], ansatz_fn=qml.ArbitraryUnitary, num_settings=15), 
     ]
     eatx_qint_proc_nodes = [
-        qnetvo.ProcessingNode(wires=[0,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.ProcessingNode(wires=[0,3,6,7], ansatz_fn=qml.ArbitraryUnitary, num_settings=255),
     ]
     eatx_qint_meas_nodes = [
         qnetvo.MeasureNode(num_out=3, wires=[0,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
         qnetvo.MeasureNode(num_out=3, wires=[3,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
 
+    eatx_qint_layers = [
+        eatx_qint_wire_set_nodes,
+        eatx_qint_source_nodes,
+        eatx_qint_prep_nodes,
+        eatx_qint_proc_nodes,
+        eatx_qint_meas_nodes,
+    ]
+
     
     earx_qint_wire_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3,4,5]),
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6,7]),
     ]
     earx_qint_source_nodes = [
-        qnetvo.PrepareNode(wires=[1,3], ansatz_fn=qnetvo.ghz_state),
+        qnetvo.PrepareNode(wires=[1,4], ansatz_fn=qnetvo.ghz_state),
     ]
-    eatx_qint_prep_nodes = [
+    earx_qint_prep_nodes = [
         qnetvo.PrepareNode(num_in=3, wires=[0], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2),
-        qnetvo.PrepareNode(num_in=3, wires=[2], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2),
+        qnetvo.PrepareNode(num_in=3, wires=[3], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2),
     ]
-    eatx_qint_B_nodes = [
-        qnetvo.ProcessingNode(wires=[0,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+    earx_qint_B_nodes = [
+        qnetvo.ProcessingNode(wires=[0,3,6,7], ansatz_fn=qml.ArbitraryUnitary, num_settings=255),
+    ]
+    earx_qint_meas_proc_nodes = [
+        qnetvo.ProcessingNode(wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[3,4,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     earx_qint_meas_nodes = [
-        qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
-        qnetvo.MeasureNode(num_out=3, wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.MeasureNode(num_out=3, wires=[0,1]),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4]),
     ]
-    # earx_qint_meas_nodes = [
-    #     qnetvo.MeasureNode(num_out=3, wires=[0,1]),
-    #     qnetvo.MeasureNode(num_out=3, wires=[2,3]),
-    # ]
+
+    earx_qint_layers = [
+        earx_qint_wire_set_nodes,
+        earx_qint_source_nodes,
+        earx_qint_prep_nodes,
+        earx_qint_B_nodes,
+        earx_qint_meas_proc_nodes,
+        earx_qint_meas_nodes,
+    ]
     
 
     # ea3tx_source_nodes = [
@@ -217,189 +255,189 @@ if __name__=="__main__":
     # ]
 
 
-    interference_game_inequalities = [
-        (7, np.array([ # multiplication with zero 
-            [1, 1, 1, 1, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ])),
-        (5 , np.array([ # multiplication game [1,2,3] no zero mult1
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        ])),
-        (4, np.array([ # swap game
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        ])),
-        (5, np.array([ # adder game
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 1, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ])),
-        (6, np.array([ # compare game
-            [1, 0, 0, 0, 1, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 1, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ])),
-        (4, np.array([ # one receiver permutes output based on other receiver
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0],
-        ])),
-        (7, np.array([ # same difference game
-            [1, 0, 0, 0, 1, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 1, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 1, 0, 0],
-        ])),
-        (4, np.eye(9)), # communication value
-    ]
+    # interference_game_inequalities = [
+    #     (7, np.array([ # multiplication with zero 
+    #         [1, 1, 1, 1, 0, 0, 1, 0, 0],
+    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #     ])),
+    #     (5 , np.array([ # multiplication game [1,2,3] no zero mult1
+    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 0, 1, 0, 0, 0, 0, 0],
+    #         [0, 0, 1, 0, 0, 0, 1, 0, 0],
+    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #     ])),
+    #     (4, np.array([ # swap game
+    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 1, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 1, 0, 0],
+    #         [0, 1, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    #         [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #     ])),
+    #     (5, np.array([ # adder game
+    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 0, 1, 0, 0, 0, 0, 0],
+    #         [0, 0, 1, 0, 1, 0, 1, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #     ])),
+    #     (6, np.array([ # compare game
+    #         [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 1, 0, 0, 1, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 1, 0, 0, 1, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #     ])),
+    #     (4, np.array([ # one receiver permutes output based on other receiver
+    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 1, 0, 0, 0],
+    #         [0, 0, 0, 1, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 1, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    #     ])),
+    #     (7, np.array([ # same difference game
+    #         [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 1, 0, 1, 0, 1, 0, 1, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #         [0, 0, 1, 0, 0, 0, 1, 0, 0],
+    #     ])),
+    #     (4, np.eye(9)), # communication value
+    # ]
     
-    interference_facet_inequalities = [
-        (13, np.array([ # mult zero facet
-            [1,  2,  1,  3,  0,  1,  0,  0,  1],
-            [1,  0,  0,  1,  3,  0,  0,  1,  2],
-            [1,  0,  0,  1,  1,  3,  0,  2,  0],
-            [0,  1,  1,  0,  1,  2,  1,  1,  2],
-            [0,  1,  1,  0,  1,  2,  1,  1,  2],
-            [0,  1,  1,  1,  1,  2,  1,  1,  2],
-            [1,  0,  0,  1,  3,  1,  0,  0,  2],
-            [1,  1,  0,  1,  1,  2,  0,  1,  2],
-            [1,  1,  1,  2,  2,  2,  1,  1,  1],
-        ])),
-        (14, np.array([ # mult 1 facet
-            [3,  0,  1,  0,  2,  1,  1,  0,  1],
-            [0,  3,  0,  2,  0,  0,  1,  0,  1],
-            [0,  0,  4,  0,  2,  1,  2,  0,  0],
-            [2,  1,  2,  0,  2,  1,  0,  1,  1],
-            [2,  1,  2,  1,  1,  2,  0,  1,  1],
-            [2,  1,  2,  0,  0,  3,  0,  2,  0],
-            [2,  1,  2,  0,  2,  1,  0,  0,  1],
-            [2,  1,  2,  0,  2,  1,  0,  0,  1],
-            [2,  2,  3,  1,  1,  2,  1,  1,  0],
-        ])),
-        (13, np.array([ # swap facet
-            [3,  0,  0,  0,  2,  0,  1,  0,  1],
-            [1,  1,  2,  2,  0,  0,  1,  0,  1],
-            [0,  1,  3,  0,  1,  1,  2,  0,  0],
-            [0,  3,  0,  2,  0,  0,  0,  1,  1],
-            [1,  1,  2,  0,  2,  0,  0,  1,  1],
-            [1,  0,  3,  1,  0,  1,  0,  2,  0],
-            [0,  0,  4,  1,  1,  0,  1,  1,  0],
-            [1,  2,  2,  0,  0,  2,  1,  1,  0],
-            [2,  2,  3,  1,  1,  1,  1,  1,  0],
-        ])),
-        (14, np.array([ # adder facet
-            [3,  0,  1,  0,  2,  1,  1,  0,  1],
-            [0,  3,  0,  2,  0,  0,  1,  0,  1],
-            [0,  0,  4,  0,  2,  1,  2,  0,  0],
-            [2,  1,  2,  0,  0,  3,  0,  2,  0],
-            [1,  0,  3,  1,  1,  2,  1,  1,  1],
-            [1,  2,  2,  1,  1,  2,  0,  1,  1],
-            [2,  1,  2,  0,  2,  1,  0,  0,  1],
-            [1,  1,  3,  0,  2,  1,  1,  0,  1],
-            [2,  2,  3,  1,  1,  2,  1,  1,  0],
-        ])),
-        (12, np.array([ # compare facet
-            [2,  0,  0,  0,  3,  0,  0,  0,  1],
-            [0,  1,  1,  1,  0,  3,  1,  1,  0],
-            [1,  1,  1,  0,  0,  3,  0,  1,  0],
-            [0,  2,  1,  0,  2,  2,  1,  0,  1],
-            [1,  1,  1,  0,  0,  3,  1,  1,  0],
-            [0,  3,  1,  0,  1,  3,  1,  0,  0],
-            [1,  2,  1,  1,  1,  2,  0,  0,  1],
-            [0,  1,  2,  2,  0,  1,  1,  1,  0],
-            [1,  2,  2,  1,  2,  2,  1,  0,  0],
-        ])),
-        (13, np.array([ # conditioned permutation facet
-            [3,  0,  0,  0,  1,  1,  0,  1,  1],
-            [0,  3,  2,  1,  0,  1,  0,  0,  1],
-            [0,  0,  4,  1,  1,  1,  0,  1,  0],
-            [1,  1,  2,  1,  2,  0,  0,  1,  1],
-            [1,  2,  2,  1,  0,  3,  0,  1,  0],
-            [1,  2,  2,  2,  0,  0,  0,  0,  1],
-            [1,  2,  2,  1,  1,  1,  0,  1,  1],
-            [0,  1,  3,  0,  1,  2,  1,  0,  0],
-            [2,  2,  3,  1,  1,  2,  0,  1,  0],
-        ])),
-        (11, np.array([ # same difference facet
-            [2,  0,  0,  0,  2,  0,  1,  0,  1],
-            [0,  0,  2,  1,  1,  2,  1,  0,  1],
-            [1,  0,  2,  0,  0,  2,  1,  0,  1],
-            [0,  0,  2,  1,  1,  2,  1,  0,  1],
-            [0,  0,  2,  2,  0,  2,  0,  1,  0],
-            [0,  0,  2,  2,  1,  2,  0,  0,  1],
-            [1,  0,  2,  0,  0,  2,  1,  0,  1],
-            [0,  0,  2,  2,  1,  2,  0,  0,  1],
-            [1,  1,  3,  1,  1,  2,  1,  0,  0],
-        ])),
-        (13, np.array([ # cv facet
-            [3,  0,  0,  0,  2,  0,  1,  0,  1],
-            [0,  3,  0,  2,  0,  0,  0,  1,  1],
-            [0,  0,  4,  1,  1,  0,  1,  1,  0],
-            [1,  1,  2,  2,  0,  0,  1,  0,  1],
-            [1,  1,  2,  0,  2,  0,  0,  1,  1],
-            [1,  2,  2,  0,  0,  2,  1,  1,  0],
-            [0,  1,  3,  0,  1,  1,  2,  0,  0],
-            [1,  0,  3,  1,  0,  1,  0,  2,  0],
-            [2,  2,  3,  1,  1,  1,  1,  1,  0],
-        ])),
-    ]
+    # interference_facet_inequalities = [
+    #     (13, np.array([ # mult zero facet
+    #         [1,  2,  1,  3,  0,  1,  0,  0,  1],
+    #         [1,  0,  0,  1,  3,  0,  0,  1,  2],
+    #         [1,  0,  0,  1,  1,  3,  0,  2,  0],
+    #         [0,  1,  1,  0,  1,  2,  1,  1,  2],
+    #         [0,  1,  1,  0,  1,  2,  1,  1,  2],
+    #         [0,  1,  1,  1,  1,  2,  1,  1,  2],
+    #         [1,  0,  0,  1,  3,  1,  0,  0,  2],
+    #         [1,  1,  0,  1,  1,  2,  0,  1,  2],
+    #         [1,  1,  1,  2,  2,  2,  1,  1,  1],
+    #     ])),
+    #     (14, np.array([ # mult 1 facet
+    #         [3,  0,  1,  0,  2,  1,  1,  0,  1],
+    #         [0,  3,  0,  2,  0,  0,  1,  0,  1],
+    #         [0,  0,  4,  0,  2,  1,  2,  0,  0],
+    #         [2,  1,  2,  0,  2,  1,  0,  1,  1],
+    #         [2,  1,  2,  1,  1,  2,  0,  1,  1],
+    #         [2,  1,  2,  0,  0,  3,  0,  2,  0],
+    #         [2,  1,  2,  0,  2,  1,  0,  0,  1],
+    #         [2,  1,  2,  0,  2,  1,  0,  0,  1],
+    #         [2,  2,  3,  1,  1,  2,  1,  1,  0],
+    #     ])),
+    #     (13, np.array([ # swap facet
+    #         [3,  0,  0,  0,  2,  0,  1,  0,  1],
+    #         [1,  1,  2,  2,  0,  0,  1,  0,  1],
+    #         [0,  1,  3,  0,  1,  1,  2,  0,  0],
+    #         [0,  3,  0,  2,  0,  0,  0,  1,  1],
+    #         [1,  1,  2,  0,  2,  0,  0,  1,  1],
+    #         [1,  0,  3,  1,  0,  1,  0,  2,  0],
+    #         [0,  0,  4,  1,  1,  0,  1,  1,  0],
+    #         [1,  2,  2,  0,  0,  2,  1,  1,  0],
+    #         [2,  2,  3,  1,  1,  1,  1,  1,  0],
+    #     ])),
+    #     (14, np.array([ # adder facet
+    #         [3,  0,  1,  0,  2,  1,  1,  0,  1],
+    #         [0,  3,  0,  2,  0,  0,  1,  0,  1],
+    #         [0,  0,  4,  0,  2,  1,  2,  0,  0],
+    #         [2,  1,  2,  0,  0,  3,  0,  2,  0],
+    #         [1,  0,  3,  1,  1,  2,  1,  1,  1],
+    #         [1,  2,  2,  1,  1,  2,  0,  1,  1],
+    #         [2,  1,  2,  0,  2,  1,  0,  0,  1],
+    #         [1,  1,  3,  0,  2,  1,  1,  0,  1],
+    #         [2,  2,  3,  1,  1,  2,  1,  1,  0],
+    #     ])),
+    #     (12, np.array([ # compare facet
+    #         [2,  0,  0,  0,  3,  0,  0,  0,  1],
+    #         [0,  1,  1,  1,  0,  3,  1,  1,  0],
+    #         [1,  1,  1,  0,  0,  3,  0,  1,  0],
+    #         [0,  2,  1,  0,  2,  2,  1,  0,  1],
+    #         [1,  1,  1,  0,  0,  3,  1,  1,  0],
+    #         [0,  3,  1,  0,  1,  3,  1,  0,  0],
+    #         [1,  2,  1,  1,  1,  2,  0,  0,  1],
+    #         [0,  1,  2,  2,  0,  1,  1,  1,  0],
+    #         [1,  2,  2,  1,  2,  2,  1,  0,  0],
+    #     ])),
+    #     (13, np.array([ # conditioned permutation facet
+    #         [3,  0,  0,  0,  1,  1,  0,  1,  1],
+    #         [0,  3,  2,  1,  0,  1,  0,  0,  1],
+    #         [0,  0,  4,  1,  1,  1,  0,  1,  0],
+    #         [1,  1,  2,  1,  2,  0,  0,  1,  1],
+    #         [1,  2,  2,  1,  0,  3,  0,  1,  0],
+    #         [1,  2,  2,  2,  0,  0,  0,  0,  1],
+    #         [1,  2,  2,  1,  1,  1,  0,  1,  1],
+    #         [0,  1,  3,  0,  1,  2,  1,  0,  0],
+    #         [2,  2,  3,  1,  1,  2,  0,  1,  0],
+    #     ])),
+    #     (11, np.array([ # same difference facet
+    #         [2,  0,  0,  0,  2,  0,  1,  0,  1],
+    #         [0,  0,  2,  1,  1,  2,  1,  0,  1],
+    #         [1,  0,  2,  0,  0,  2,  1,  0,  1],
+    #         [0,  0,  2,  1,  1,  2,  1,  0,  1],
+    #         [0,  0,  2,  2,  0,  2,  0,  1,  0],
+    #         [0,  0,  2,  2,  1,  2,  0,  0,  1],
+    #         [1,  0,  2,  0,  0,  2,  1,  0,  1],
+    #         [0,  0,  2,  2,  1,  2,  0,  0,  1],
+    #         [1,  1,  3,  1,  1,  2,  1,  0,  0],
+    #     ])),
+    #     (13, np.array([ # cv facet
+    #         [3,  0,  0,  0,  2,  0,  1,  0,  1],
+    #         [0,  3,  0,  2,  0,  0,  0,  1,  1],
+    #         [0,  0,  4,  1,  1,  0,  1,  1,  0],
+    #         [1,  1,  2,  2,  0,  0,  1,  0,  1],
+    #         [1,  1,  2,  0,  2,  0,  0,  1,  1],
+    #         [1,  2,  2,  0,  0,  2,  1,  1,  0],
+    #         [0,  1,  3,  0,  1,  1,  2,  0,  0],
+    #         [1,  0,  3,  1,  0,  1,  0,  2,  0],
+    #         [2,  2,  3,  1,  1,  1,  1,  1,  0],
+    #     ])),
+    # ]
 
-    game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
+    # game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
     
-
-    for i in range(1,8):
+    interference_game_inequalities, interference_facet_inequalities, game_names = mac.interference_33_33_network_bounds() 
+    for i in range(0,8):
         interference_game_inequality = interference_game_inequalities[i]
         interference_facet_inequality = interference_facet_inequalities[i]
 
         print("name = ", game_names[i])
         inequality_tag = "I_" + game_names[i] + "_"
 
-        n_workers = 1
+        n_workers = 2
         client = Client(processes=True, n_workers=n_workers, threads_per_worker=1)
 
 
@@ -411,15 +449,11 @@ if __name__=="__main__":
         time_start = time.time()
 
         qint_game_opt_fn = optimize_inequality(
-            [
-                qint_wire_set_nodes,
-                qint_prep_nodes,
-                qint_B_nodes,
-                qint_meas_nodes,
-            ],
-            np.kron(postmap3,postmap3),
+            qint_layers,
+            np.kron(postmap3,postmap3b),
+            # np.kron(postmap23a,postmap23b),
             interference_game_inequality,
-            num_steps=150,
+            num_steps=175,
             step_size=0.1,
             sample_width=1,
             verbose=True
@@ -452,15 +486,10 @@ if __name__=="__main__":
         time_start = time.time()
 
         qint_facet_opt_fn = optimize_inequality(
-            [
-                qint_wire_set_nodes,
-                qint_prep_nodes,
-                qint_B_nodes,
-                qint_meas_nodes,
-            ],
+            qint_layers,
             np.kron(postmap3,postmap3),
             interference_facet_inequality,
-            num_steps=150,
+            num_steps=175,
             step_size=0.1,
             sample_width=1,
             verbose=True
@@ -485,51 +514,43 @@ if __name__=="__main__":
 
         print("iteration time  : ", time.time() - time_start)
 
-        # """
-        # eatx quantum interference game
-        # """
-        # client.restart()
+        """
+        eatx quantum interference game
+        """
+        client.restart()
 
-        # time_start = time.time()
+        time_start = time.time()
 
-        # print("eatx_qint game")
+        print("eatx_qint game")
 
-        # eatx_qint_game_opt_fn = optimize_inequality(
-        #     [
-        #         eatx_qint_wire_set_nodes,
-        #         eatx_qint_source_nodes,
-        #         eatx_qint_prep_nodes,
-        #         eatx_qint_proc_nodes,
-        #         eatx_qint_meas_nodes
-        #         # qint_B_nodes,
-        #         # qint_meas_nodes,
-        #     ],
-        #     np.kron(postmap3,postmap3),
-        #     interference_game_inequality,
-        #     num_steps=150,
-        #     step_size=0.05,
-        #     sample_width=1,
-        #     verbose=True
-        # )
+        eatx_qint_game_opt_fn = optimize_inequality(
+            eatx_qint_layers,
+            np.kron(postmap3,postmap3),
+            interference_game_inequality,
+            num_steps=175,
+            step_size=0.05,
+            sample_width=1,
+            verbose=True
+        )
 
-        # eatx_qint_game_opt_jobs = client.map(eatx_qint_game_opt_fn, range(n_workers))
-        # eatx_qint_game_opt_dicts = client.gather(eatx_qint_game_opt_jobs)
+        eatx_qint_game_opt_jobs = client.map(eatx_qint_game_opt_fn, range(n_workers))
+        eatx_qint_game_opt_dicts = client.gather(eatx_qint_game_opt_jobs)
 
-        # max_opt_dict = eatx_qint_game_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(eatx_qint_game_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(eatx_qint_game_opt_dicts[j]["scores"])
-        #         max_opt_dict = eatx_qint_game_opt_dicts[j]
+        max_opt_dict = eatx_qint_game_opt_dicts[0]
+        max_score = max(max_opt_dict["scores"])
+        for j in range(1,n_workers):
+            if max(eatx_qint_game_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(eatx_qint_game_opt_dicts[j]["scores"])
+                max_opt_dict = eatx_qint_game_opt_dicts[j]
 
-        # scenario = "eatx_qint_game_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
+        scenario = "eatx_qint_game_"
+        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        qnetvo.write_optimization_json(
+            max_opt_dict,
+            data_dir + scenario + inequality_tag + datetime_ext,
+        )
 
-        # print("iteration time  : ", time.time() - time_start)
+        print("iteration time  : ", time.time() - time_start)
 
         """
         eatx quantum interference facet
@@ -541,18 +562,10 @@ if __name__=="__main__":
         print("eatx_qint facet")
 
         eatx_qint_facet_opt_fn = optimize_inequality(
-            [
-                eatx_qint_wire_set_nodes,
-                eatx_qint_source_nodes,
-                eatx_qint_prep_nodes,
-                eatx_qint_proc_nodes,
-                eatx_qint_meas_nodes,
-                # qint_B_nodes,
-                # qint_meas_nodes,
-            ],
+            eatx_qint_layers,
             np.kron(postmap3,postmap3),
             interference_facet_inequality,
-            num_steps=150,
+            num_steps=175,
             step_size=0.05,
             sample_width=1,
             verbose=True
@@ -587,16 +600,10 @@ if __name__=="__main__":
         print("earx_qint game")
 
         earx_qint_game_opt_fn = optimize_inequality(
-            [
-                earx_qint_wire_set_nodes,
-                earx_qint_source_nodes,
-                qint_prep_nodes,
-                qint_B_nodes,
-                earx_qint_meas_nodes,
-            ],
+            earx_qint_layers,
             np.kron(postmap3,postmap3),
             interference_game_inequality,
-            num_steps=150,
+            num_steps=175,
             step_size=0.15,
             sample_width=1,
             verbose=True
@@ -631,21 +638,10 @@ if __name__=="__main__":
         print("earx facet" )
 
         earx_qint_facet_opt_fn = optimize_inequality(
-            [
-                # earx_qint_wire_set_nodes,
-                # earx_qint_source_nodes,
-                # qint_prep_nodes,
-                # qint_B_nodes,
-                # qint_meas_nodes,
-                earx_qint_wire_set_nodes,
-                earx_qint_source_nodes,
-                qint_prep_nodes,
-                qint_B_nodes,
-                earx_qint_meas_nodes,
-            ],
+            earx_qint_layers,
             np.kron(postmap3,postmap3),
             interference_facet_inequality,
-            num_steps=150,
+            num_steps=175,
             step_size=0.2,
             sample_width=1,
             verbose=True
