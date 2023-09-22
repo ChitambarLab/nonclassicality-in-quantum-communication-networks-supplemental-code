@@ -149,60 +149,70 @@ if __name__=="__main__":
     ])
 
     qbf_wire_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3])
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5])
     ]
     qbf_prep_nodes = [
-        qnetvo.PrepareNode(num_in=3, wires=[0,2], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=3, wires=[0,4], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
         qnetvo.PrepareNode(num_in=3, wires=[1,3], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
+    qbf_meas_proc_nodes = [
+        qnetvo.ProcessingNode(wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[3,4,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    ]
     qbf_meas_nodes = [
-        qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
-        qnetvo.MeasureNode(num_out=3, wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.MeasureNode(num_out=3, wires=[0,1]),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4]),
     ]
 
     qbf_layers = [
         qbf_wire_set_nodes,
         qbf_prep_nodes,
+        qbf_meas_proc_nodes,
         qbf_meas_nodes,
     ]
 
 
     eatx_qbf_wires_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6])
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6,7])
     ]
     
     eatx_qbf_source_nodes = [
-        qnetvo.PrepareNode(wires=[5,6], ansatz_fn=qnetvo.ghz_state)
+        qnetvo.PrepareNode(wires=[6,7], ansatz_fn=qnetvo.ghz_state)
     ]
     eatx_qbf_prep_nodes = [
-        qnetvo.ProcessingNode(num_in=3, wires=[0,2,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
-        qnetvo.ProcessingNode(num_in=3, wires=[1,3,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(num_in=3, wires=[0,4,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(num_in=3, wires=[1,3,7], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+    ]
+    eatx_qbf_meas_proc_nodes = [
+        qnetvo.ProcessingNode(wires=[0,1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[3,4,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
     ]
     eatx_qbf_meas_nodes = [
-        qnetvo.MeasureNode(num_out=3, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
-        qnetvo.MeasureNode(num_out=3, wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
+        qnetvo.MeasureNode(num_out=3, wires=[0,1]),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4]),
     ]
 
     eatx_qbf_layers = [
         eatx_qbf_wires_set_nodes,
         eatx_qbf_source_nodes,
         eatx_qbf_prep_nodes,
+        eatx_qbf_meas_proc_nodes,
         eatx_qbf_meas_nodes,
     ]
 
     earx_qbf_wire_set_nodes = [
-        qnetvo.PrepareNode(wires=[0,1,2,3,5,6])
+        qnetvo.PrepareNode(wires=[0,1,2,3,5,6,7])
     ]
     earx_qbf_source_nodes = [
-        qnetvo.PrepareNode(wires=[5,6], ansatz_fn=qnetvo.ghz_state),
+        qnetvo.PrepareNode(wires=[6,7], ansatz_fn=qnetvo.ghz_state),
     ]
     earx_qbf_tx_nodes = [
-        qnetvo.PrepareNode(num_in=3, wires=[0,2], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
+        qnetvo.PrepareNode(num_in=3, wires=[0,4], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
         qnetvo.PrepareNode(num_in=3, wires=[1,3], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=6),
     ]
     earx_qbf_rx_nodes = [
-        qnetvo.ProcessingNode(wires=[0,1,5], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
-        qnetvo.ProcessingNode(wires=[2,3,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=63),
+        qnetvo.ProcessingNode(wires=[0,1,2,6], ansatz_fn=qml.ArbitraryUnitary, num_settings=255),
+        qnetvo.ProcessingNode(wires=[3,4,5,7], ansatz_fn=qml.ArbitraryUnitary, num_settings=255),
     ]
 
     earx_qbf_meas_nodes = [
@@ -400,86 +410,86 @@ if __name__=="__main__":
 
         print("iteration time  : ", time.time() - time_start)
 
-        # """
-        # earx_quantum butterfly game
-        # """
-        # client.restart()
+        """
+        earx_quantum butterfly game
+        """
+        client.restart()
 
-        # time_start = time.time()
+        time_start = time.time()
 
-        # postmap1 = postmap3
-        # postmap2 = postmap3
+        postmap1 = postmap3
+        postmap2 = postmap3
 
-        # earx_qbf_game_opt_fn = optimize_inequality(
-        #     earx_qbf_layers,
-        #     np.kron(postmap1,postmap2),
-        #     butterfly_game_inequality,
-        #     num_steps=150,
-        #     step_size=0.1,
-        #     sample_width=1,
-        #     verbose=True
-        # )
+        earx_qbf_game_opt_fn = optimize_inequality(
+            earx_qbf_layers,
+            np.kron(postmap1,postmap2),
+            butterfly_game_inequality,
+            num_steps=150,
+            step_size=0.1,
+            sample_width=1,
+            verbose=True
+        )
 
-        # earx_qbf_game_opt_jobs = client.map(earx_qbf_game_opt_fn, range(n_workers))
-        # earx_qbf_game_opt_dicts = client.gather(earx_qbf_game_opt_jobs)
+        earx_qbf_game_opt_jobs = client.map(earx_qbf_game_opt_fn, range(n_workers))
+        earx_qbf_game_opt_dicts = client.gather(earx_qbf_game_opt_jobs)
 
-        # max_opt_dict = earx_qbf_game_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(earx_qbf_game_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(earx_qbf_game_opt_dicts[j]["scores"])
-        #         max_opt_dict = earx_qbf_game_opt_dicts[j]
+        max_opt_dict = earx_qbf_game_opt_dicts[0]
+        max_score = max(max_opt_dict["scores"])
+        for j in range(1,n_workers):
+            if max(earx_qbf_game_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(earx_qbf_game_opt_dicts[j]["scores"])
+                max_opt_dict = earx_qbf_game_opt_dicts[j]
 
-        # max_opt_dict["postmap1"] = postmap1.tolist()
-        # max_opt_dict["postmap2"] = postmap2.tolist()
+        max_opt_dict["postmap1"] = postmap1.tolist()
+        max_opt_dict["postmap2"] = postmap2.tolist()
 
-        # scenario = "earx_qbf_game_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
+        scenario = "earx_qbf_game_"
+        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        qnetvo.write_optimization_json(
+            max_opt_dict,
+            data_dir + scenario + inequality_tag + datetime_ext,
+        )
 
-        # print("iteration time  : ", time.time() - time_start)
+        print("iteration time  : ", time.time() - time_start)
 
-        # """
-        # earx quantum butterfly facet
-        # """
-        # client.restart()
+        """
+        earx quantum butterfly facet
+        """
+        client.restart()
 
-        # time_start = time.time()
+        time_start = time.time()
 
-        # postmap1 = postmap3
-        # postmap2 = postmap3
+        postmap1 = postmap3
+        postmap2 = postmap3
 
-        # earx_qbf_facet_opt_fn = optimize_inequality(
-        #     earx_qbf_layers,
-        #     np.kron(postmap1,postmap2),
-        #     butterfly_facet_inequality,
-        #     num_steps=150,
-        #     step_size=0.1,
-        #     sample_width=1,
-        #     verbose=True
-        # )
+        earx_qbf_facet_opt_fn = optimize_inequality(
+            earx_qbf_layers,
+            np.kron(postmap1,postmap2),
+            butterfly_facet_inequality,
+            num_steps=150,
+            step_size=0.1,
+            sample_width=1,
+            verbose=True
+        )
 
-        # earx_qbf_facet_opt_jobs = client.map(earx_qbf_facet_opt_fn, range(n_workers))
-        # earx_qbf_facet_opt_dicts = client.gather(earx_qbf_facet_opt_jobs)
+        earx_qbf_facet_opt_jobs = client.map(earx_qbf_facet_opt_fn, range(n_workers))
+        earx_qbf_facet_opt_dicts = client.gather(earx_qbf_facet_opt_jobs)
 
-        # max_opt_dict = earx_qbf_facet_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(earx_qbf_facet_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(earx_qbf_facet_opt_dicts[j]["scores"])
-        #         max_opt_dict = earx_qbf_facet_opt_dicts[j]
+        max_opt_dict = earx_qbf_facet_opt_dicts[0]
+        max_score = max(max_opt_dict["scores"])
+        for j in range(1,n_workers):
+            if max(earx_qbf_facet_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(earx_qbf_facet_opt_dicts[j]["scores"])
+                max_opt_dict = earx_qbf_facet_opt_dicts[j]
 
-        # max_opt_dict["postmap1"] = postmap1.tolist()
-        # max_opt_dict["postmap2"] = postmap2.tolist()
+        max_opt_dict["postmap1"] = postmap1.tolist()
+        max_opt_dict["postmap2"] = postmap2.tolist()
 
-        # scenario = "earx_qbf_facet_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
+        scenario = "earx_qbf_facet_"
+        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        qnetvo.write_optimization_json(
+            max_opt_dict,
+            data_dir + scenario + inequality_tag + datetime_ext,
+        )
 
-        # print("iteration time  : ", time.time() - time_start)
+        print("iteration time  : ", time.time() - time_start)
