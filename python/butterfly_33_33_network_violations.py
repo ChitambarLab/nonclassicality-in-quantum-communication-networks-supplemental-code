@@ -482,7 +482,7 @@ if __name__=="__main__":
     
     butterfly_game_inequalities, butterfly_facet_inequalities, game_names = mac.butterfly_33_33_network_bounds()
 
-    for i in range(0,8):
+    for i in range(7,8):
         butterfly_game_inequality = butterfly_game_inequalities[i]
         butterfly_facet_inequality = butterfly_facet_inequalities[i]
 
