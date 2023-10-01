@@ -33,10 +33,12 @@ function multi_access_vertices(
     P_C = BlackBox(Z,dA*dB)
 
     # P_A_vertices = deterministic_strategies(P_A)
-    P_A_vertices = BellScenario.stirling2_matrices(X,dA)
+    P_A_vertices = sparse.(BellScenario.stirling2_matrices(X,dA))
     # P_B_vertices = deterministic_strategies(P_B)
-    P_B_vertices = BellScenario.stirling2_matrices(Y,dB)
-    P_C_vertices = deterministic_strategies(P_C)
+    P_B_vertices = sparse.(BellScenario.stirling2_matrices(Y,dB))
+    println("enumerated senders")
+    P_C_vertices = sparse.(deterministic_strategies(P_C))
+    println("enumerated receiver")
 
     # num_verts_raw = dA^X*dB^Y*Z^(dA*dB)
     num_verts_raw = length(P_A_vertices) * length(P_B_vertices) * length(P_C_vertices)
@@ -45,6 +47,10 @@ function multi_access_vertices(
 
     id = 1
     for v_A in P_A_vertices, v_B in P_B_vertices, v_C in P_C_vertices
+        if id % 100000 == 0
+            println(id)
+        end
+        
         V = v_C * kron(v_A,v_B)
 
         verts[id] = normalize ? V[1:end-1,:][:] : V[:]

@@ -1884,4 +1884,51 @@ include("../src/MultiAccessChannels.jl")
 
 
     end
+
+    @testset "encoder matrix consruction" begin
+        
+        enc1_verts = BellScenario.stirling2_matrices(3,2)
+        enc2_verts = BellScenario.stirling2_matrices(3,2)
+        enc3_verts = BellScenario.stirling2_matrices(3,2)
+        enc4_verts = BellScenario.stirling2_matrices(3,2)
+
+        A1 = BlackBox(4,3)
+        P_B = BlackBox(4,4)
+
+        A1_verts = deterministic_strategies(A1)
+        B_verts  = deterministic_strategies(P_B)
+
+        match_verts = Vector{Vector{Int64}}(undef, length(A1_verts)*length(B_verts))
+        id = 1
+        for vA in A1_verts, vB in B_verts
+            v = vB * vA
+            match_verts[id] = v[1:end-1,:][:]
+            id += 1
+        end 
+        match_num = length(unique(match_verts))
+
+        test_enc_verts = Vector{Matrix{Int64}}(undef, length(enc1_verts)*length(enc2_verts))
+        id = 1
+        for v1 in enc1_verts, v2 in enc2_verts
+            v = hcat(map(i -> kron(v1[:,i], v2[:,i]), 1:3)...)
+
+            test_enc_verts[id] = v
+
+            id += 1
+        end
+
+        test_verts = Vector{Vector{Int64}}(undef, length(test_enc_verts)*length(B_verts))
+        id = 1
+        for vA in test_enc_verts, vB in B_verts
+            v = vB * vA
+            
+            test_verts[id] = v[1:end-1,:][:] 
+
+            id += 1
+        end
+
+        @test length(unique(test_verts)) == match_num
+    
+        reshape(test_verts[1], (3,3))
+    end
 end

@@ -124,3 +124,21 @@ end
 
     @test raw_game ≈ [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] 
 end
+
+@testset "4-bit RAC" begin
+    
+    rac4 = [
+        1 1 1 1 1 1 1 0 1 1 0 1 1 1 0 0 1 0 1 1 1 0 1 0 1 0 0 1 1 0 0 0 0 1 1 1 0 1 1 0 0 1 0 1 0 1 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0.;
+        0 0 0 0 0 0 0 1 0 0 1 0 0 0 1 1 0 1 0 0 0 1 0 1 0 1 1 0 0 1 1 1 1 0 0 0 1 0 0 1 1 0 1 0 1 0 1 1 1 1 0 0 1 1 0 1 1 1 1 0 1 1 1 1.;
+    ]
+
+    rac4_verts = multi_access_vertices(16,4,2,2,4, normalize=false)
+
+    scores = []
+    for v in rac4_verts
+        push!(scores, sum(rac4[:] .* v))
+    end
+    println(max(scores...))
+
+    scores
+end
