@@ -63,6 +63,30 @@ include("../src/MultiAccessChannels.jl")
             @test bg_cv_4_22_44.β == 7
         end
 
+        @testset "entangeld receiver game" begin
+            test_game = [
+                1 0.  0.  0. ;
+                0.  0.  0.  0. ;
+                0.  0.  0.  0. ;
+                0.  1 0.  0. ;
+                0.  0.  0.  0. ;
+                0.  1 0.  0. ;
+                1 0.  0.  0. ;
+                0.  0.  0.  0. ;
+                0.  0.  0.  0. ;
+                0.  0.  1 0. ;
+                0.  0.  0.  1;
+                0.  0.  0.  0. ;
+                0.  0.  0.  1;
+                0.  0.  0.  0. ;
+                0.  0.  0.  0. ;
+                0.  0.  1 0. ;
+            ]
+
+            max_violation = max(map(v -> sum(test_game[:] .* v), vertices_4_22_44_unnormalized)...)
+            @test max_violation == 4
+        end
+
         @testsett "pr-box assisted receivers" begin
             pr_mat = hcat(
                 kron([1;0],[0.5;0;0;0.5],[1;0]),

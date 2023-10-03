@@ -8,85 +8,85 @@ from datetime import datetime
 import qnetvo
 
 
-def adam_gradient_descent(
-    cost,
-    init_settings,
-    num_steps=150,
-    step_size=0.1,
-    sample_width=25,
-    grad_fn=None,
-    verbose=True,
-    interface="autograd",
-):
-    """
-    adapted from qnetvo
-    """
+# def adam_gradient_descent(
+#     cost,
+#     init_settings,
+#     num_steps=150,
+#     step_size=0.1,
+#     sample_width=25,
+#     grad_fn=None,
+#     verbose=True,
+#     interface="autograd",
+# ):
+    # """
+    # adapted from qnetvo
+    # """
 
-    if interface == "autograd":
-        # opt = qml.GradientDescentOptimizer(stepsize=step_size)
-        opt = qml.AdamOptimizer(stepsize=step_size)
-    elif interface == "tf":
-        from .lazy_tensorflow_import import tensorflow as tf
+    # if interface == "autograd":
+    #     # opt = qml.GradientDescentOptimizer(stepsize=step_size)
+    #     opt = qml.AdamOptimizer(stepsize=step_size)
+    # elif interface == "tf":
+    #     from .lazy_tensorflow_import import tensorflow as tf
 
-        opt = tf.keras.optimizers.SGD(learning_rate=step_size)
-    else:
-        raise ValueError('Interface "' + interface + '" is not supported.')
+    #     opt = tf.keras.optimizers.SGD(learning_rate=step_size)
+    # else:
+    #     raise ValueError('Interface "' + interface + '" is not supported.')
 
-    settings = init_settings
-    scores = []
-    samples = []
-    step_times = []
-    settings_history = [init_settings]
+    # settings = init_settings
+    # scores = []
+    # samples = []
+    # step_times = []
+    # settings_history = [init_settings]
 
-    start_datetime = datetime.utcnow()
-    elapsed = 0
+    # start_datetime = datetime.utcnow()
+    # elapsed = 0
 
-    # performing gradient descent
-    for i in range(num_steps):
-        if i % sample_width == 0:
-            score = -(cost(*settings))
-            scores.append(score)
-            samples.append(i)
+    # # performing gradient descent
+    # for i in range(num_steps):
+    #     if i % sample_width == 0:
+    #         score = -(cost(*settings))
+    #         scores.append(score)
+    #         samples.append(i)
 
-            if verbose:
-                print("iteration : ", i, ", score : ", score)
+    #         if verbose:
+    #             print("iteration : ", i, ", score : ", score)
 
-        start = time.time()
-        if interface == "autograd":
-            settings = opt.step(cost, *settings, grad_fn=grad_fn)
-            if not (isinstance(settings, list)):
-                settings = [settings]
-        elif interface == "tf":
-            # opt.minimize updates settings in place
-            tf_cost = lambda: cost(*settings)
-            opt.minimize(tf_cost, settings)
+    #     start = time.time()
+    #     if interface == "autograd":
+    #         settings = opt.step(cost, *settings, grad_fn=grad_fn)
+    #         if not (isinstance(settings, list)):
+    #             settings = [settings]
+    #     elif interface == "tf":
+    #         # opt.minimize updates settings in place
+    #         tf_cost = lambda: cost(*settings)
+    #         opt.minimize(tf_cost, settings)
 
-        elapsed = time.time() - start
+    #     elapsed = time.time() - start
 
-        if i % sample_width == 0:
-            step_times.append(elapsed)
+    #     if i % sample_width == 0:
+    #         step_times.append(elapsed)
 
-            if verbose:
-                print("elapsed time : ", elapsed)
+    #         if verbose:
+    #             print("elapsed time : ", elapsed)
 
-        settings_history.append(settings)
+    #     settings_history.append(settings)
 
-    opt_score = -(cost(*settings))
-    step_times.append(elapsed)
+    # opt_score = -(cost(*settings))
+    # step_times.append(elapsed)
 
-    scores.append(opt_score)
-    samples.append(num_steps)
+    # scores.append(opt_score)
+    # samples.append(num_steps)
 
-    return {
-        "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "opt_score": opt_score,
-        "opt_settings": settings,
-        "scores": scores,
-        "samples": samples,
-        "settings_history": settings_history,
-        "step_times": step_times,
-        "step_size": step_size,
-    }
+    # return {
+    #     "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    #     "opt_score": opt_score,
+    #     "opt_settings": settings,
+    #     "scores": scores,
+    #     "samples": samples,
+    #     "settings_history": settings_history,
+    #     "step_times": step_times,
+    #     "step_size": step_size,
+    # }
 
 
 
@@ -97,8 +97,8 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     Optimization errors will result in an empty optimization dictionary.
     """
     try:
-        # opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs)
-        opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
+        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
+        # opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
     except Exception as err:
         print("An error occurred during gradient descent.")
         print(err)
@@ -430,7 +430,7 @@ if __name__=="__main__":
     # game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
     
     interference_game_inequalities, interference_facet_inequalities, game_names = mac.interference_33_33_network_bounds() 
-    for i in range(0,8):
+    for i in range(1,2):
         interference_game_inequality = interference_game_inequalities[i]
         interference_facet_inequality = interference_facet_inequalities[i]
 
@@ -448,9 +448,13 @@ if __name__=="__main__":
 
         time_start = time.time()
 
+        classical_postmap = np.array([
+            [0,0,0,0],[1,1,0,0],[0,0,1,1]
+        ])
         qint_game_opt_fn = optimize_inequality(
             qint_layers,
-            np.kron(postmap3,postmap3b),
+            # np.kron(classical_postmap, classical_postmap),
+            np.kron(postmap3,postmap3),
             # np.kron(postmap23a,postmap23b),
             interference_game_inequality,
             num_steps=175,
@@ -514,154 +518,154 @@ if __name__=="__main__":
 
         print("iteration time  : ", time.time() - time_start)
 
-        """
-        eatx quantum interference game
-        """
-        client.restart()
+        # """
+        # eatx quantum interference game
+        # """
+        # client.restart()
 
-        time_start = time.time()
+        # time_start = time.time()
 
-        print("eatx_qint game")
+        # print("eatx_qint game")
 
-        eatx_qint_game_opt_fn = optimize_inequality(
-            eatx_qint_layers,
-            np.kron(postmap3,postmap3),
-            interference_game_inequality,
-            num_steps=175,
-            step_size=0.05,
-            sample_width=1,
-            verbose=True
-        )
+        # eatx_qint_game_opt_fn = optimize_inequality(
+        #     eatx_qint_layers,
+        #     np.kron(postmap3,postmap3),
+        #     interference_game_inequality,
+        #     num_steps=175,
+        #     step_size=0.05,
+        #     sample_width=1,
+        #     verbose=True
+        # )
 
-        eatx_qint_game_opt_jobs = client.map(eatx_qint_game_opt_fn, range(n_workers))
-        eatx_qint_game_opt_dicts = client.gather(eatx_qint_game_opt_jobs)
+        # eatx_qint_game_opt_jobs = client.map(eatx_qint_game_opt_fn, range(n_workers))
+        # eatx_qint_game_opt_dicts = client.gather(eatx_qint_game_opt_jobs)
 
-        max_opt_dict = eatx_qint_game_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(eatx_qint_game_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(eatx_qint_game_opt_dicts[j]["scores"])
-                max_opt_dict = eatx_qint_game_opt_dicts[j]
+        # max_opt_dict = eatx_qint_game_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(eatx_qint_game_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(eatx_qint_game_opt_dicts[j]["scores"])
+        #         max_opt_dict = eatx_qint_game_opt_dicts[j]
 
-        scenario = "eatx_qint_game_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
+        # scenario = "eatx_qint_game_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
 
-        print("iteration time  : ", time.time() - time_start)
+        # print("iteration time  : ", time.time() - time_start)
 
-        """
-        eatx quantum interference facet
-        """
-        client.restart()
+        # """
+        # eatx quantum interference facet
+        # """
+        # client.restart()
 
-        time_start = time.time()
+        # time_start = time.time()
 
-        print("eatx_qint facet")
+        # print("eatx_qint facet")
 
-        eatx_qint_facet_opt_fn = optimize_inequality(
-            eatx_qint_layers,
-            np.kron(postmap3,postmap3),
-            interference_facet_inequality,
-            num_steps=175,
-            step_size=0.05,
-            sample_width=1,
-            verbose=True
-        )
+        # eatx_qint_facet_opt_fn = optimize_inequality(
+        #     eatx_qint_layers,
+        #     np.kron(postmap3,postmap3),
+        #     interference_facet_inequality,
+        #     num_steps=175,
+        #     step_size=0.05,
+        #     sample_width=1,
+        #     verbose=True
+        # )
 
-        eatx_qint_facet_opt_jobs = client.map(eatx_qint_facet_opt_fn, range(n_workers))
-        eatx_qint_facet_opt_dicts = client.gather(eatx_qint_facet_opt_jobs)
+        # eatx_qint_facet_opt_jobs = client.map(eatx_qint_facet_opt_fn, range(n_workers))
+        # eatx_qint_facet_opt_dicts = client.gather(eatx_qint_facet_opt_jobs)
 
-        max_opt_dict = eatx_qint_facet_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(eatx_qint_facet_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(eatx_qint_facet_opt_dicts[j]["scores"])
-                max_opt_dict = eatx_qint_facet_opt_dicts[j]
+        # max_opt_dict = eatx_qint_facet_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(eatx_qint_facet_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(eatx_qint_facet_opt_dicts[j]["scores"])
+        #         max_opt_dict = eatx_qint_facet_opt_dicts[j]
 
-        scenario = "eatx_qint_facet_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
+        # scenario = "eatx_qint_facet_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
 
-        print("iteration time  : ", time.time() - time_start)
+        # print("iteration time  : ", time.time() - time_start)
 
-        """
-        earx quantum interference game
-        """
-        client.restart()
+        # """
+        # earx quantum interference game
+        # """
+        # client.restart()
 
-        time_start = time.time()
+        # time_start = time.time()
 
-        print("earx_qint game")
+        # print("earx_qint game")
 
-        earx_qint_game_opt_fn = optimize_inequality(
-            earx_qint_layers,
-            np.kron(postmap3,postmap3),
-            interference_game_inequality,
-            num_steps=175,
-            step_size=0.15,
-            sample_width=1,
-            verbose=True
-        )
+        # earx_qint_game_opt_fn = optimize_inequality(
+        #     earx_qint_layers,
+        #     np.kron(postmap3,postmap3),
+        #     interference_game_inequality,
+        #     num_steps=175,
+        #     step_size=0.15,
+        #     sample_width=1,
+        #     verbose=True
+        # )
 
-        earx_qint_game_opt_jobs = client.map(earx_qint_game_opt_fn, range(n_workers))
-        earx_qint_game_opt_dicts = client.gather(earx_qint_game_opt_jobs)
+        # earx_qint_game_opt_jobs = client.map(earx_qint_game_opt_fn, range(n_workers))
+        # earx_qint_game_opt_dicts = client.gather(earx_qint_game_opt_jobs)
 
-        max_opt_dict = earx_qint_game_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(earx_qint_game_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(earx_qint_game_opt_dicts[j]["scores"])
-                max_opt_dict = earx_qint_game_opt_dicts[j]
+        # max_opt_dict = earx_qint_game_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(earx_qint_game_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(earx_qint_game_opt_dicts[j]["scores"])
+        #         max_opt_dict = earx_qint_game_opt_dicts[j]
 
-        scenario = "earx_qint_game_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
+        # scenario = "earx_qint_game_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
 
-        print("iteration time  : ", time.time() - time_start)
+        # print("iteration time  : ", time.time() - time_start)
 
-        """
-        earx quantum interference facet
-        """
-        client.restart()
+        # """
+        # earx quantum interference facet
+        # """
+        # client.restart()
 
-        time_start = time.time()
+        # time_start = time.time()
 
-        print("earx facet" )
+        # print("earx facet" )
 
-        earx_qint_facet_opt_fn = optimize_inequality(
-            earx_qint_layers,
-            np.kron(postmap3,postmap3),
-            interference_facet_inequality,
-            num_steps=175,
-            step_size=0.2,
-            sample_width=1,
-            verbose=True
-        )
+        # earx_qint_facet_opt_fn = optimize_inequality(
+        #     earx_qint_layers,
+        #     np.kron(postmap3,postmap3),
+        #     interference_facet_inequality,
+        #     num_steps=175,
+        #     step_size=0.2,
+        #     sample_width=1,
+        #     verbose=True
+        # )
 
-        earx_qint_facet_opt_jobs = client.map(earx_qint_facet_opt_fn, range(n_workers))
-        earx_qint_facet_opt_dicts = client.gather(earx_qint_facet_opt_jobs)
+        # earx_qint_facet_opt_jobs = client.map(earx_qint_facet_opt_fn, range(n_workers))
+        # earx_qint_facet_opt_dicts = client.gather(earx_qint_facet_opt_jobs)
 
-        max_opt_dict = earx_qint_facet_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(earx_qint_facet_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(earx_qint_facet_opt_dicts[j]["scores"])
-                max_opt_dict = earx_qint_facet_opt_dicts[j]
+        # max_opt_dict = earx_qint_facet_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(earx_qint_facet_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(earx_qint_facet_opt_dicts[j]["scores"])
+        #         max_opt_dict = earx_qint_facet_opt_dicts[j]
 
-        scenario = "earx_qint_facet_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
+        # scenario = "earx_qint_facet_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
 
-        print("iteration time  : ", time.time() - time_start)
+        # print("iteration time  : ", time.time() - time_start)

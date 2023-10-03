@@ -8,6 +8,85 @@ from datetime import datetime
 import qnetvo
 
 
+def adam_gradient_descent(
+    cost,
+    init_settings,
+    num_steps=150,
+    step_size=0.1,
+    sample_width=25,
+    grad_fn=None,
+    verbose=True,
+    interface="autograd",
+):
+    """
+    adapted from qnetvo
+    """
+
+    if interface == "autograd":
+        # opt = qml.GradientDescentOptimizer(stepsize=step_size)
+        opt = qml.AdamOptimizer(stepsize=step_size)
+    elif interface == "tf":
+        from .lazy_tensorflow_import import tensorflow as tf
+
+        opt = tf.keras.optimizers.SGD(learning_rate=step_size)
+    else:
+        raise ValueError('Interface "' + interface + '" is not supported.')
+
+    settings = init_settings
+    scores = []
+    samples = []
+    step_times = []
+    settings_history = [init_settings]
+
+    start_datetime = datetime.utcnow()
+    elapsed = 0
+
+    # performing gradient descent
+    for i in range(num_steps):
+        if i % sample_width == 0:
+            score = -(cost(*settings))
+            scores.append(score)
+            samples.append(i)
+
+            if verbose:
+                print("iteration : ", i, ", score : ", score)
+
+        start = time.time()
+        if interface == "autograd":
+            settings = opt.step(cost, *settings, grad_fn=grad_fn)
+            if not (isinstance(settings, list)):
+                settings = [settings]
+        elif interface == "tf":
+            # opt.minimize updates settings in place
+            tf_cost = lambda: cost(*settings)
+            opt.minimize(tf_cost, settings)
+
+        elapsed = time.time() - start
+
+        if i % sample_width == 0:
+            step_times.append(elapsed)
+
+            if verbose:
+                print("elapsed time : ", elapsed)
+
+        settings_history.append(settings)
+
+    opt_score = -(cost(*settings))
+    step_times.append(elapsed)
+
+    scores.append(opt_score)
+    samples.append(num_steps)
+
+    return {
+        "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "opt_score": opt_score,
+        "opt_settings": settings,
+        "scores": scores,
+        "samples": samples,
+        "settings_history": settings_history,
+        "step_times": step_times,
+        "step_size": step_size,
+    }
 
 def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
@@ -16,7 +95,7 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     Optimization errors will result in an empty optimization dictionary.
     """
     try:
-        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs)
+        opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
     except Exception as err:
         print("An error occurred during gradient descent.")
         print(err)
@@ -278,6 +357,42 @@ if __name__=="__main__":
         qnetvo.MeasureNode(num_out=4, wires=[2,3], ansatz_fn=qml.ArbitraryUnitary, num_settings=15),
     ]
 
+    min_earx_qc_bc_set_wires = [
+        qnetvo.PrepareNode(wires=[0,1,2,3]),
+    ]
+    min_earx_qc_bc_source_nodes = [
+        qnetvo.PrepareNode(wires=[0,2], ansatz_fn=qnetvo.ghz_state),
+    ]
+    def min_earx_prep_circ(settings, wires):
+        qml.RY(settings[0], wires=wires[0:1])
+        qml.RY(settings[1], wires=wires[1:2])
+
+
+
+    min_earx_qc_bc_prep_nodes = [
+        qnetvo.PrepareNode(num_in=4, wires=[1,3], ansatz_fn=min_earx_prep_circ, num_settings=2),
+    ]
+
+    def min_earx_meas_circ(settings, wires):
+        qml.CNOT(wires=wires[0:2])
+        qml.RY(settings[0], wires=wires[0:1])
+        qml.RY(settings[1], wires=wires[1:2])
+        qml.CNOT(wires=wires[0:2])
+        qml.RY(settings[2], wires=wires[0:1])
+        qml.RY(settings[3], wires=wires[1:2])
+
+    min_earx_qc_bc_meas_nodes = [
+        qnetvo.MeasureNode(num_out=4, wires=[0,1], ansatz_fn=min_earx_meas_circ, num_settings=4),
+        qnetvo.MeasureNode(num_out=4, wires=[2,3], ansatz_fn=min_earx_meas_circ, num_settings=4),
+    ]
+
+    min_earx_qc_layers = [
+        min_earx_qc_bc_set_wires,
+        min_earx_qc_bc_source_nodes,
+        min_earx_qc_bc_prep_nodes,
+        min_earx_qc_bc_meas_nodes,
+    ]
+
 
     inequalities = mac.broadcast_4_22_44_network_bounds()
 
@@ -417,118 +532,168 @@ if __name__=="__main__":
 
         # print("iteration time  : ", time.time() - time_start)
 
+        # """
+        # tripartite entanglement-assisted classical communication broadcast
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # ghzacc_bc_opt_fn = optimize_inequality(
+        #     [
+        #         ghzacc_bc_set_wires,
+        #         geacc_bc_source_nodes,
+        #         ghzacc_bc_prep_nodes,
+        #         ghzacc_bc_rx_nodes,
+        #         ghzacc_bc_meas_nodes,
+        #     ],
+        #     np.eye(16),
+        #     inequality,
+        #     # fixed_setting_ids=eacc_fixed_setting_ids,
+        #     # fixed_settings=eacc_fixed_settings,
+        #     num_steps=250,
+        #     step_size=0.2,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # ghzacc_bc_opt_jobs = client.map(ghzacc_bc_opt_fn, range(n_workers))
+        # ghzacc_bc_opt_dicts = client.gather(ghzacc_bc_opt_jobs)
+
+        # max_opt_dict = ghzacc_bc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(ghzacc_bc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(ghzacc_bc_opt_dicts[j]["scores"])
+        #         max_opt_dict = ghzacc_bc_opt_dicts[j]
+
+        # scenario = "gea_cc_bc_arb_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
+        # """
+        # tripartite ghz-assisted classical communication broadcast
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # ghzacc_bc_opt_fn = optimize_inequality(
+        #     [
+        #         ghzacc_bc_set_wires,
+        #         ghzacc_bc_source_nodes,
+        #         ghzacc_bc_prep_nodes,
+        #         ghzacc_bc_rx_nodes,
+        #         ghzacc_bc_meas_nodes,
+        #     ],
+        #     np.eye(16),
+        #     inequality,
+        #     # fixed_setting_ids=eacc_fixed_setting_ids,
+        #     # fixed_settings=eacc_fixed_settings,
+        #     num_steps=150,
+        #     step_size=0.4,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # ghzacc_bc_opt_jobs = client.map(ghzacc_bc_opt_fn, range(n_workers))
+        # ghzacc_bc_opt_dicts = client.gather(ghzacc_bc_opt_jobs)
+
+        # max_opt_dict = ghzacc_bc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(ghzacc_bc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(ghzacc_bc_opt_dicts[j]["scores"])
+        #         max_opt_dict = ghzacc_bc_opt_dicts[j]
+
+        # scenario = "ghza_cc_bc_arb_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
+        # """
+        # entanglement-assisted receivers classical communication broadcast
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # earx_qc_bc_opt_fn = optimize_inequality(
+        #     [
+        #         earx_cc_bc_set_wires,
+        #         earx_qc_bc_source_nodes,
+        #         earx_cc_bc_prep_nodes,
+        #         earx_cc_bc_proc_nodes,
+        #         earx_qc_bc_meas_nodes
+        #     ],
+        #     np.eye(16),
+        #     inequality,
+        #     # fixed_setting_ids=eacc_fixed_setting_ids,
+        #     # fixed_settings=eacc_fixed_settings,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # earx_qc_bc_opt_jobs = client.map(earx_qc_bc_opt_fn, range(n_workers))
+        # earx_qc_bc_opt_dicts = client.gather(earx_qc_bc_opt_jobs)
+
+        # max_opt_dict = earx_qc_bc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(earx_qc_bc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(earx_qc_bc_opt_dicts[j]["scores"])
+        #         max_opt_dict = earx_qc_bc_opt_dicts[j]
+
+        # scenario = "earx_cc_bc_arb_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
         """
-        tripartite entanglement-assisted classical communication broadcast
+        min entanglement-assisted receivers quantum communication broadcast
         """
         client.restart()
 
         time_start = time.time()
 
-        ghzacc_bc_opt_fn = optimize_inequality(
-            [
-                ghzacc_bc_set_wires,
-                geacc_bc_source_nodes,
-                ghzacc_bc_prep_nodes,
-                ghzacc_bc_rx_nodes,
-                ghzacc_bc_meas_nodes,
-            ],
-            np.eye(16),
-            inequality,
-            # fixed_setting_ids=eacc_fixed_setting_ids,
-            # fixed_settings=eacc_fixed_settings,
-            num_steps=250,
-            step_size=0.2,
-            sample_width=1,
-            verbose=True
-        )
+        fixed_settings = [
+            0,np.pi/2,0,-np.pi/2,np.pi,3*np.pi/2,np.pi,-3*np.pi/2,
+            -np.pi/2,np.pi/2,np.pi/2,5*np.pi/4,-35*np.pi/44,np.pi,-3*np.pi/4,np.pi/2
+            # -np.pi/2,np.pi/2,np.pi/2,5*np.pi/4,-2.498166118265674,np.pi,-3*np.pi/4,np.pi/2
+        ]
 
-        ghzacc_bc_opt_jobs = client.map(ghzacc_bc_opt_fn, range(n_workers))
-        ghzacc_bc_opt_dicts = client.gather(ghzacc_bc_opt_jobs)
 
-        max_opt_dict = ghzacc_bc_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(ghzacc_bc_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(ghzacc_bc_opt_dicts[j]["scores"])
-                max_opt_dict = ghzacc_bc_opt_dicts[j]
+        ansatz = qnetvo.NetworkAnsatz(*min_earx_qc_layers)
+        Pnet = qnetvo.behavior_fn(ansatz)
+        print(np.array(Pnet(fixed_settings)).round(decimals=3) )
 
-        scenario = "gea_cc_bc_arb_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
+        # earx_qc_bc_opt_fn = optimize_inequality(
+        #     min_earx_qc_layers,
+        #     np.eye(16),
+        #     inequality,
+        #     fixed_setting_ids=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+        #     fixed_settings=fixed_settings,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
 
-        print("iteration time  : ", time.time() - time_start)
-
-        """
-        tripartite ghz-assisted classical communication broadcast
-        """
-        client.restart()
-
-        time_start = time.time()
-
-        ghzacc_bc_opt_fn = optimize_inequality(
-            [
-                ghzacc_bc_set_wires,
-                ghzacc_bc_source_nodes,
-                ghzacc_bc_prep_nodes,
-                ghzacc_bc_rx_nodes,
-                ghzacc_bc_meas_nodes,
-            ],
-            np.eye(16),
-            inequality,
-            # fixed_setting_ids=eacc_fixed_setting_ids,
-            # fixed_settings=eacc_fixed_settings,
-            num_steps=150,
-            step_size=0.4,
-            sample_width=1,
-            verbose=True
-        )
-
-        ghzacc_bc_opt_jobs = client.map(ghzacc_bc_opt_fn, range(n_workers))
-        ghzacc_bc_opt_dicts = client.gather(ghzacc_bc_opt_jobs)
-
-        max_opt_dict = ghzacc_bc_opt_dicts[0]
-        max_score = max(max_opt_dict["scores"])
-        for j in range(1,n_workers):
-            if max(ghzacc_bc_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(ghzacc_bc_opt_dicts[j]["scores"])
-                max_opt_dict = ghzacc_bc_opt_dicts[j]
-
-        scenario = "ghza_cc_bc_arb_"
-        datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        qnetvo.write_optimization_json(
-            max_opt_dict,
-            data_dir + scenario + inequality_tag + datetime_ext,
-        )
-
-        print("iteration time  : ", time.time() - time_start)
-
-        """
-        entanglement-assisted receivers classical communication broadcast
-        """
-        client.restart()
-
-        time_start = time.time()
-
-        earx_qc_bc_opt_fn = optimize_inequality(
-            [
-                earx_cc_bc_set_wires,
-                earx_qc_bc_source_nodes,
-                earx_cc_bc_prep_nodes,
-                earx_cc_bc_proc_nodes,
-                earx_qc_bc_meas_nodes
-            ],
-            np.eye(16),
-            inequality,
-            # fixed_setting_ids=eacc_fixed_setting_ids,
-            # fixed_settings=eacc_fixed_settings,
-            num_steps=250,
-            step_size=0.1,
-            sample_width=1,
-            verbose=True
-        )
 
         earx_qc_bc_opt_jobs = client.map(earx_qc_bc_opt_fn, range(n_workers))
         earx_qc_bc_opt_dicts = client.gather(earx_qc_bc_opt_jobs)
@@ -540,7 +705,7 @@ if __name__=="__main__":
                 max_score = max(earx_qc_bc_opt_dicts[j]["scores"])
                 max_opt_dict = earx_qc_bc_opt_dicts[j]
 
-        scenario = "earx_cc_bc_arb_"
+        scenario = "earx_qc_bc_min_"
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         qnetvo.write_optimization_json(
             max_opt_dict,

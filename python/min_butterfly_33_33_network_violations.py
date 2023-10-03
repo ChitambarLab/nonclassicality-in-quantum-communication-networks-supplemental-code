@@ -8,86 +8,6 @@ from datetime import datetime
 import qnetvo
 
 
-def adam_gradient_descent(
-    cost,
-    init_settings,
-    num_steps=150,
-    step_size=0.1,
-    sample_width=25,
-    grad_fn=None,
-    verbose=True,
-    interface="autograd",
-):
-    """
-    adapted from qnetvo
-    """
-
-    if interface == "autograd":
-        # opt = qml.GradientDescentOptimizer(stepsize=step_size)
-        opt = qml.AdamOptimizer(stepsize=step_size)
-    elif interface == "tf":
-        from .lazy_tensorflow_import import tensorflow as tf
-
-        opt = tf.keras.optimizers.SGD(learning_rate=step_size)
-    else:
-        raise ValueError('Interface "' + interface + '" is not supported.')
-
-    settings = init_settings
-    scores = []
-    samples = []
-    step_times = []
-    settings_history = [init_settings]
-
-    start_datetime = datetime.utcnow()
-    elapsed = 0
-
-    # performing gradient descent
-    for i in range(num_steps):
-        if i % sample_width == 0:
-            score = -(cost(*settings))
-            scores.append(score)
-            samples.append(i)
-
-            if verbose:
-                print("iteration : ", i, ", score : ", score)
-
-        start = time.time()
-        if interface == "autograd":
-            settings = opt.step(cost, *settings, grad_fn=grad_fn)
-            if not (isinstance(settings, list)):
-                settings = [settings]
-        elif interface == "tf":
-            # opt.minimize updates settings in place
-            tf_cost = lambda: cost(*settings)
-            opt.minimize(tf_cost, settings)
-
-        elapsed = time.time() - start
-
-        if i % sample_width == 0:
-            step_times.append(elapsed)
-
-            if verbose:
-                print("elapsed time : ", elapsed)
-
-        settings_history.append(settings)
-
-    opt_score = -(cost(*settings))
-    step_times.append(elapsed)
-
-    scores.append(opt_score)
-    samples.append(num_steps)
-
-    return {
-        "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "opt_score": opt_score,
-        "opt_settings": settings,
-        "scores": scores,
-        "samples": samples,
-        "settings_history": settings_history,
-        "step_times": step_times,
-        "step_size": step_size,
-    }
-
 
 def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
@@ -96,8 +16,7 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     Optimization errors will result in an empty optimization dictionary.
     """
     try:
-        # opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs)
-        opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
+        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
     except Exception as err:
         print("An error occurred during gradient descent.")
         print(err)
@@ -229,7 +148,7 @@ if __name__=="__main__":
 
     min_butterfly_game_inequalities, min_butterfly_facet_inequalities, game_names = mac.min_butterfly_33_33_network_bounds()
 
-    for i in range(0,8):
+    for i in range(1,2):
         butterfly_game_inequality = min_butterfly_game_inequalities[i]
         butterfly_facet_inequality = min_butterfly_facet_inequalities[i]
 
