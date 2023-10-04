@@ -142,6 +142,9 @@ if __name__=="__main__":
     postmap3 = np.array([
         [1,0,0,1],[0,1,0,0],[0,0,1,0],
     ])
+    postmap3b = np.array([
+        [1,0,0,0],[0,1,1,0],[0,0,0,1],
+    ])
     postmap38 = np.array([
         [1,1,0,0,0,0,0,0],
         [0,0,1,1,0,0,0,0],
@@ -179,6 +182,64 @@ if __name__=="__main__":
         qbf_C_nodes,
         qbf_meas_proc_nodes,
         qbf_meas_nodes,
+    ]
+
+    min_qbf_wire_set_nodes = [
+        qnetvo.PrepareNode(wires=[0,1,2,3,4])
+    ]
+
+    def min_qbf_prep_circ(settings, wires):
+        # qml.ArbitraryStatePreparation(settings[0:2], wires=wires[0:1])
+        qml.RY(settings[0], wires=wires[0:1])
+        # qml.RZ(settings[1], wires=wires[0:1])
+        # qml.Hadamard(wires=wires[0:1])
+
+        # qml.PauliX(wires=wires[1:2])
+        qml.RY(settings[1], wires=wires[1:2])
+        # qml.Hadamard(wires=wires[1:2])
+        # qml.RZ(settings[3], wires=wires[1:2])
+        # qml.ArbitraryStatePreparation(settings[2:4], wires=wires[1:2])
+
+    min_qbf_prep_nodes = [
+        qnetvo.PrepareNode(num_in=3, wires=[0,2], ansatz_fn=min_qbf_prep_circ, num_settings=2),
+        qnetvo.PrepareNode(num_in=3, wires=[1,4], ansatz_fn=min_qbf_prep_circ, num_settings=2),
+    ]
+
+    def min_qbf_B_circ(settings, wires):
+        qml.CNOT(wires=wires[0:2])
+
+    min_qbf_B_nodes = [
+        qnetvo.ProcessingNode(wires=[0,1], ansatz_fn=min_qbf_B_circ, num_settings=0),
+    ]
+    min_qbf_C_nodes = [
+        qnetvo.ProcessingNode(wires=[1,3], ansatz_fn=min_qbf_B_circ, num_settings=0),
+    ]
+
+    def min_qbf_meas_circ(settings, wires):
+        qml.CNOT(wires=wires[0:2])
+        
+        qml.Hadamard(wires=wires[1:2])
+        # qml.RY(settings[0], wires=wires[1:2])
+        # qml.RY(settings[1], wires=wires[1:2])
+
+
+    min_qbf_meas_proc_nodes = [
+        qnetvo.ProcessingNode(wires=[1,2], ansatz_fn=min_qbf_meas_circ, num_settings=0),
+        qnetvo.ProcessingNode(wires=[3,4], ansatz_fn=min_qbf_meas_circ, num_settings=0),
+    ]
+
+    min_qbf_meas_nodes = [
+        qnetvo.MeasureNode(num_out=3, wires=[1,2]),
+        qnetvo.MeasureNode(num_out=3, wires=[3,4]),
+    ]
+
+    min_qbf_layers = [
+        min_qbf_wire_set_nodes,
+        min_qbf_prep_nodes,
+        min_qbf_B_nodes,
+        min_qbf_C_nodes,
+        min_qbf_meas_proc_nodes,
+        min_qbf_meas_nodes,
     ]
 
 
@@ -482,7 +543,7 @@ if __name__=="__main__":
     
     butterfly_game_inequalities, butterfly_facet_inequalities, game_names = mac.butterfly_33_33_network_bounds()
 
-    for i in range(7,8):
+    for i in range(6,7):
         butterfly_game_inequality = butterfly_game_inequalities[i]
         butterfly_facet_inequality = butterfly_facet_inequalities[i]
 
@@ -493,8 +554,93 @@ if __name__=="__main__":
         client = Client(processes=True, n_workers=n_workers, threads_per_worker=1)
 
 
+        # """
+        # quantum butterfly game
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # postmap1 = postmap3
+        # postmap2 = postmap3
+
+        # qbf_game_opt_fn = optimize_inequality(
+        #     qbf_layers,
+        #     np.kron(postmap1,postmap2),
+        #     butterfly_game_inequality,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # qbf_game_opt_jobs = client.map(qbf_game_opt_fn, range(n_workers))
+        # qbf_game_opt_dicts = client.gather(qbf_game_opt_jobs)
+
+        # max_opt_dict = qbf_game_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(qbf_game_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(qbf_game_opt_dicts[j]["scores"])
+        #         max_opt_dict = qbf_game_opt_dicts[j]
+            
+        # max_opt_dict["postmap1"] = postmap1.tolist()
+        # max_opt_dict["postmap2"] = postmap2.tolist()
+
+
+        # scenario = "qbf_game_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
+        # """
+        # quantum butterfly facet
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # postmap1 = postmap3
+        # postmap2 = postmap3
+
+        # qbf_facet_opt_fn = optimize_inequality(
+        #     qbf_layers,
+        #     np.kron(postmap1,postmap2),
+        #     butterfly_facet_inequality,
+        #     num_steps=150,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+        # qbf_facet_opt_jobs = client.map(qbf_facet_opt_fn, range(n_workers))
+        # qbf_facet_opt_dicts = client.gather(qbf_facet_opt_jobs)
+
+        # max_opt_dict = qbf_facet_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(qbf_facet_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(qbf_facet_opt_dicts[j]["scores"])
+        #         max_opt_dict = qbf_facet_opt_dicts[j]
+
+        # max_opt_dict["postmap1"] = postmap1.tolist()
+        # max_opt_dict["postmap2"] = postmap2.tolist()
+
+        # scenario = "qbf_facet_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
+
         """
-        quantum butterfly game
+        min quantum butterfly game
         """
         client.restart()
 
@@ -503,31 +649,66 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        qbf_game_opt_fn = optimize_inequality(
-            qbf_layers,
+        fixed_settings = [
+            3.1392607991527868,
+            -1.5704630859581983,
+            -0.001136154203663715,
+            -1.5705599708550828,
+            3.141447618783402,
+            -1.5711103887675715,
+            -0.008119260585359096,
+            -1.5706048616083264,
+            3.141715999021389,
+            -1.5709946884744848,
+            -9.128758206203484e-05,
+            -1.5713240646490174
+        ]
+
+        fixed_settings = [
+            np.pi,
+            3*np.pi/2,
+            0,
+            3*np.pi/2,
+            np.pi,
+            3*np.pi/2,
+            0,
+            3*np.pi/2,
+            np.pi,
+            3*np.pi/2,
+            0,
+            3*np.pi/2,
+        ]
+
+
+
+
+        min_qbf_game_opt_fn = optimize_inequality(
+            min_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_game_inequality,
+            fixed_settings = fixed_settings,
+            fixed_setting_ids = range(len(fixed_settings)),
             num_steps=150,
             step_size=0.1,
             sample_width=1,
             verbose=True
         )
 
-        qbf_game_opt_jobs = client.map(qbf_game_opt_fn, range(n_workers))
-        qbf_game_opt_dicts = client.gather(qbf_game_opt_jobs)
+        min_qbf_game_opt_jobs = client.map(min_qbf_game_opt_fn, range(n_workers))
+        min_qbf_game_opt_dicts = client.gather(min_qbf_game_opt_jobs)
 
-        max_opt_dict = qbf_game_opt_dicts[0]
+        max_opt_dict = min_qbf_game_opt_dicts[0]
         max_score = max(max_opt_dict["scores"])
         for j in range(1,n_workers):
-            if max(qbf_game_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(qbf_game_opt_dicts[j]["scores"])
-                max_opt_dict = qbf_game_opt_dicts[j]
+            if max(min_qbf_game_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(min_qbf_game_opt_dicts[j]["scores"])
+                max_opt_dict = min_qbf_game_opt_dicts[j]
             
         max_opt_dict["postmap1"] = postmap1.tolist()
         max_opt_dict["postmap2"] = postmap2.tolist()
 
 
-        scenario = "qbf_game_"
+        scenario = "min_qbf_game_"
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         qnetvo.write_optimization_json(
             max_opt_dict,
@@ -537,7 +718,7 @@ if __name__=="__main__":
         print("iteration time  : ", time.time() - time_start)
 
         """
-        quantum butterfly facet
+        min quantum butterfly facet
         """
         client.restart()
 
@@ -546,8 +727,8 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        qbf_facet_opt_fn = optimize_inequality(
-            qbf_layers,
+        min_qbf_facet_opt_fn = optimize_inequality(
+            min_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_facet_inequality,
             num_steps=150,
@@ -556,20 +737,20 @@ if __name__=="__main__":
             verbose=True
         )
 
-        qbf_facet_opt_jobs = client.map(qbf_facet_opt_fn, range(n_workers))
-        qbf_facet_opt_dicts = client.gather(qbf_facet_opt_jobs)
+        min_qbf_facet_opt_jobs = client.map(min_qbf_facet_opt_fn, range(n_workers))
+        min_qbf_facet_opt_dicts = client.gather(min_qbf_facet_opt_jobs)
 
-        max_opt_dict = qbf_facet_opt_dicts[0]
+        max_opt_dict = min_qbf_facet_opt_dicts[0]
         max_score = max(max_opt_dict["scores"])
         for j in range(1,n_workers):
-            if max(qbf_facet_opt_dicts[j]["scores"]) > max_score:
-                max_score = max(qbf_facet_opt_dicts[j]["scores"])
-                max_opt_dict = qbf_facet_opt_dicts[j]
+            if max(min_qbf_facet_opt_dicts[j]["scores"]) > max_score:
+                max_score = max(min_qbf_facet_opt_dicts[j]["scores"])
+                max_opt_dict = min_qbf_facet_opt_dicts[j]
 
         max_opt_dict["postmap1"] = postmap1.tolist()
         max_opt_dict["postmap2"] = postmap2.tolist()
 
-        scenario = "qbf_facet_"
+        scenario = "min_qbf_facet_"
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         qnetvo.write_optimization_json(
             max_opt_dict,
