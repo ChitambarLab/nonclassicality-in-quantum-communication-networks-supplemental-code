@@ -423,92 +423,13 @@ include("../src/MultiAccessChannels.jl")
 
         # stirling encodings gives 690813 vertices
 
-        mult1_test = [ # multiplication game [1,2,3] no zero 
-            1 0 0 0 0 0 0 0 0;
-            0 1 0 1 0 0 0 0 0;
-            0 0 1 0 0 0 1 0 0;
-            0 0 0 0 1 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 1 0 1 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 1;
-        ]
-        mult0_test = [ # multiplication with zero 
-            1 1 1 1 0 0 1 0 0;
-            0 0 0 0 1 0 0 0 0;
-            0 0 0 0 0 1 0 1 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 1;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-        ]
-        swap_test = [ # swap game
-            1 0 0 0 0 0 0 0 0;
-            0 0 0 1 0 0 0 0 0;
-            0 0 0 0 0 0 1 0 0;
-            0 1 0 0 0 0 0 0 0;
-            0 0 0 0 1 0 0 0 0;
-            0 0 0 0 0 0 0 1 0;
-            0 0 1 0 0 0 0 0 0;
-            0 0 0 0 0 1 0 0 0;
-            0 0 0 0 0 0 0 0 1;
-        ]
-        adder_test = [ # adder game
-            1 0 0 0 0 0 0 0 0;
-            0 1 0 1 0 0 0 0 0;
-            0 0 1 0 1 0 1 0 0;
-            0 0 0 0 0 1 0 1 0;
-            0 0 0 0 0 0 0 0 1;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-        ]
-        compare_test = [
-            1 0 0 0 1 0 0 0 1;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 1 1 0 0 1 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 1 0 0 1 1 0;
-            0 0 0 0 0 0 0 0 0;
-        ]
-        perm_test = [ # on receiver permutes output based on other receiver
-            1 0 0 0 0 0 0 0 0;
-            0 1 0 0 0 0 0 0 0;
-            0 0 1 0 0 0 0 0 0;
-            0 0 0 0 1 0 0 0 0;
-            0 0 0 0 0 1 0 0 0;
-            0 0 0 1 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 1;
-            0 0 0 0 0 0 1 0 0;
-            0 0 0 0 0 0 0 1 0;
-        ]
-        diff_test = [
-            1 0 0 0 1 0 0 0 1;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 1 0 1 0 1 0 1 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0;
-            0 0 1 0 0 0 1 0 0;
-        ]
-        cv_test = I(9)
-
 
         mult1_max_violation = max(map(v -> sum(mult1_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
         @test mult1_max_violation == 6
         mult0_max_violation = max(map(v -> sum(mult0_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
         @test mult0_max_violation == 7
         swap_max_violation = max(map(v -> sum(swap_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
-        @test swap_max_violation ==4
+        @test swap_max_violation == 4
         perm_max_violation = max(map(v -> sum(perm_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
         @test perm_max_violation == 6
         adder_max_violation = max(map(v -> sum(adder_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
@@ -516,7 +437,7 @@ include("../src/MultiAccessChannels.jl")
         compare_max_violation = max(map(v -> sum(compare_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
         @test compare_max_violation == 7
         diff_max_violation = max(map(v -> sum(diff_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
-        @test diff_max_violation == 6
+        @test diff_max_violation == 7
         cv_max_violation = max(map(v -> sum(cv_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
         @test cv_max_violation == 7
 

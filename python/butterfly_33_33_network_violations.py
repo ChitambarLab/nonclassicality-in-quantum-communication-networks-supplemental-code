@@ -145,6 +145,9 @@ if __name__=="__main__":
     postmap3b = np.array([
         [1,0,0,0],[0,1,1,0],[0,0,0,1],
     ])
+    postmap3c = np.array([
+        [1,0,0,0],[0,1,0,0],[0,0,1,1],
+    ])
     postmap38 = np.array([
         [1,1,0,0,0,0,0,0],
         [0,0,1,1,0,0,0,0],
@@ -189,20 +192,13 @@ if __name__=="__main__":
     ]
 
     def min_qbf_prep_circ(settings, wires):
-        # qml.ArbitraryStatePreparation(settings[0:2], wires=wires[0:1])
         qml.RY(settings[0], wires=wires[0:1])
-        # qml.RZ(settings[1], wires=wires[0:1])
-        # qml.Hadamard(wires=wires[0:1])
+        qml.PauliX(wires=wires[1:2])
 
-        # qml.PauliX(wires=wires[1:2])
-        qml.RY(settings[1], wires=wires[1:2])
-        # qml.Hadamard(wires=wires[1:2])
-        # qml.RZ(settings[3], wires=wires[1:2])
-        # qml.ArbitraryStatePreparation(settings[2:4], wires=wires[1:2])
 
     min_qbf_prep_nodes = [
-        qnetvo.PrepareNode(num_in=3, wires=[0,2], ansatz_fn=min_qbf_prep_circ, num_settings=2),
-        qnetvo.PrepareNode(num_in=3, wires=[1,4], ansatz_fn=min_qbf_prep_circ, num_settings=2),
+        qnetvo.PrepareNode(num_in=3, wires=[0,2], ansatz_fn=min_qbf_prep_circ, num_settings=1),
+        qnetvo.PrepareNode(num_in=3, wires=[1,4], ansatz_fn=min_qbf_prep_circ, num_settings=1),
     ]
 
     def min_qbf_B_circ(settings, wires):
@@ -216,11 +212,10 @@ if __name__=="__main__":
     ]
 
     def min_qbf_meas_circ(settings, wires):
-        qml.CNOT(wires=wires[0:2])
-        
         qml.Hadamard(wires=wires[1:2])
-        # qml.RY(settings[0], wires=wires[1:2])
-        # qml.RY(settings[1], wires=wires[1:2])
+        qml.CNOT(wires=wires[0:2])
+        qml.Hadamard(wires=wires[1:2])
+
 
 
     min_qbf_meas_proc_nodes = [
@@ -649,45 +644,16 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        fixed_settings = [
-            3.1392607991527868,
-            -1.5704630859581983,
-            -0.001136154203663715,
-            -1.5705599708550828,
-            3.141447618783402,
-            -1.5711103887675715,
-            -0.008119260585359096,
-            -1.5706048616083264,
-            3.141715999021389,
-            -1.5709946884744848,
-            -9.128758206203484e-05,
-            -1.5713240646490174
-        ]
 
-        fixed_settings = [
-            np.pi,
-            3*np.pi/2,
-            0,
-            3*np.pi/2,
-            np.pi,
-            3*np.pi/2,
-            0,
-            3*np.pi/2,
-            np.pi,
-            3*np.pi/2,
-            0,
-            3*np.pi/2,
-        ]
-
-
+        diff_game_fixed_settings = [np.pi,0,np.pi,0,np.pi,0]
 
 
         min_qbf_game_opt_fn = optimize_inequality(
             min_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_game_inequality,
-            fixed_settings = fixed_settings,
-            fixed_setting_ids = range(len(fixed_settings)),
+            fixed_settings = diff_game_fixed_settings,
+            fixed_setting_ids = range(len(diff_game_fixed_settings)),
             num_steps=150,
             step_size=0.1,
             sample_width=1,

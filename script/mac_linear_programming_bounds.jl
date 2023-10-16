@@ -78,6 +78,75 @@ end
     println(raw_game)
 end
 
+@testset "(3,3) -> (2,2) -> 3" begin
+    vertices33_22_3 = multi_access_vertices(3,3,3,2,2, normalize=false)
+
+    @test 633 == length(vertices33_22_3)
+    
+    compare_game = [
+        1 0 0 0 1 0 0 0 1;
+        0 1 1 0 0 1 0 0 0;
+        0 0 0 1 0 0 1 1 0;
+    ]
+
+    @test 7 == max(map(v -> sum(v[:].*compare_game[:]), vertices33_22_3)...)
+end
+
+@testset "(3,3) -> (2,2) -> 2" begin
+    vertices33_22_2 = multi_access_vertices(3,3,2,2,2, normalize=false)
+
+    @test 104 == length(vertices33_22_2)
+    
+    compare_game = [
+        1 0 0 1 1 0 1 1 1;
+        0 1 1 0 0 1 0 0 0;
+    ]
+
+    @test 8 == max(map(v -> sum(v[:].*compare_game[:]), vertices33_22_2)...)
+end
+
+@testset "(4,4) -> (2,2) -> 2" begin
+    vertices44_22_2 = multi_access_vertices(4,4,2,2,2, normalize=false)
+
+    @test 520 == length(vertices44_22_2)
+    
+    compare_game = [
+        1 0 0 0 1 1 0 0 1 1 1 0 1 1 1 1;
+        0 1 1 1 0 0 1 1 0 0 0 1 0 0 0 0;
+    ]
+
+    @test 14 == max(map(v -> sum(v[:].*compare_game[:]), vertices44_22_2)...)
+end
+
+@testset "(4,4) -> (2,2) -> 3" begin
+    vertices44_22_3 = multi_access_vertices(4,4,3,2,2, normalize=false)
+
+    @test 3321 == length(vertices44_22_3)
+    
+    compare_game = [
+        1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
+        0 1 1 1 0 0 1 1 0 0 0 1 0 0 0 0;
+        0 0 0 0 1 0 0 0 1 1 0 0 1 1 1 0;
+    ]
+
+    @test 12 == max(map(v -> sum(v[:].*compare_game[:]), vertices44_22_3)...)
+end
+
+@testset "(4,4) -> (2,2) -> 4" begin
+    vertices44_22_4 = multi_access_vertices(4,4,4,2,2, normalize=false)
+
+    @test length(vertices44_22_4) == 11344
+
+    qkd_game = [
+        1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
+        0 1 0 0 1 0 0 0 0 0 0 1 0 0 1 0;
+        0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 0;
+        0 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0;
+    ]
+
+    @test 8 == max(map(v -> sum(v[:].*qkd_game[:]), vertices44_22_4)...)
+end
+
 @testset "(6,3)->(2,3)->2 qmac  " begin
     
     vertices = multi_access_vertices(6,3,2,2,3)

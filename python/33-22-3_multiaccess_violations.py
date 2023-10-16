@@ -8,86 +8,6 @@ from datetime import datetime
 import qnetvo as qnet
 
 
-def adam_gradient_descent(
-    cost,
-    init_settings,
-    num_steps=150,
-    step_size=0.1,
-    sample_width=25,
-    grad_fn=None,
-    verbose=True,
-    interface="autograd",
-):
-    """
-    adapted from qnetvo
-    """
-
-    if interface == "autograd":
-        # opt = qml.GradientDescentOptimizer(stepsize=step_size)
-        opt = qml.AdamOptimizer(stepsize=step_size)
-    elif interface == "tf":
-        from .lazy_tensorflow_import import tensorflow as tf
-
-        opt = tf.keras.optimizers.SGD(learning_rate=step_size)
-    else:
-        raise ValueError('Interface "' + interface + '" is not supported.')
-
-    settings = init_settings
-    scores = []
-    samples = []
-    step_times = []
-    settings_history = [init_settings]
-
-    start_datetime = datetime.utcnow()
-    elapsed = 0
-
-    # performing gradient descent
-    for i in range(num_steps):
-        if i % sample_width == 0:
-            score = -(cost(*settings))
-            scores.append(score)
-            samples.append(i)
-
-            if verbose:
-                print("iteration : ", i, ", score : ", score)
-
-        start = time.time()
-        if interface == "autograd":
-            settings = opt.step(cost, *settings, grad_fn=grad_fn)
-            if not (isinstance(settings, list)):
-                settings = [settings]
-        elif interface == "tf":
-            # opt.minimize updates settings in place
-            tf_cost = lambda: cost(*settings)
-            opt.minimize(tf_cost, settings)
-
-        elapsed = time.time() - start
-
-        if i % sample_width == 0:
-            step_times.append(elapsed)
-
-            if verbose:
-                print("elapsed time : ", elapsed)
-
-        settings_history.append(settings)
-
-    opt_score = -(cost(*settings))
-    step_times.append(elapsed)
-
-    scores.append(opt_score)
-    samples.append(num_steps)
-
-    return {
-        "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "opt_score": opt_score,
-        "opt_settings": settings,
-        "scores": scores,
-        "samples": samples,
-        "settings_history": settings_history,
-        "step_times": step_times,
-        "step_size": step_size,
-    }
-
 def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
     handle errors during computation.
@@ -95,7 +15,7 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     Optimization errors will result in an empty optimization dictionary.
     """
     try:
-        opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
+        opt_dict = qnet.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
     except Exception as err:
         print("An error occurred during gradient descent.")
         print(err)
@@ -138,13 +58,23 @@ if __name__=="__main__":
     data_dir = "data/33-22-3_multiaccess_violations/"
 
 
-    # qmac_prep_nodes = [
-    #     qnet.PrepareNode(num_in=3, wires=[0], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2),
-    #     qnet.PrepareNode(num_in=3, wires=[1], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2)
-    # ]
-    # qmac_meas_nodes = [
-    #     qnet.MeasureNode(num_in=1, num_out=2, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15)
-    # ]
+    def qmac_prep_nodes(num_in):
+        return [
+            qnet.PrepareNode(num_in=num_in, wires=[0], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2),
+            qnet.PrepareNode(num_in=num_in, wires=[1], ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2)
+        ]
+    
+    def qmac_meas_nodes(num_out):
+        return [
+            qnet.MeasureNode(num_out=num_out, wires=[0,1], ansatz_fn=qml.ArbitraryUnitary, num_settings=15)
+        ]
+
+    def qmac_layers(num_in, num_out):
+        return [
+            qmac_prep_nodes(num_in),
+            qmac_meas_nodes(num_out),
+        ]
+
     # qmac_proc3_nodes = [
     #     qnet.ProcessingNode(wires=[0], ansatz_fn=qml.ArbitraryUnitary, num_settings=3),
     #     qnet.ProcessingNode(wires=[1,2], ansatz_fn=qml.ArbitraryUnitary, num_settings=15)
@@ -423,16 +353,38 @@ if __name__=="__main__":
             [0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0],
             [0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0],
         ])),
+        (7, np.array([ # compare game 3 inputs
+            [1,0,0,0,1,0,0,0,1],
+            [0,1,1,0,0,1,0,0,0],
+            [0,0,0,1,0,0,1,1,0],
+        ])),
+        (12 , np.array([  # compare game 4 inputs
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0],
+        ])),
+        (8 , np.array([
+            [1, 0, 0, 1, 1, 0, 1, 1, 1],
+            [0, 1, 1, 0, 0, 1, 0, 0, 0],
+        ])),
+        (8 , np.array([
+            [1, 0, 0, 1, 1, 0, 1, 1, 1],
+            [0, 1, 1, 0, 0, 1, 0, 0, 0],
+        ])),
+        (14, np.array([
+            [1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1],
+            [0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+        ])),
     ]
     
-    for i in range(2,len(inequalities)):
+    for i in range(0,len(inequalities)):
         inequality = inequalities[i]
 
         print("i = ", i)
         inequality_tag = "I_" + str(i) + "_"
 
-        num_in = inequality[1].shape[0]
-        num_out = int(np.sqrt(inequality[1].shape[1]))
+        num_out = inequality[1].shape[0]
+        num_in = int(np.sqrt(inequality[1].shape[1]))
 
         if num_out == 4:
             postmap = np.eye(4)
@@ -440,51 +392,52 @@ if __name__=="__main__":
             postmap = np.array([
                 [1,0,0,0],[0,1,1,0],[0,0,0,1],
             ])
+        elif num_out == 2:
+            postmap = np.array([
+                [1,0,0,0],[0,1,1,1],
+            ])
 
         # for postmap_tag in ["and_"]:
         for postmap_tag in ["xor_"]:#
   
             n_workers = 3
-            n_jobs=3
+            n_jobs = 3
             client = Client(processes=True, n_workers=n_workers, threads_per_worker=1)
 
-            # """
-            # QMAC
-            # """
-            # client.restart()
-            # time_start = time.time()
+            """
+            QMAC
+            """
+            client.restart()
+            time_start = time.time()
 
-            # qmac_opt_fn = optimize_inequality(
-            #     [
-            #         qmac_prep_nodes,
-            #         qmac_meas_nodes,
-            #     ],
-            #     postmap,
-            #     inequality,
-            #     num_steps=150,
-            #     step_size=0.15,
-            #     sample_width=1,
-            #     verbose=True
-            # )
+            qmac_opt_fn = optimize_inequality(
+                qmac_layers(num_in, num_out),
+                postmap,
+                inequality,
+                num_steps=150,
+                step_size=0.15,
+                sample_width=1,
+                verbose=True
+            )
 
-            # qmac_opt_jobs = client.map(qmac_opt_fn, range(n_jobs))
-            # qmac_opt_dicts = client.gather(qmac_opt_jobs)
+            qmac_opt_jobs = client.map(qmac_opt_fn, range(n_jobs))
+            qmac_opt_dicts = client.gather(qmac_opt_jobs)
 
-            # max_opt_dict = qmac_opt_dicts[0]
-            # max_score = max(max_opt_dict["scores"])
-            # for j in range(1,n_jobs):
-            #     if max(qmac_opt_dicts[j]["scores"]) > max_score:
-            #         max_score = max(qmac_opt_dicts[j]["scores"])
-            #         max_opt_dict = qmac_opt_dicts[j]
+            max_opt_dict = qmac_opt_dicts[0]
+            max_score = max(max_opt_dict["scores"])
+            for j in range(1,n_jobs):
+                if max(qmac_opt_dicts[j]["scores"]) > max_score:
+                    max_score = max(qmac_opt_dicts[j]["scores"])
+                    max_opt_dict = qmac_opt_dicts[j]
 
-            # scenario = "qmac_"
-            # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-            # qnet.write_optimization_json(
-            #     max_opt_dict,
-            #     data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-            # )
+            scenario = "qmac_"
+            datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+            qnet.write_optimization_json(
+                max_opt_dict,
+                data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+            )
 
-            # print("iteration time  : ", time.time() - time_start)
+            print("iteration time  : ", time.time() - time_start)
             
             # """
             # QMAC 3-qubit measure node
@@ -603,40 +556,40 @@ if __name__=="__main__":
 
             #     print("iteration time  : ", time.time() - time_start)
 
-            # """
-            # EATx CMAC
-            # """
-            # client.restart()
-            # time_start = time.time()
+            """
+            EATx CMAC
+            """
+            client.restart()
+            time_start = time.time()
 
-            # ea_mac_opt_fn = optimize_inequality(
-            #     eatx_mac_layers(num_in),
-            #     postmap,
-            #     inequality,
-            #     num_steps=150,
-            #     step_size=0.15,
-            #     sample_width=1,
-            #     verbose=True
-            # )
+            ea_mac_opt_fn = optimize_inequality(
+                eatx_mac_layers(num_in),
+                postmap,
+                inequality,
+                num_steps=150,
+                step_size=0.15,
+                sample_width=1,
+                verbose=True
+            )
 
-            # ea_mac_opt_jobs = client.map(ea_mac_opt_fn, range(n_jobs))
-            # ea_mac_opt_dicts = client.gather(ea_mac_opt_jobs)
+            ea_mac_opt_jobs = client.map(ea_mac_opt_fn, range(n_jobs))
+            ea_mac_opt_dicts = client.gather(ea_mac_opt_jobs)
 
-            # max_opt_dict = ea_mac_opt_dicts[0]
-            # max_score = max(max_opt_dict["scores"])
-            # for j in range(1,n_jobs):
-            #     if max(ea_mac_opt_dicts[j]["scores"]) > max_score:
-            #         max_score = max(ea_mac_opt_dicts[j]["scores"])
-            #         max_opt_dict = ea_mac_opt_dicts[j]
+            max_opt_dict = ea_mac_opt_dicts[0]
+            max_score = max(max_opt_dict["scores"])
+            for j in range(1,n_jobs):
+                if max(ea_mac_opt_dicts[j]["scores"]) > max_score:
+                    max_score = max(ea_mac_opt_dicts[j]["scores"])
+                    max_opt_dict = ea_mac_opt_dicts[j]
 
-            # scenario = "eatx_mac_"
-            # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-            # qnet.write_optimization_json(
-            #     max_opt_dict,
-            #     data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-            # )
+            scenario = "eatx_mac_"
+            datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+            qnet.write_optimization_json(
+                max_opt_dict,
+                data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+            )
 
-            # print("iteration time  : ", time.time() - time_start)
+            print("iteration time  : ", time.time() - time_start)
 
             # """
             # min EATx CMAC
@@ -676,7 +629,7 @@ if __name__=="__main__":
 
 
             """
-            EA QMAC
+            EATX QMAC
             """
             client.restart()
             time_start = time.time()
@@ -710,45 +663,45 @@ if __name__=="__main__":
 
             print("iteration time  : ", time.time() - time_start)
 
-            """
-            Min EA QMAC
+            # """
+            # Min EA QMAC
             
-            optimal settings for 33->22->3 optimal score
-            fixed_setting_ids=[0,1,2,3,4,5,6,7,8,9,10,11],#12],
-            fixed_settings=[0,0,1*np.pi/6,np.pi,np.pi,0,0,0,1*np.pi/6,np.pi,np.pi,0,],#-np.pi/2],
-            """
+            # optimal settings for 33->22->3 optimal score
+            # fixed_setting_ids=[0,1,2,3,4,5,6,7,8,9,10,11],#12],
+            # fixed_settings=[0,0,1*np.pi/6,np.pi,np.pi,0,0,0,1*np.pi/6,np.pi,np.pi,0,],#-np.pi/2],
+            # """
 
-            client.restart()
-            time_start = time.time()
+            # client.restart()
+            # time_start = time.time()
 
-            ea_qmac_opt_fn = optimize_inequality(
-                min_eatx_qmac_layers(num_in, num_out),
-                postmap,
-                inequality,
-                num_steps=160,
-                step_size=0.12,
-                sample_width=1,
-                verbose=True
-            )
+            # ea_qmac_opt_fn = optimize_inequality(
+            #     min_eatx_qmac_layers(num_in, num_out),
+            #     postmap,
+            #     inequality,
+            #     num_steps=160,
+            #     step_size=0.12,
+            #     sample_width=1,
+            #     verbose=True
+            # )
 
-            ea_qmac_opt_jobs = client.map(ea_qmac_opt_fn, range(n_jobs))
-            ea_qmac_opt_dicts = client.gather(ea_qmac_opt_jobs)
+            # ea_qmac_opt_jobs = client.map(ea_qmac_opt_fn, range(n_jobs))
+            # ea_qmac_opt_dicts = client.gather(ea_qmac_opt_jobs)
 
-            max_opt_dict = ea_qmac_opt_dicts[0]
-            max_score = max(max_opt_dict["scores"])
-            for j in range(1,n_jobs):
-                if max(ea_qmac_opt_dicts[j]["scores"]) > max_score:
-                    max_score = max(ea_qmac_opt_dicts[j]["scores"])
-                    max_opt_dict = ea_qmac_opt_dicts[j]
+            # max_opt_dict = ea_qmac_opt_dicts[0]
+            # max_score = max(max_opt_dict["scores"])
+            # for j in range(1,n_jobs):
+            #     if max(ea_qmac_opt_dicts[j]["scores"]) > max_score:
+            #         max_score = max(ea_qmac_opt_dicts[j]["scores"])
+            #         max_opt_dict = ea_qmac_opt_dicts[j]
 
-            scenario = "min_eatx_qmac_"
-            datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-            qnet.write_optimization_json(
-                max_opt_dict,
-                data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
-            )
+            # scenario = "min_eatx_qmac_"
+            # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+            # qnet.write_optimization_json(
+            #     max_opt_dict,
+            #     data_dir + scenario + inequality_tag + postmap_tag + datetime_ext,
+            # )
 
-            print("iteration time  : ", time.time() - time_start)
+            # print("iteration time  : ", time.time() - time_start)
 
 
             # """

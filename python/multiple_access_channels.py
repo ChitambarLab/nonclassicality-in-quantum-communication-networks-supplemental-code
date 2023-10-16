@@ -810,7 +810,7 @@ def butterfly_33_33_network_bounds():
             [0, 0, 0, 0, 0, 0, 1, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 1, 0],
         ])),
-        (6, np.array([ # same difference game
+        (7, np.array([ # same difference game
             [1, 0, 0, 0, 1, 0, 0, 0, 1],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
