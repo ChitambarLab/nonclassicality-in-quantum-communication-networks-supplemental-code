@@ -7,87 +7,6 @@ from datetime import datetime
 
 import qnetvo
 
-
-def adam_gradient_descent(
-    cost,
-    init_settings,
-    num_steps=150,
-    step_size=0.1,
-    sample_width=25,
-    grad_fn=None,
-    verbose=True,
-    interface="autograd",
-):
-    """
-    adapted from qnetvo
-    """
-
-    if interface == "autograd":
-        # opt = qml.GradientDescentOptimizer(stepsize=step_size)
-        opt = qml.AdamOptimizer(stepsize=step_size)
-    elif interface == "tf":
-        from .lazy_tensorflow_import import tensorflow as tf
-
-        opt = tf.keras.optimizers.SGD(learning_rate=step_size)
-    else:
-        raise ValueError('Interface "' + interface + '" is not supported.')
-
-    settings = init_settings
-    scores = []
-    samples = []
-    step_times = []
-    settings_history = [init_settings]
-
-    start_datetime = datetime.utcnow()
-    elapsed = 0
-
-    # performing gradient descent
-    for i in range(num_steps):
-        if i % sample_width == 0:
-            score = -(cost(*settings))
-            scores.append(score)
-            samples.append(i)
-
-            if verbose:
-                print("iteration : ", i, ", score : ", score)
-
-        start = time.time()
-        if interface == "autograd":
-            settings = opt.step(cost, *settings, grad_fn=grad_fn)
-            if not (isinstance(settings, list)):
-                settings = [settings]
-        elif interface == "tf":
-            # opt.minimize updates settings in place
-            tf_cost = lambda: cost(*settings)
-            opt.minimize(tf_cost, settings)
-
-        elapsed = time.time() - start
-
-        if i % sample_width == 0:
-            step_times.append(elapsed)
-
-            if verbose:
-                print("elapsed time : ", elapsed)
-
-        settings_history.append(settings)
-
-    opt_score = -(cost(*settings))
-    step_times.append(elapsed)
-
-    scores.append(opt_score)
-    samples.append(num_steps)
-
-    return {
-        "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "opt_score": opt_score,
-        "opt_settings": settings,
-        "scores": scores,
-        "samples": samples,
-        "settings_history": settings_history,
-        "step_times": step_times,
-        "step_size": step_size,
-    }
-
 def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
     handle errors during computation.
@@ -95,7 +14,7 @@ def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
     Optimization errors will result in an empty optimization dictionary.
     """
     try:
-        opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
+        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
     except Exception as err:
         print("An error occurred during gradient descent.")
         print(err)
@@ -276,7 +195,7 @@ if __name__=="__main__":
         qnetvo.PrepareNode(wires=[0,1,2,3,4,5]),
     ]
     earx_cc_bc_set_wires = [
-        qnetvo.PrepareNode(wires=[0,1,2,3,4,5]),
+        qnetvo.PrepareNode(wires=[0,1,2,3,4,5,6,7]),
     ]
     earx_qc_bc_source_nodes = [
         qnetvo.PrepareNode(wires=[0,2], ansatz_fn=qnetvo.ghz_state),
@@ -311,19 +230,32 @@ if __name__=="__main__":
             cc_wires[0] == 0,
             qml.ArbitraryUnitary,
         )(settings[0:15], wires=wires[0:2])
+        # )(settings[0:63], wires=wires[0:3])
 
         qml.cond(
             cc_wires[0] == 1,
             qml.ArbitraryUnitary,
         )(settings[15:30], wires=wires[0:2])
+        # )(settings[63:126], wires=wires[0:3])
 
-    earx_cc_bc_proc_nodes = [
+    earx_cc_bc_rx_nodes = [
         qnetvo.CCReceiverNode(wires=[0,1], cc_wires_in=[0], ansatz_fn=earx_cc_rx_circ, num_settings=30),
         qnetvo.CCReceiverNode(wires=[2,3], cc_wires_in=[1], ansatz_fn=earx_cc_rx_circ, num_settings=30),
+        # qnetvo.CCReceiverNode(wires=[0,1,6], cc_wires_in=[0], ansatz_fn=earx_cc_rx_circ, num_settings=126),
+        # qnetvo.CCReceiverNode(wires=[2,3,7], cc_wires_in=[1], ansatz_fn=earx_cc_rx_circ, num_settings=126),
     ]
+    
     earx_qc_bc_meas_nodes = [
         qnetvo.MeasureNode(num_out=4, wires=[0,1]),
         qnetvo.MeasureNode(num_out=4, wires=[2,3])
+    ]
+
+    earx_cc_bc_layers = [
+        earx_cc_bc_set_wires,
+        earx_qc_bc_source_nodes,
+        earx_cc_bc_prep_nodes,
+        earx_cc_bc_rx_nodes,
+        earx_qc_bc_meas_nodes,
     ]
 
     ghzaqc_bc_set_wires=[
@@ -394,6 +326,74 @@ if __name__=="__main__":
     ]
 
 
+    def hard_code_prep_circ(settings, wires):
+        if settings[0] == 0:
+            qml.Hadamard(wires=wires[1])
+        elif settings[0] == 1:
+            qml.Hadamard(wires=wires[1])
+            qml.PauliZ(wires=wires[1])
+        elif settings[0] == 2:
+            qml.PauliX(wires=wires[0])
+            qml.Hadamard(wires=wires[1])
+            qml.PauliZ(wires=wires[1])
+        elif settings[0] == 3:
+            qml.PauliX(wires=wires[0])
+            qml.Hadamard(wires=wires[1])
+    
+    hard_code_earx_qc_bc_prep_nodes = [
+        qnetvo.PrepareNode(num_in=4, wires=[1,3], ansatz_fn=hard_code_prep_circ, num_settings=1),
+    ]
+
+    def hard_code_meas_a_circ(settings, wires):
+        qml.CNOT(wires=wires[0:2])
+        # qml.Hadamard(wires=wires[0])
+        # qml.PauliZ(wires=wires[0])
+        qml.RY(3*np.pi/2, wires=[0])
+
+        qml.RY(np.pi/2, wires=[1])
+
+        # qml.Hadamard(wires=wires[1])
+        # qml.Hadamard(wires=wires[1])
+        # qml.PauliZ(wires=wires[1])
+        
+        qml.CNOT(wires=wires[0:2])
+        # qml.Hadamard(wires=wires[0])
+        qml.RY(np.pi/2, wires=wires[0])
+        # qml.RY(3*np.pi/4, wires=[1])
+        qml.Hadamard(wires=wires[1])
+
+    def hard_code_meas_b_circ(settings, wires):
+
+        qml.CNOT(wires=wires[0:2])
+        qml.RY(settings[0], wires=wires[0])
+        
+        qml.RY(0,wires=wires[1])
+
+        qml.CNOT(wires=wires[0:2])
+
+        qml.RY(np.pi/4, wires=wires[0])
+        qml.RY(3*np.pi/2,wires=wires[1])
+
+
+
+
+
+
+    hard_code_earx_qc_bc_meas_nodes = [
+        qnetvo.MeasureNode(num_out=4, wires=[0,1], ansatz_fn=hard_code_meas_a_circ, num_settings=0),
+        # qnetvo.MeasureNode(num_out=4, wires=[2,3], ansatz_fn=min_earx_meas_circ, num_settings=4),
+        qnetvo.MeasureNode(num_out=4, wires=[2,3], ansatz_fn=hard_code_meas_b_circ, num_settings=1),
+    ]
+
+    hard_code_earx_qc_layers = [
+        min_earx_qc_bc_set_wires,
+        min_earx_qc_bc_source_nodes,
+        hard_code_earx_qc_bc_prep_nodes,
+        hard_code_earx_qc_bc_meas_nodes,
+        # min_earx_qc_bc_meas_nodes
+    ]
+
+
     inequalities = mac.broadcast_4_22_44_network_bounds()
 
     for i in range(1, len(inequalities)-1):
@@ -454,13 +454,7 @@ if __name__=="__main__":
         # time_start = time.time()
 
         # eacc_bc_opt_fn = optimize_inequality(
-        #     [
-        #         eacc_bc_wire_set_prep_nodes,
-        #         eacc_bc_source_nodes,
-        #         eacc_bc_tx_nodes,
-        #         eacc_bc_rx_nodes,
-        #         eacc_bc_meas_nodes,
-        #     ],
+        #     # earx_cc_bc_layers,
         #     np.eye(16),
         #     inequality,
         #     # fixed_setting_ids=eacc_fixed_setting_ids,
@@ -620,80 +614,24 @@ if __name__=="__main__":
 
         # print("iteration time  : ", time.time() - time_start)
 
-        # """
-        # entanglement-assisted receivers classical communication broadcast
-        # """
-        # client.restart()
-
-        # time_start = time.time()
-
-        # earx_qc_bc_opt_fn = optimize_inequality(
-        #     [
-        #         earx_cc_bc_set_wires,
-        #         earx_qc_bc_source_nodes,
-        #         earx_cc_bc_prep_nodes,
-        #         earx_cc_bc_proc_nodes,
-        #         earx_qc_bc_meas_nodes
-        #     ],
-        #     np.eye(16),
-        #     inequality,
-        #     # fixed_setting_ids=eacc_fixed_setting_ids,
-        #     # fixed_settings=eacc_fixed_settings,
-        #     num_steps=150,
-        #     step_size=0.1,
-        #     sample_width=1,
-        #     verbose=True
-        # )
-
-        # earx_qc_bc_opt_jobs = client.map(earx_qc_bc_opt_fn, range(n_workers))
-        # earx_qc_bc_opt_dicts = client.gather(earx_qc_bc_opt_jobs)
-
-        # max_opt_dict = earx_qc_bc_opt_dicts[0]
-        # max_score = max(max_opt_dict["scores"])
-        # for j in range(1,n_workers):
-        #     if max(earx_qc_bc_opt_dicts[j]["scores"]) > max_score:
-        #         max_score = max(earx_qc_bc_opt_dicts[j]["scores"])
-        #         max_opt_dict = earx_qc_bc_opt_dicts[j]
-
-        # scenario = "earx_cc_bc_arb_"
-        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
-        # qnetvo.write_optimization_json(
-        #     max_opt_dict,
-        #     data_dir + scenario + inequality_tag + datetime_ext,
-        # )
-
-        # print("iteration time  : ", time.time() - time_start)
-
         """
-        min entanglement-assisted receivers quantum communication broadcast
+        entanglement-assisted receivers classical communication broadcast
         """
         client.restart()
 
         time_start = time.time()
 
-        fixed_settings = [
-            0,np.pi/2,0,-np.pi/2,np.pi,3*np.pi/2,np.pi,-3*np.pi/2,
-            -np.pi/2,np.pi/2,np.pi/2,5*np.pi/4,-35*np.pi/44,np.pi,-3*np.pi/4,np.pi/2
-            # -np.pi/2,np.pi/2,np.pi/2,5*np.pi/4,-2.498166118265674,np.pi,-3*np.pi/4,np.pi/2
-        ]
-
-
-        ansatz = qnetvo.NetworkAnsatz(*min_earx_qc_layers)
-        Pnet = qnetvo.behavior_fn(ansatz)
-        print(np.array(Pnet(fixed_settings)).round(decimals=3) )
-
-        # earx_qc_bc_opt_fn = optimize_inequality(
-        #     min_earx_qc_layers,
-        #     np.eye(16),
-        #     inequality,
-        #     fixed_setting_ids=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-        #     fixed_settings=fixed_settings,
-        #     num_steps=150,
-        #     step_size=0.1,
-        #     sample_width=1,
-        #     verbose=True
-        # )
-
+        earx_qc_bc_opt_fn = optimize_inequality(
+            earx_cc_bc_layers,
+            np.eye(16),
+            inequality,
+            # fixed_setting_ids=eacc_fixed_setting_ids,
+            # fixed_settings=eacc_fixed_settings,
+            num_steps=150,
+            step_size=0.1,
+            sample_width=1,
+            verbose=True
+        )
 
         earx_qc_bc_opt_jobs = client.map(earx_qc_bc_opt_fn, range(n_workers))
         earx_qc_bc_opt_dicts = client.gather(earx_qc_bc_opt_jobs)
@@ -705,7 +643,7 @@ if __name__=="__main__":
                 max_score = max(earx_qc_bc_opt_dicts[j]["scores"])
                 max_opt_dict = earx_qc_bc_opt_dicts[j]
 
-        scenario = "earx_qc_bc_min_"
+        scenario = "earx_cc_bc_arb_"
         datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
         qnetvo.write_optimization_json(
             max_opt_dict,
@@ -713,6 +651,69 @@ if __name__=="__main__":
         )
 
         print("iteration time  : ", time.time() - time_start)
+
+        # """
+        # min entanglement-assisted receivers quantum communication broadcast
+        # """
+        # client.restart()
+
+        # time_start = time.time()
+
+        # fixed_settings = [
+        #     0, np.pi/2, 0, 3*np.pi/2, np.pi, 3*np.pi/2, np.pi, np.pi/2,
+        #     3*np.pi/2,np.pi/2,np.pi/2,
+        #     np.pi/4,
+        #     # -2.498091860369874, # optimal to -12
+        #     -2.49809186, # optimal to -12
+        #     np.pi,
+        #     np.pi/4,
+        #     np.pi/2
+        # ]
+
+        # hardcode_fixed_settings = [0,1,2,3]
+        # hardcode_fixed_setting_ids = [0,1,2,3]
+
+
+        # ansatz = qnetvo.NetworkAnsatz(*min_earx_qc_layers)
+        # Pnet = qnetvo.behavior_fn(ansatz)
+        # # print(np.array(Pnet(fixed_settings)).round(decimals=8) )
+        # print(np.array(Pnet(fixed_settings)))
+
+
+        # earx_qc_bc_opt_fn = optimize_inequality(
+        #     min_earx_qc_layers,
+        #     # hard_code_earx_qc_layers,
+        #     np.eye(16),
+        #     inequality,
+        #     fixed_setting_ids=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],#,8,9,10,11,12,13,14,15],
+        #     fixed_settings=fixed_settings,
+        #     # fixed_setting_ids=hardcode_fixed_setting_ids,
+        #     # fixed_settings=hardcode_fixed_settings,
+        #     num_steps=250,
+        #     step_size=0.1,
+        #     sample_width=1,
+        #     verbose=True
+        # )
+
+
+        # earx_qc_bc_opt_jobs = client.map(earx_qc_bc_opt_fn, range(n_workers))
+        # earx_qc_bc_opt_dicts = client.gather(earx_qc_bc_opt_jobs)
+
+        # max_opt_dict = earx_qc_bc_opt_dicts[0]
+        # max_score = max(max_opt_dict["scores"])
+        # for j in range(1,n_workers):
+        #     if max(earx_qc_bc_opt_dicts[j]["scores"]) > max_score:
+        #         max_score = max(earx_qc_bc_opt_dicts[j]["scores"])
+        #         max_opt_dict = earx_qc_bc_opt_dicts[j]
+
+        # scenario = "earx_qc_bc_min_"
+        # datetime_ext = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ")
+        # qnetvo.write_optimization_json(
+        #     max_opt_dict,
+        #     data_dir + scenario + inequality_tag + datetime_ext,
+        # )
+
+        # print("iteration time  : ", time.time() - time_start)
 
 
         # """

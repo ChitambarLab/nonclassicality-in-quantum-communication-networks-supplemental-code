@@ -555,16 +555,6 @@ include("../src/MultiAccessChannels.jl")
                 println("not a polytope bound")
             end
         end
-
-        # game_verts = Array{Vector{Int}}([])
-        # for v in butterfly_vertices_3333_unnormalized
-        #     if sum(bell_game_adder_match .* v)
-        #         push!(game_verts, convert.(Int, v))
-        #     elseif sum([v...,-1].*raw_game_adder) > 0
-        #         println("not a polytope bound")
-        #     end
-        # end
-        
         
 
         facet_dim = BellScenario.dimension(facet_verts)
