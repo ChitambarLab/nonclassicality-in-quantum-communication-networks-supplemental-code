@@ -1,4 +1,3 @@
-import multiple_access_channels as mac
 import pennylane as qml
 from pennylane import numpy as np
 from dask.distributed import Client
@@ -7,46 +6,49 @@ from datetime import datetime
 
 import qnetvo
 
-def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
-    """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
-    handle errors during computation.
-    This function is called with the same parameters as ``qnetvo.gradient_descent``.
-    Optimization errors will result in an empty optimization dictionary.
-    """
-    try:
-        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
-    except Exception as err:
-        print("An error occurred during gradient descent.")
-        print(err)
-        opt_dict = {
-            "opt_score": np.nan,
-            "opt_settings": [[], []],
-            "scores": [np.nan],
-            "samples": [0],
-            "settings_history": [[[], []]],
-        }
+import context
+import src
 
-    return opt_dict
+# def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
+#     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
+#     handle errors during computation.
+#     This function is called with the same parameters as ``qnetvo.gradient_descent``.
+#     Optimization errors will result in an empty optimization dictionary.
+#     """
+#     try:
+#         opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
+#     except Exception as err:
+#         print("An error occurred during gradient descent.")
+#         print(err)
+#         opt_dict = {
+#             "opt_score": np.nan,
+#             "opt_settings": [[], []],
+#             "scores": [np.nan],
+#             "samples": [0],
+#             "settings_history": [[[], []]],
+#         }
 
-def optimize_inequality(nodes, postmap, inequality, fixed_setting_ids=[], fixed_settings=[], **gradient_kwargs):
+#     return opt_dict
 
-    network_ansatz = qnetvo.NetworkAnsatz(*nodes)
+# def src.optimize_inequality(nodes, postmap, inequality, fixed_setting_ids=[], fixed_settings=[], **gradient_kwargs):
 
-    def opt_fn(placeholder_param):
+#     network_ansatz = qnetvo.NetworkAnsatz(*nodes)
 
-        print("\nclassical bound : ", inequality[0])
+#     def opt_fn(placeholder_param):
 
-        settings = network_ansatz.rand_network_settings(fixed_setting_ids=fixed_setting_ids,fixed_settings=fixed_settings)
-        cost = qnetvo.linear_probs_cost_fn(network_ansatz, inequality[1], postmap)
-        opt_dict = _gradient_descent_wrapper(cost, settings, **gradient_kwargs)
+#         print("\nclassical bound : ", inequality[0])
 
-        print("\nmax_score : ", max(opt_dict["scores"]))
-        print("violation : ", max(opt_dict["scores"]) - inequality[0])
+#         settings = network_ansatz.rand_network_settings(fixed_setting_ids=fixed_setting_ids,fixed_settings=fixed_settings)
+#         cost = qnetvo.linear_probs_cost_fn(network_ansatz, inequality[1], postmap)
+#         opt_dict = _gradient_descent_wrapper(cost, settings, **gradient_kwargs)
 
-        return opt_dict
+#         print("\nmax_score : ", max(opt_dict["scores"]))
+#         print("violation : ", max(opt_dict["scores"]) - inequality[0])
+
+#         return opt_dict
 
 
-    return opt_fn
+#     return opt_fn
 
 if __name__=="__main__":
 
@@ -394,7 +396,7 @@ if __name__=="__main__":
     ]
 
 
-    inequalities = mac.broadcast_4_22_44_network_bounds()
+    inequalities = src.broadcast_4_22_44_network_bounds()
 
     for i in range(1, len(inequalities)-1):
         inequality = inequalities[i]
@@ -413,7 +415,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # qbc_opt_fn = optimize_inequality(
+        # qbc_opt_fn = src.optimize_inequality(
         #     [
         #         qbc_wire_set_prep_nodes,
         #         qbc_prep_nodes,
@@ -453,7 +455,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # eacc_bc_opt_fn = optimize_inequality(
+        # eacc_bc_opt_fn = src.optimize_inequality(
         #     # earx_cc_bc_layers,
         #     np.eye(16),
         #     inequality,
@@ -491,7 +493,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # eaqc_bc_opt_fn = optimize_inequality(
+        # eaqc_bc_opt_fn = src.optimize_inequality(
         #     [
         #         eaqc_bc_source_nodes,
         #         eaqc_bc_prep_nodes,
@@ -533,7 +535,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # ghzacc_bc_opt_fn = optimize_inequality(
+        # ghzacc_bc_opt_fn = src.optimize_inequality(
         #     [
         #         ghzacc_bc_set_wires,
         #         geacc_bc_source_nodes,
@@ -577,7 +579,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # ghzacc_bc_opt_fn = optimize_inequality(
+        # ghzacc_bc_opt_fn = src.optimize_inequality(
         #     [
         #         ghzacc_bc_set_wires,
         #         ghzacc_bc_source_nodes,
@@ -621,7 +623,7 @@ if __name__=="__main__":
 
         time_start = time.time()
 
-        earx_qc_bc_opt_fn = optimize_inequality(
+        earx_qc_bc_opt_fn = src.optimize_inequality(
             earx_cc_bc_layers,
             np.eye(16),
             inequality,
@@ -680,7 +682,7 @@ if __name__=="__main__":
         # print(np.array(Pnet(fixed_settings)))
 
 
-        # earx_qc_bc_opt_fn = optimize_inequality(
+        # earx_qc_bc_opt_fn = src.optimize_inequality(
         #     min_earx_qc_layers,
         #     # hard_code_earx_qc_layers,
         #     np.eye(16),
@@ -723,7 +725,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # earx_qc_bc_opt_fn = optimize_inequality(
+        # earx_qc_bc_opt_fn = src.optimize_inequality(
         #     [
         #         earx_qc_bc_set_wires,
         #         earx_qc_bc_source_nodes,
@@ -767,7 +769,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # ghzaqc_bc_opt_fn = optimize_inequality(
+        # ghzaqc_bc_opt_fn = src.optimize_inequality(
         #     [
         #         ghzaqc_bc_set_wires,
         #         ghzaqc_bc_source_nodes,
@@ -810,7 +812,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # ghzaqc_bc_opt_fn = optimize_inequality(
+        # ghzaqc_bc_opt_fn = src.optimize_inequality(
         #     [
         #         ghzaqc_bc_set_wires,
         #         geaqc_bc_source_nodes,
@@ -854,7 +856,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # onesided_eaqc_bc_opt_fn = optimize_inequality(
+        # onesided_eaqc_bc_opt_fn = src.optimize_inequality(
         #     [
         #         onesided_eaqc_bc_source_nodes,
         #         onesided_eaqc_bc_prep_nodes,
@@ -896,7 +898,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # onesided_eaqc_bc_opt_fn = optimize_inequality(
+        # onesided_eaqc_bc_opt_fn = src.optimize_inequality(
         #     [
         #         onesided2_eaqc_bc_source_nodes,
         #         onesided_eaqc_bc_prep_nodes,

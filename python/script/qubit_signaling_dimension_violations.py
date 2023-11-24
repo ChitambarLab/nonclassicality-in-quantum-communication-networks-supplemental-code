@@ -1,4 +1,3 @@
-import multiple_access_channels as mac
 import pennylane as qml
 from pennylane import numpy as np
 from dask.distributed import Client
@@ -7,48 +6,9 @@ from datetime import datetime
 
 import qnetvo
 
+import context
+import src
 
-
-def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
-    """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
-    handle errors during computation.
-    This function is called with the same parameters as ``qnetvo.gradient_descent``.
-    Optimization errors will result in an empty optimization dictionary.
-    """
-    try:
-        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs)
-    except Exception as err:
-        print("An error occurred during gradient descent.")
-        print(err)
-        opt_dict = {
-            "opt_score": np.nan,
-            "opt_settings": [[], []],
-            "scores": [np.nan],
-            "samples": [0],
-            "settings_history": [[[], []]],
-        }
-
-    return opt_dict
-
-def optimize_inequality(nodes, postmap, inequality, fixed_setting_ids=[], fixed_settings=[], **gradient_kwargs):
-
-    network_ansatz = qnetvo.NetworkAnsatz(*nodes)
-
-    def opt_fn(placeholder_param):
-
-        print("\nclassical bound : ", inequality[0])
-
-        settings = network_ansatz.rand_network_settings(fixed_setting_ids=fixed_setting_ids,fixed_settings=fixed_settings)
-        cost = qnetvo.linear_probs_cost_fn(network_ansatz, inequality[1], postmap)
-        opt_dict = _gradient_descent_wrapper(cost, settings, **gradient_kwargs)
-
-        print("\nmax_score : ", max(opt_dict["scores"]))
-        print("violation : ", max(opt_dict["scores"]) - inequality[0])
-
-        return opt_dict
-
-
-    return opt_fn
 
 if __name__=="__main__":
 
@@ -141,16 +101,8 @@ if __name__=="__main__":
     ]
 
     # signaling dimension inequalities for qubit
-    inequalities = [
-        (2, np.array([[1,0,0],[1,0,0],[0,1,0],[0,0,1]])),
-        (2, np.eye(4)),
-        (3, np.array([[1,1,0,0],[1,0,1,0],[0,1,1,0],[0,0,0,1]])),
-        (4, np.array([[2,0,0],[0,2,0],[0,0,2],[1,1,1]])),
-        (4, np.array([[2,0,0,0],[0,2,0,0],[0,0,1,1],[1,1,1,0]])),
-        (4, np.array([[2,0,0,0,0],[0,1,0,1,0],[0,0,1,0,1],[1,1,1,0,0]])),
-        (4, np.array([[1,0,0,1,0,0],[0,1,0,0,1,0],[0,0,1,0,0,1],[1,1,1,0,0,0]])),
-        (5, np.array([[1,1,1,0,0,0],[1,0,0,1,1,0],[0,1,0,1,0,1],[0,0,1,0,1,1]])),
-    ]
+    inequalities = src.qubit_signaling_dimension_bounds()
+
     fixed_setting_arb_ids = [
         [0,4,8],
         [0,4,8,12],
@@ -201,7 +153,7 @@ if __name__=="__main__":
         
         # time_start = time.time()
 
-        # eacc_opt_fn = optimize_inequality(
+        # eacc_opt_fn = src.optimize_inequality(
         #     [
         #         arb_prep_node,
         #         ea_sender_nodes(num_in, ansatz_fn=ea_ry_encoder, num_settings=2),
@@ -243,7 +195,7 @@ if __name__=="__main__":
         
         # time_start = time.time()
 
-        # eaqc_opt_fn = optimize_inequality(
+        # eaqc_opt_fn = src.optimize_inequality(
         #     [
         #         arb_prep_node,
         #         dense_encoder_nodes(num_in),
@@ -283,7 +235,7 @@ if __name__=="__main__":
         
         # time_start = time.time()
 
-        # eaqc_opt_fn = optimize_inequality(
+        # eaqc_opt_fn = src.optimize_inequality(
         #     [
         #         ghz_prep_node,
         #         dense_encoder_nodes(num_in, ansatz_fn=qml.ArbitraryStatePreparation, num_settings=2),
@@ -323,7 +275,7 @@ if __name__=="__main__":
         
         # time_start = time.time()
 
-        # eaqc_opt_fn = optimize_inequality(
+        # eaqc_opt_fn = src.optimize_inequality(
         #     [
         #         ghz_prep_node,
         #         dense_encoder_nodes(num_in, ansatz_fn=qml.ArbitraryUnitary, num_settings=3),
@@ -363,7 +315,7 @@ if __name__=="__main__":
 
         time_start = time.time()
 
-        ghzacc_opt_fn = optimize_inequality(
+        ghzacc_opt_fn = src.optimize_inequality(
             [
                 ghz_prep_node,
                 ea_sender_nodes(num_in), #ansatz_fn=ea_ry_encoder, num_settings=2),

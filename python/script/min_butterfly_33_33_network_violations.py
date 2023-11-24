@@ -1,4 +1,3 @@
-import multiple_access_channels as mac
 import pennylane as qml
 from pennylane import numpy as np
 from dask.distributed import Client
@@ -7,48 +6,9 @@ from datetime import datetime
 
 import qnetvo
 
+import context
+import src
 
-
-def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
-    """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
-    handle errors during computation.
-    This function is called with the same parameters as ``qnetvo.gradient_descent``.
-    Optimization errors will result in an empty optimization dictionary.
-    """
-    try:
-        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
-    except Exception as err:
-        print("An error occurred during gradient descent.")
-        print(err)
-        opt_dict = {
-            "opt_score": np.nan,
-            "opt_settings": [[], []],
-            "scores": [np.nan],
-            "samples": [0],
-            "settings_history": [[[], []]],
-        }
-
-    return opt_dict
-
-def optimize_inequality(nodes, postmap, inequality, fixed_setting_ids=[], fixed_settings=[], **gradient_kwargs):
-
-    network_ansatz = qnetvo.NetworkAnsatz(*nodes)
-
-    def opt_fn(placeholder_param):
-
-        print("\nclassical bound : ", inequality[0])
-
-        settings = network_ansatz.rand_network_settings(fixed_setting_ids=fixed_setting_ids,fixed_settings=fixed_settings)
-        cost = qnetvo.linear_probs_cost_fn(network_ansatz, inequality[1], postmap)
-        opt_dict = _gradient_descent_wrapper(cost, settings, **gradient_kwargs)
-
-        print("\nmax_score : ", max(opt_dict["scores"]))
-        print("violation : ", max(opt_dict["scores"]) - inequality[0])
-
-        return opt_dict
-
-
-    return opt_fn
 
 if __name__=="__main__":
 
@@ -146,7 +106,7 @@ if __name__=="__main__":
         earx_qbf_meas_nodes,
     ]
 
-    min_butterfly_game_inequalities, min_butterfly_facet_inequalities, game_names = mac.min_butterfly_33_33_network_bounds()
+    min_butterfly_game_inequalities, min_butterfly_facet_inequalities, game_names = src.min_butterfly_33_33_network_bounds()
 
     for i in range(1,2):
         butterfly_game_inequality = min_butterfly_game_inequalities[i]
@@ -169,7 +129,7 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        qbf_game_opt_fn = optimize_inequality(
+        qbf_game_opt_fn = src.optimize_inequality(
             qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_game_inequality,
@@ -211,7 +171,7 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        qbf_facet_opt_fn = optimize_inequality(
+        qbf_facet_opt_fn = src.optimize_inequality(
             qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_facet_inequality,
@@ -255,7 +215,7 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        eatx_qbf_game_opt_fn = optimize_inequality(
+        eatx_qbf_game_opt_fn = src.optimize_inequality(
             eatx_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_game_inequality,
@@ -297,7 +257,7 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        eatx_qbf_facet_opt_fn = optimize_inequality(
+        eatx_qbf_facet_opt_fn = src.optimize_inequality(
             eatx_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_facet_inequality,
@@ -339,7 +299,7 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        earx_qbf_game_opt_fn = optimize_inequality(
+        earx_qbf_game_opt_fn = src.optimize_inequality(
             earx_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_game_inequality,
@@ -381,7 +341,7 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        earx_qbf_facet_opt_fn = optimize_inequality(
+        earx_qbf_facet_opt_fn = src.optimize_inequality(
             earx_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_facet_inequality,

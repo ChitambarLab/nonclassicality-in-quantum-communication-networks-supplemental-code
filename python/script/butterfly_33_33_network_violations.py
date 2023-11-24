@@ -1,4 +1,3 @@
-import multiple_access_channels as mac
 import pennylane as qml
 from pennylane import numpy as np
 from dask.distributed import Client
@@ -7,129 +6,9 @@ from datetime import datetime
 
 import qnetvo
 
+import context
+import src
 
-# def adam_gradient_descent(
-#     cost,
-#     init_settings,
-#     num_steps=150,
-#     step_size=0.1,
-#     sample_width=25,
-#     grad_fn=None,
-#     verbose=True,
-#     interface="autograd",
-# ):
-#     """
-#     adapted from qnetvo
-#     """
-
-#     if interface == "autograd":
-#         # opt = qml.GradientDescentOptimizer(stepsize=step_size)
-#         opt = qml.AdamOptimizer(stepsize=step_size)
-#     elif interface == "tf":
-#         from .lazy_tensorflow_import import tensorflow as tf
-
-#         opt = tf.keras.optimizers.SGD(learning_rate=step_size)
-#     else:
-#         raise ValueError('Interface "' + interface + '" is not supported.')
-
-#     settings = init_settings
-#     scores = []
-#     samples = []
-#     step_times = []
-#     settings_history = [init_settings]
-
-#     start_datetime = datetime.utcnow()
-#     elapsed = 0
-
-#     # performing gradient descent
-#     for i in range(num_steps):
-#         if i % sample_width == 0:
-#             score = -(cost(*settings))
-#             scores.append(score)
-#             samples.append(i)
-
-#             if verbose:
-#                 print("iteration : ", i, ", score : ", score)
-
-#         start = time.time()
-#         if interface == "autograd":
-#             settings = opt.step(cost, *settings, grad_fn=grad_fn)
-#             if not (isinstance(settings, list)):
-#                 settings = [settings]
-#         elif interface == "tf":
-#             # opt.minimize updates settings in place
-#             tf_cost = lambda: cost(*settings)
-#             opt.minimize(tf_cost, settings)
-
-#         elapsed = time.time() - start
-
-#         if i % sample_width == 0:
-#             step_times.append(elapsed)
-
-#             if verbose:
-#                 print("elapsed time : ", elapsed)
-
-#         settings_history.append(settings)
-
-#     opt_score = -(cost(*settings))
-#     step_times.append(elapsed)
-
-#     scores.append(opt_score)
-#     samples.append(num_steps)
-
-#     return {
-#         "datetime": start_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
-#         "opt_score": opt_score,
-#         "opt_settings": settings,
-#         "scores": scores,
-#         "samples": samples,
-#         "settings_history": settings_history,
-#         "step_times": step_times,
-#         "step_size": step_size,
-#     }
-
-
-def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
-    """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
-    handle errors during computation.
-    This function is called with the same parameters as ``qnetvo.gradient_descent``.
-    Optimization errors will result in an empty optimization dictionary.
-    """
-    try:
-        opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
-        # opt_dict = adam_gradient_descent(*opt_args, **opt_kwargs)
-    except Exception as err:
-        print("An error occurred during gradient descent.")
-        print(err)
-        opt_dict = {
-            "opt_score": np.nan,
-            "opt_settings": [[], []],
-            "scores": [np.nan],
-            "samples": [0],
-            "settings_history": [[[], []]],
-        }
-
-    return opt_dict
-
-def optimize_inequality(nodes, postmap, inequality, fixed_setting_ids=[], fixed_settings=[], **gradient_kwargs):
-
-    network_ansatz = qnetvo.NetworkAnsatz(*nodes)
-
-    def opt_fn(placeholder_param):
-
-        print("\nclassical bound : ", inequality[0])
-
-        settings = network_ansatz.rand_network_settings(fixed_setting_ids=fixed_setting_ids,fixed_settings=fixed_settings)
-        cost = qnetvo.linear_probs_cost_fn(network_ansatz, inequality[1], postmap)
-        opt_dict = _gradient_descent_wrapper(cost, settings, **gradient_kwargs)
-
-        print("\nmax_score : ", max(opt_dict["scores"]))
-        print("violation : ", max(opt_dict["scores"]) - inequality[0])
-
-        return opt_dict
-
-
-    return opt_fn
 
 if __name__=="__main__":
 
@@ -361,182 +240,7 @@ if __name__=="__main__":
     ]
 
 
-
-    # butterfly_game_inequalities = [
-    #     (7, np.array([ # multiplication with zero 
-    #         [1, 1, 1, 1, 0, 0, 1, 0, 0],
-    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #     ])),
-    #     (6 , np.array([ # multiplication game [1,2,3] no zero mult1
-    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 1, 0, 1, 0, 0, 0, 0, 0],
-    #         [0, 0, 1, 0, 0, 0, 1, 0, 0],
-    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
-    #     ])),
-    #     (4, np.array([ # swap game
-    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 1, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 1, 0, 0],
-    #         [0, 1, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 1, 0],
-    #         [0, 0, 1, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 1, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
-    #     ])),
-    #     (6, np.array([ # adder game
-    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 1, 0, 1, 0, 0, 0, 0, 0],
-    #         [0, 0, 1, 0, 1, 0, 1, 0, 0],
-    #         [0, 0, 0, 0, 0, 1, 0, 1, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #     ])),
-    #     (7, np.array([ # compare game
-    #         [1, 0, 0, 0, 1, 0, 0, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 1, 1, 0, 0, 1, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 1, 0, 0, 1, 1, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #     ])),
-    #     (6, np.array([ # on receiver permutes output based on other receiver
-    #         [1, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 1, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 1, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 1, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 1, 0, 0, 0],
-    #         [0, 0, 0, 1, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 1, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 1, 0],
-    #     ])),
-    #     (6, np.array([ # same difference game
-    #         [1, 0, 0, 0, 1, 0, 0, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 1, 0, 1, 0, 1, 0, 1, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 1, 0, 0, 0, 1, 0, 0],
-    #     ])),
-    #     (7, np.eye(9)), # communication value
-    # ]
-    
-    # butterfly_facet_inequalities = [
-    #     (11, np.array([ # mult0 facet
-    #         [1,  3,  1,  1,  0,  0,  1,  0,  0],
-    #         [0,  0,  0,  1,  2,  0,  1,  0,  1],
-    #         [0,  1,  0,  0,  0,  1,  0,  2,  0],
-    #         [0,  2,  1,  0,  1,  1,  0,  1,  1],
-    #         [0,  1,  0,  1,  2,  0,  0,  0,  2],
-    #         [0,  2,  1,  1,  1,  1,  0,  1,  1],
-    #         [0,  2,  1,  0,  1,  1,  0,  1,  1],
-    #         [0,  0,  0,  1,  1,  0,  1,  0,  1],
-    #         [1,  2,  1,  1,  1,  1,  1,  1,  1],
-    #     ])),
-    #     (11, np.array([ # mult1 facet
-    #         [2,  0,  1,  1,  0,  0,  0,  0,  0],
-    #         [0,  1,  1,  3,  0,  0,  0,  0,  0],
-    #         [0,  0,  1,  1,  0,  0,  2,  0,  0],
-    #         [1,  0,  1,  0,  1,  1,  0,  1,  0],
-    #         [0,  1,  1,  1,  0,  2,  0,  1,  0],
-    #         [0,  0,  1,  1,  0,  2,  0,  2,  0],
-    #         [1,  1,  1,  1,  1,  1,  0,  0,  1],
-    #         [0,  1,  0,  2,  1,  1,  1,  0,  1],
-    #         [1,  1,  1,  2,  1,  1,  1,  1,  1],
-    #     ])),
-    #     (12, np.array([ # swap facet
-    #         [2,  0,  1,  0,  0,  1,  0,  1,  0],
-    #         [0,  0,  1,  2,  0,  1,  0,  1,  0],
-    #         [1,  0,  1,  1,  1,  1,  1,  1,  1],
-    #         [0,  2,  0,  0,  0,  1,  1,  0,  0],
-    #         [0,  0,  1,  0,  2,  0,  1,  0,  0],
-    #         [0,  1,  1,  1,  1,  1,  0,  1,  1],
-    #         [0,  0,  3,  0,  0,  2,  0,  1,  0],
-    #         [0,  0,  2,  0,  0,  3,  0,  1,  0],
-    #         [1,  1,  2,  1,  1,  2,  1,  1,  1],
-    #     ])),
-    #     (10, np.array([ # adder facet
-    #         [1,  0,  1,  0,  1,  1,  1,  1,  0],
-    #         [0,  2,  0,  1,  0,  0,  0,  0,  2],
-    #         [1,  1,  2,  0,  1,  1,  1,  1,  1],
-    #         [0,  1,  1,  0,  0,  2,  1,  1,  0],
-    #         [0,  1,  0,  0,  0,  0,  0,  0,  2],
-    #         [0,  1,  2,  0,  0,  1,  1,  1,  1],
-    #         [1,  0,  1,  0,  1,  1,  1,  1,  1],
-    #         [0,  1,  0,  1,  0,  0,  0,  0,  2],
-    #         [1,  1,  2,  0,  1,  1,  1,  1,  1],
-    #     ])),
-    #     (14, np.array([ # compare facet
-    #         [3,  0,  0,  0,  2,  0,  1,  0, 1],
-    #         [2,  1,  0,  0,  1,  0,  1,  1, 1],
-    #         [2,  1,  1,  0,  0,  1,  0,  1, 0],
-    #         [1,  1,  2,  0,  0,  2,  0,  1, 1],
-    #         [0,  2,  2,  0,  0,  2,  0,  1, 1],
-    #         [0,  3,  2,  0,  0,  3,  0,  0, 0],
-    #         [1,  1,  2,  0,  1,  1,  1,  1, 0],
-    #         [1,  2,  2,  1,  1,  1,  1,  1, 0],
-    #         [2,  2,  3,  1,  1,  2,  1,  1, 0],
-    #     ])),
-    #     (20, np.array([ # conditioned permutation facet
-    #         [2,  1,  0,  1,  3,  0,  1,  1,  2],
-    #         [1,  5,  2,  0,  0,  2,  1,  1,  0],
-    #         [0,  3,  3,  1,  3,  3,  0,  2,  0],
-    #         [1,  2,  0,  1,  4,  0,  1,  0,  2],
-    #         [0,  3,  1,  1,  1,  3,  1,  1,  0],
-    #         [0,  3,  3,  2,  1,  2,  0,  1,  0],
-    #         [1,  0,  0,  1,  3,  0,  1,  1,  1],
-    #         [0,  3,  1,  0,  0,  2,  2,  1,  1],
-    #         [2,  3,  3,  1,  3,  3,  1,  2,  0],
-    #     ])),
-    #     (12, np.array([  # same difference facet
-    #         [3,  0,  0,  0,  2,  0,  0,  1,  1],
-    #         [1,  0,  0,  1,  1,  0,  0,  1,  1],
-    #         [2,  0,  0,  0,  1,  0,  0,  0,  1],
-    #         [2,  0,  1,  0,  0,  2,  0,  1,  0],
-    #         [1,  0,  1,  2,  0,  1,  0,  2,  0],
-    #         [2,  1,  1,  1,  1,  2,  0,  1,  0],
-    #         [1,  0,  0,  0,  0,  1,  0,  1,  1],
-    #         [0,  0,  1,  1,  0,  2,  0,  1,  1],
-    #         [2,  1,  2,  1,  1,  2,  1,  1,  0],
-    #     ])),
-    #     (18, np.array([ # cv facet
-    #         [3,  0,  1,  0,  3,  1,  0,  0,  0],
-    #         [1,  3,  0,  0,  3,  1,  0,  0,  0],
-    #         [0,  0,  3,  0,  4,  1,  0,  0,  1],
-    #         [1,  0,  1,  3,  2,  1,  0,  0,  0],
-    #         [3,  1,  1,  1,  3,  0,  0,  0,  0],
-    #         [3,  1,  2,  0,  0,  2,  0,  0,  1],
-    #         [0,  0,  1,  0,  3,  1,  2,  1,  1],
-    #         [2,  0,  1,  0,  0,  1,  2,  1,  1],
-    #         [4,  1,  2,  1,  4,  1,  1,  0,  0],
-    #     ])),
-    # ]
-
-    # game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
-    
-    butterfly_game_inequalities, butterfly_facet_inequalities, game_names = mac.butterfly_33_33_network_bounds()
+    butterfly_game_inequalities, butterfly_facet_inequalities, game_names = src.butterfly_33_33_network_bounds()
 
     for i in range(6,7):
         butterfly_game_inequality = butterfly_game_inequalities[i]
@@ -559,7 +263,7 @@ if __name__=="__main__":
         # postmap1 = postmap3
         # postmap2 = postmap3
 
-        # qbf_game_opt_fn = optimize_inequality(
+        # qbf_game_opt_fn = src.optimize_inequality(
         #     qbf_layers,
         #     np.kron(postmap1,postmap2),
         #     butterfly_game_inequality,
@@ -602,7 +306,7 @@ if __name__=="__main__":
         # postmap1 = postmap3
         # postmap2 = postmap3
 
-        # qbf_facet_opt_fn = optimize_inequality(
+        # qbf_facet_opt_fn = src.optimize_inequality(
         #     qbf_layers,
         #     np.kron(postmap1,postmap2),
         #     butterfly_facet_inequality,
@@ -648,7 +352,7 @@ if __name__=="__main__":
         diff_game_fixed_settings = [np.pi,0,np.pi,0,np.pi,0]
 
 
-        min_qbf_game_opt_fn = optimize_inequality(
+        min_qbf_game_opt_fn = src.optimize_inequality(
             min_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_game_inequality,
@@ -693,7 +397,7 @@ if __name__=="__main__":
         postmap1 = postmap3
         postmap2 = postmap3
 
-        min_qbf_facet_opt_fn = optimize_inequality(
+        min_qbf_facet_opt_fn = src.optimize_inequality(
             min_qbf_layers,
             np.kron(postmap1,postmap2),
             butterfly_facet_inequality,
@@ -732,7 +436,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # qbf_game_opt_fn = optimize_inequality(
+        # qbf_game_opt_fn = src.optimize_inequality(
         #     qbf_cc_wings_layers,
         #     np.kron(postmap3,postmap3),
         #     butterfly_game_inequality,
@@ -768,7 +472,7 @@ if __name__=="__main__":
 
         # time_start = time.time()
 
-        # qbf_facet_opt_fn = optimize_inequality(
+        # qbf_facet_opt_fn = src.optimize_inequality(
         #     qbf_cc_wings_layers,
         #     np.kron(postmap3,postmap3),
         #     butterfly_facet_inequality,
@@ -808,7 +512,7 @@ if __name__=="__main__":
         # postmap1 = postmap3
         # postmap2 = postmap3
 
-        # eatx_qbf_game_opt_fn = optimize_inequality(
+        # eatx_qbf_game_opt_fn = src.optimize_inequality(
         #     eatx_qbf_layers,
         #     np.kron(postmap1,postmap2),
         #     butterfly_game_inequality,
@@ -850,7 +554,7 @@ if __name__=="__main__":
         # postmap1 = postmap3
         # postmap2 = postmap3
 
-        # eatx_qbf_facet_opt_fn = optimize_inequality(
+        # eatx_qbf_facet_opt_fn = src.optimize_inequality(
         #     eatx_qbf_layers,
         #     np.kron(postmap1,postmap2),
         #     butterfly_facet_inequality,
@@ -892,7 +596,7 @@ if __name__=="__main__":
         # postmap1 = postmap3
         # postmap2 = postmap3
 
-        # earx_qbf_game_opt_fn = optimize_inequality(
+        # earx_qbf_game_opt_fn = src.optimize_inequality(
         #     earx_qbf_layers,
         #     np.kron(postmap1,postmap2),
         #     butterfly_game_inequality,
@@ -934,7 +638,7 @@ if __name__=="__main__":
         # postmap1 = postmap3
         # postmap2 = postmap3
         
-        # earx_qbf_facet_opt_fn = optimize_inequality(
+        # earx_qbf_facet_opt_fn = src.optimize_inequality(
         #     earx_qbf_layers,
         #     np.kron(postmap1,postmap2),
         #     butterfly_facet_inequality,

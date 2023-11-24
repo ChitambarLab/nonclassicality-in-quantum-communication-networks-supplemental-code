@@ -1,150 +1,5 @@
-from context import qnetvo as qnet
-from pennylane import math
-from pennylane import numpy as np
-import matplotlib.pyplot as plt
-
-def bisender_mac_mutual_info(mac_behavior, priors_x, priors_y):
-    """Evaluates the rates and mutual information for the given
-    conditional probability distribution ``mac_behavior`` and the
-    corresponding input and output prior distributions.
-    The mutual information for a bisender multiple access channel is
-    characterized by three quantities:
-
-    .. math::
-
-        I(X;Z|Y) &= H(XY) + H(YZ) - H(Y) - H(XYZ) \\\\
-        I(Y;Z|X) &= H(XY) + H(XZ) - H(X) - H(XYZ) \\\\
-        I(XY;Z) &= H(XY) + H(Z) - H(XYZ)
-
-    
-    where :math:`H(X)` is the shannon entropy (see ``shannon_entropy``).
-
-    :param mac_behavior: A column stochastic matrix describing the conditional
-        probabilities the bi-sender multiple access channel.
-    :type mac_behavior: np.array
-
-    :param priors_x: A discrete probability vector describing the input set X.
-    :type priors_x: np.array
-
-    :param priors_y: A discrete probability vector describing the input set Y.
-    :type priors_y: np.array
-
-    :returns: A tuple with three values ``(I(X;Z|Y), I(Y;Z|X), I(XY;Z))``.
-    :rtype: tuple
-    """
-    num_z = mac_behavior.shape[0]
-    num_x = len(priors_x)
-    num_y = len(priors_y)
-
-    # joint probability distributions
-    p_xy = math.kron(priors_x, priors_y)
-    p_xyz = mac_behavior * p_xy
-    p_z = math.array([math.sum(row) for row in p_xyz])
-
-    p_yz = math.zeros((num_z, num_y))
-    for x in range(num_x):
-        p_yz += p_xyz[:, x * num_y : (x + 1) * num_y]
-
-    p_xz = math.zeros((num_z, num_x))
-    for y in range(num_y):
-        p_xz += p_xyz[:, y : num_x * num_y : num_y]
-
-    # shannon entropies
-    H_x = qnet.shannon_entropy(priors_x)
-    H_y = qnet.shannon_entropy(priors_y)
-    H_z = qnet.shannon_entropy(p_z)
-    H_xy = qnet.shannon_entropy(p_xy)
-    H_xz = qnet.shannon_entropy(p_xz.reshape(num_x * num_z))
-    H_yz = qnet.shannon_entropy(p_yz.reshape(num_y * num_z))
-    H_xyz = qnet.shannon_entropy(p_xyz.reshape(num_x * num_y * num_z))
-
-    # I(X;Z|Y)
-    I_x_zy = H_xy + H_yz - H_y - H_xyz
-
-    # I(Y;Z|X)
-    I_y_zx = H_xy + H_xz - H_x - H_xyz
-
-    # I(XY;Z)
-    I_xy_z = H_xy + H_z - H_xyz
-
-    return I_x_zy, I_y_zx, I_xy_z
-
-
-def priors_scan_range(num_steps):
-    eps = 1e-10
-    x1_range = np.arange(0,1+eps,1/num_steps)
-
-    priors = []
-    for x1 in x1_range:
-        x2_range = np.arange(0,1-x1+eps,1/num_steps)
-        for x2 in x2_range:
-            priors.append(np.array([x1,x2,1-x1-x2]))
-        
-    return priors
-
-def rate_region_vertices(rate_tuple):
-    r1, r2, r_sum = rate_tuple
-    
-    r1_vals = [0,0,min(r1,r_sum-r2),r1,r1,0]
-    r2_vals = [0,r2,r2,min(r2,r_sum-r1),0,0]
-    
-    return (r1_vals, r2_vals)
-    
-
-def plot_rate_region(rate_tuple):
-    r1_vals, r2_vals = rate_region_vertices(rate_tuple)
-    
-    plt.plot(r1_vals, r2_vals,"b-",label="Quantum")
-    plt.plot([0,0,1,0],[0,1,0,0],"r--",label="Classical")
-    plt.legend()
-    plt.title("Multiple Access Channel Rate Regions")
-    plt.xlabel("Rate 1")
-    plt.ylabel("Rate 2")
-    plt.show()
-    
-def rate_region_inner_bound(rate_tuples, priors, theta_scan=np.arange(0,1.001,0.01)):
-    """Evaluates an inner bound on the rate region for the provided set of ``rate_tuples``
-    and corresponding ``priors`` distributions.
-    
-    Effectively computes the convex hull of the provided set of rate tuples.
-    """
-    
-    R1_vals = []
-    R2_vals = []
-    opt_rate_tuples = []
-    opt_priors = []
-
-    for theta in theta_scan:
-
-        theta_sum_rates = []
-        R1_scores = []
-        R2_scores = []
-        for r_tuple in rate_tuples:
-            biased_rate = theta*r_tuple[0] + (1-theta)*r_tuple[1]
-            R1 = r_tuple[0]
-            R2 = r_tuple[1]
-
-            if r_tuple[0] + r_tuple[1] > r_tuple[2]:
-                if theta*r_tuple[0] + (1-theta)*(r_tuple[2]-r_tuple[0]) >= theta*(r_tuple[2]-r_tuple[1]) + (1-theta)*r_tuple[1]:
-                    biased_rate = theta*r_tuple[0] + (1-theta)*(r_tuple[2]-r_tuple[0])
-                    R2 = r_tuple[2]-r_tuple[0]
-                else:
-                    biased_rate = theta*(r_tuple[2]-r_tuple[1]) + (1-theta)*r_tuple[1]
-                    R1 = r_tuple[2]-r_tuple[1]
-
-            theta_sum_rates.append(biased_rate)
-            R1_scores.append(R1)
-            R2_scores.append(R2)
-
-        max_theta_sum_rate = max(theta_sum_rates)
-        max_id = theta_sum_rates.index(max_theta_sum_rate)
-
-        opt_rate_tuples.append(rate_tuples[max_id]) 
-        opt_priors.append(priors[max_id])
-        R1_vals.append(R1_scores[max_id])
-        R2_vals.append(R2_scores[max_id])
-        
-    return R1_vals, R2_vals, opt_rate_tuples, opt_priors
+import numpy as np
+import math
 
 
 def finger_printing_matrix(num_senders, num_in):
@@ -254,7 +109,6 @@ def qubit_signaling_dimension_bounds():
         (4, np.array([[1,0,0,1,0,0],[0,1,0,0,1,0],[0,0,1,0,0,1],[1,1,1,0,0,0]])),
         (5, np.array([[1,1,1,0,0,0],[1,0,0,1,1,0],[0,1,0,1,0,1],[0,0,1,0,1,1]])),
     ]
-
 
 def interference_33_33_network_bounds():
     interference_game_inequalities = [
@@ -1402,20 +1256,6 @@ def rac_game(n):
     # https://arxiv.org/abs/0810.2937 (Eq. 25) 
     multiplier = n * 2**n
     bound = multiplier * (1/2 + 1 / (2**n) * math.comb(n-1, int(np.floor((n-1)/2))))
-
-    # if n % 2 == 0:
-    #     bound = rac_bound_even(n)
-    # else:
-    #     bound = rac_bound_odd(n)
-    
-    # if n == 2:
-    #     bound = 6
-    # elif n == 3:
-    #     bound = 18
-    # elif n == 4:
-    #     bound = 28
-    # else:
-    #     bound = X*Y - 2
 
     return (bound, game)
 
