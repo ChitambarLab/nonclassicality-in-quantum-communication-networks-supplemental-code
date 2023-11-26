@@ -1,6 +1,6 @@
 using Test
 
-include("../src/ClassicalNetworkVertices.jl")
+include("../src/classical_network_vertices.jl")
 
 @testset "Testing multi-access channel vertex methods" begin
     # testing that the num_vertices count is correct

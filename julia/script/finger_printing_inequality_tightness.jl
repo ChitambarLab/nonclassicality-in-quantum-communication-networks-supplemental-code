@@ -1,6 +1,6 @@
 using Test
 
-include("../src/ClassicalNetworkVertices.jl")
+include("../src/classical_network_vertices.jl")
 
 """
 This script shows that the equality simulation game G^= is not a tight classical bound

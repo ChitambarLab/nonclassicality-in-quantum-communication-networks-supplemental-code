@@ -3,7 +3,7 @@ using HiGHS
 
 using Test
 
-include("./ClassicalNetworkVertices.jl")
+include("./classical_network_vertices.jl")
 
 @testset "4 -> (2,2) -> (4,4) Broadcast Facet"  begin
     p = [0.2,0.5,0.3,-1]

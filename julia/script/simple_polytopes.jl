@@ -1,7 +1,7 @@
 using Test
 using BellScenario
 
-include("../src/ClassicalNetworkVertices.jl")
+include("../src/classical_network_vertices.jl")
 
 @testset "simple polytopes" begin
     @testset "(2,2) -> (2,2) -> 2 only has non-negativity facets" begin

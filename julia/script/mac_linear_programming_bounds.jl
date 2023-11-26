@@ -1,7 +1,7 @@
 using Test
 using BellScenario
 
-include("../src/ClassicalNetworkVertices.jl")
+include("../src/classical_network_vertices.jl")
 
 @testset "(3,3)->(2,2)->2 qmac fingerprinting is local " begin
     
