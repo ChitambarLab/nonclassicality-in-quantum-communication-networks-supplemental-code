@@ -1,7 +1,7 @@
 using Test
 using BellScenario
 
-include("../src/MultiAccessChannels.jl")
+include("../src/ClassicalNetworkVertices.jl")
 
 
 @testset "broadcast network linear programming bounds" begin

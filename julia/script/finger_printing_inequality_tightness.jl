@@ -1,13 +1,13 @@
 using Test
 
-include("../src/MultiAccessChannels.jl")
+include("../src/ClassicalNetworkVertices.jl")
 
 """
-This script shows that the finger printing inequality is not tight in any
-easily computable scenarios.
+This script shows that the equality simulation game G^= is not a tight classical bound
+in any easily computable scenarios.
 """
 
-@testset "finger printing inequality tightness" begin
+@testset "Equality simulation game tightness" begin
 
 @testset "num_senders=2, num_in=3" begin
     vertices = multi_access_vertices(3, 3, 2, 2, 2, normalize=false)

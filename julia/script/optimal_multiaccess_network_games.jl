@@ -2,7 +2,7 @@ using Test
 using QBase
 using BellScenario
 
-include("../src/MultiAccessChannels.jl")
+include("../src/ClassicalNetworkVertices.jl")
 
 
 @testset "Multiaccess Network Games" begin

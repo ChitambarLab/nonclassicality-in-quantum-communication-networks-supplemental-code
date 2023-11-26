@@ -1,7 +1,7 @@
 using Test
 using BellScenario
 
-include("../src/MultiAccessChannels.jl")
+include("../src/ClassicalNetworkVertices.jl")
 
 @testset "(3,3)->(2,2)->2 qmac fingerprinting is local " begin
     
