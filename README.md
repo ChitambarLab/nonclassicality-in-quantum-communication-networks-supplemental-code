@@ -8,10 +8,40 @@ with numerical results and tools for reproducing our framework. To promote trans
 
 ## Quick Start
 
-Run a script called `multi-access-channel-vertices.jl`:
-1. Navigate to the project directory `/multi-access-channels/`
-2. Run `$ julia --project=. script/multi-access-channel-vertices.jl`
+### Julia
 
+Julia is a programming language for high-performance computing. Follow the [Julia Installation Instructions](https://julialang.org/downloads/)
+to download and install the latest version of Julia. To run a Julia script, navigate to the root project directory and run the command:
+
+```
+$ julia --project=. julia/script/name_of_script.jl
+```
+
+Note that the `--project=.` flag sets up the Julia environment to use the dependencies in the `Project.toml` file.
+
+### Python
+
+To run a Python script or notebook, we use Conda to manage the environment:
+
+1. Visit the [Conda Installation Page](https://conda.io/projects/conda/en/latest/user-guide/install/index.html#installation) for detaisl on how
+   to install the `conda` command line tool.
+2. To set up the development environment, navigate to the root project directory and run the command:
+
+```
+(base) $ conda env create -f environment.yml
+```
+
+3. Then activate the `network-nonclassicality-dev` environment using the command:
+
+```
+(base) $ conda activate network-nonclassicality-dev
+```
+
+4. Once the `network-nonclassicality-dev` environment is set up, a Python script can be run using the command:
+
+```
+(network-nonclassicality-dev) $ python python/script/name_of_script.py
+```
 
 ## Project Structure
 
