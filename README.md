@@ -8,6 +8,11 @@ with numerical results and tools for reproducing our framework. To promote trans
 
 ## Quick Start
 
+This project combines tools in Julia and Python.
+* We use Julia to derive facet inequalities that bound classical network polytopes. Our Julia computation relies on the following supporting packages: PoRTA, XPORTA.jl, Polyhedra.jl, HiGHS.jl, JuMP.jl, and BellSCenario.jl
+* We use Python for to apply our variational quantum optimization techniques used to find quantum violations, as well as for plotting and data analysis. Our variational optimization software uses the following supporting packages: PennyLane, QNetVO, NumPy, Autograd, and Dask. We use Matplotlib to plot our numerical data.
+The respective dependencies are managed using the Julia package manager and Conda. To run our code, follow the instructions below to locally set up the Julia and Python enviroments.
+
 ### Julia
 
 Julia is a programming language for high-performance computing. Follow the [Julia Installation Instructions](https://julialang.org/downloads/)
@@ -44,10 +49,6 @@ To run a Python script or notebook, we use Conda to manage the environment:
 ```
 
 ## Project Structure
-
-This project combines tools in Julia and Python.
-* We use Julia to derive facet inequalities that bound classical network polytopes. Our Julia computation relies on the following supporting packages: PoRTA, XPORTA.jl, Polyhedra.jl, HiGHS.jl, JuMP.jl, and BellSCenario.jl
-* We use Python for to apply our variational quantum optimization techniques used to find quantum violations, as well as for plotting and data analysis. Our variational optimization software uses the following supporting packages: PennyLane, QNetVO, NumPy, Autograd, and Dask. We use Matplotlib to plot our numerical data.
 
 Our Julia codebase is found in the `julia/` directory. Functions for enumerating the vertices of classical network polytopes are found in the `julia/src/` directory. Computations of the facet inequalities of classical network polytopes are found in the `julia/script/` directory.
 
