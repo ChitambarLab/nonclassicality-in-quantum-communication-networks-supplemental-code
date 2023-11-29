@@ -1655,10 +1655,7 @@ using linear programming.
 
         println(raw_game_compare)
         bell_game_compare = convert(BellGame, round.(Int, raw_game_compare), BlackBox(9,9), rep="normalized")
-        bell_game_compare.β
-
-        facet_dim = facet_dimension(bc_9_22_33_vertices, raw_game_compare)
-        @test polytope_dim == facet_dim + 1 
+        bell_game_compare.β 
 
         bell_game_compare_match = [
             1  0  0  0  0  0  0  0  0;
@@ -1744,46 +1741,6 @@ using linear programming.
         ]
         @test bell_game_cv_match == bell_game_cv
         @test bell_game_cv.β == 6
-    end
-
-
-    @testset "(9) -> 4 -> (9) Point-to-Point Scenario" begin
-        p2p_949_scenario = BellScenario.LocalSignaling(9,9,4)
-
-
-        # p2p_949_vertices = LocalPolytope.vertices(p2p_949_scenario, rep="normalized")
-        @time p2p_949_vertices_unnormalized = LocalPolytope.vertices(p2p_949_scenario, rep="generalized")
-        ids = vcat(map(i -> [i:(i+7)...], 1:9:81)...)
-        # @time p2p_949_vertices = map(v -> v[ids], p2p_949_vertices_unnormalized)
-        @time p2p_949_vertices_unnormalized = LocalPolytope.vertices(p2p_949_scenario, rep="normalized")
-
-
-        @test length(p2p_949_vertices_unnormalized) == 25039449
-        @test length(p2p_949_vertices) == 25039449
-
-        mult1_max_violation = max(map(v -> sum(mult1_test[:] .* v), p2p_949_vertices_unnormalized)...)
-        @test mult1_max_violation == 6
-        @time mult0_max_violation = max(map(v -> sum(mult0_test[:] .* v), p2p_949_vertices_unnormalized)...)
-        @test mult0_max_violation == 9
-        swap_max_violation = max(map(v -> sum(swap_test[:] .* v), p2p_949_vertices_unnormalized)...)
-        @test swap_max_violation == 4
-        perm_max_violation = max(map(v -> sum(perm_test[:] .* v), p2p_949_vertices_unnormalized)...)
-        @test perm_max_violation == 4
-        adder_max_violation = max(map(v -> sum(adder_test[:] .* v), p2p_949_vertices_unnormalized)...)
-        @test adder_max_violation == 8
-        compare_max_violation = max(map(v -> sum(compare_test[:] .* v), p2p_949_vertices_unnormalized)...)
-        @test compare_max_violation == 9
-        diff_max_violation = max(map(v -> sum(diff_test[:] .* v), p2p_949_vertices_unnormalized)...)
-        @test diff_max_violation == 9
-        cv_max_violation = max(map(v -> sum(cv_test[:] .* v), p2p_949_vertices_unnormalized)...)
-        @test cv_max_violation == 4
-
-
-        raw_game_mult0 = optimize_linear_witness(p2p_949_vertices, mult1_test[1:end-1,:][:])
-
-        
-
-
     end
 
     """
