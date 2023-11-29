@@ -136,6 +136,38 @@ end
     @test 8 == max(map(v -> sum(v[:].*qkd_game[:]), vertices44_22_4)...)
 end
 
+ @testset "44->22->4 MAC Game" begin
+        
+    vertices_44_22_4 = multi_access_vertices(4,4,4,2,2, normalize=false)
+
+    vertices_44_34_4 = multi_access_vertices(4,4,4,3,4, normalize=false)
+    vertices_44_43_4 = multi_access_vertices(4,4,4,4,3, normalize=false)
+
+    vertices_44_3443_4 = unique(cat(
+        vertices_44_34_4,
+        vertices_44_43_4,
+        dims=1
+    ))
+
+    game1 = [
+        1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
+        0 1 0 0 1 0 0 0 0 0 0 1 0 0 1 0;
+        0 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0;
+        0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 0;
+    ]
+    game2 = [
+        1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
+        0 1 0 0 1 0 1 0 0 1 0 1 0 0 1 0;
+        0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 0;
+        0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0;
+    ]
+    game1_scores = map(v -> (v, sum(game1[:].*v[:])), vertices_44_3443_4)
+    game2_scores = map(v -> (v, sum(game2[:].*v[:])), vertices_44_3443_4)
+
+    @test 8 == max(map(tuple -> tuple[2], game1_scores)...)
+    @test 10 == max(map(tuple -> tuple[2], game2_scores)...)
+end
+
 @testset "(6,3)->(2,3)->2 qmac  " begin
     
     vertices = multi_access_vertices(6,3,2,2,3)

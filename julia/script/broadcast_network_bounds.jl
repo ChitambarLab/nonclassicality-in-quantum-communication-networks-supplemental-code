@@ -3,6 +3,10 @@ using BellScenario
 
 include("../src/classical_network_vertices.jl")
 
+"""
+This script uses linear programming to obtain facet inequalities of broadcast network polytopes.
+"""
+
 
 @testset "broadcast network linear programming bounds" begin
 
@@ -113,8 +117,6 @@ include("../src/classical_network_vertices.jl")
 
             facet_dim = facet_dimension(vertices_4_22_44, round.(Int, raw_game_pr_4_22_44))
             @test polytope_dim_4_22_44 == facet_dim + 1
-
-
         end
 
         @testset "chsh-like game is not violated" begin
@@ -198,8 +200,5 @@ include("../src/classical_network_vertices.jl")
         # no advantageg
         ms_max_violation = max(map(v -> sum(magic_squares_game[:] .* v), vertices_9_22_44_unnormalized)...)
         @test ms_max_violation == 9
-
-
     end
-
 end
