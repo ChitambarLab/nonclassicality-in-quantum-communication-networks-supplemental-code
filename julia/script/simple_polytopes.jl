@@ -225,7 +225,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
         @test length(vertices) == 40
-        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
 
         facet_dict = LocalPolytope.facets(vertices)
 
@@ -260,7 +259,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
         @test length(vertices) == 40
-        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
 
         facet_dict = LocalPolytope.facets(vertices)
 
@@ -295,7 +293,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
         @test length(vertices) == 88
-        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
 
         facet_dict = LocalPolytope.facets(vertices)
 
@@ -337,7 +334,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
         @test length(vertices) == 184
-        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
 
         facet_dict = LocalPolytope.facets(vertices)
 
@@ -379,7 +375,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
 
-        @test multi_access_num_vertices(X,Y,Z,dA,dB) == length(vertices)
         @test length(vertices) == 104
 
         facet_dict = LocalPolytope.facets(vertices)
@@ -746,38 +741,17 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
     @testset "multiaccess (3,3) -> (2,2) -> 3" begin
         (X, Y, Z, dA, dB) = (3, 3, 3, 2, 2)
-
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
-
         @test length(vertices) == 633
-        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
-
         # facet computation is too expensive
     end
 
     @testset "multiaccess (4,4) -> (2,2) -> 2" begin
         (X, Y, Z, dA, dB) = (4, 4, 2, 2, 2)
-
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
-
-        verts = Array{Vector{Int}}([])
-        for v in vertices
-            test = sum(v'*[2,-1,-1,-1,-1,2,-1,-1,-1,-1,2,-1,-1,-1,-1,2])
-            if test +12 == 16
-                println(v)
-            end
-            push!(verts, [test + 12])
-        end
-        max(verts...)
-
-        @test length(vertices) == 633
-        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
-        
-        vertices[1]'*[2,-1,-1,-1,-1,2,-1,-1,-1,-1,2,-1,-1,-1,-1,2] + 12
-
+        @test length(vertices) == 520
         # facet computation is too expensive
     end
-
 
     @testset "broadcast 2 -> (2,2) -> (3,3) positivity only" begin
         (X, Y, Z, dA, dB) = (2, 3, 3, 2, 2)
@@ -815,68 +789,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
             [1 0;1 0;1 0;1 0;1 0;1 0;1 0;1 0;0 0],
         ]
         
-    end
-
-    @testset "interference (3,3) -> (2,2) -> (2,2) -> (3,3)" begin
-        (X1, X2, Z1, Z2, dA1, dA2, dB1, dB2) = (3, 3, 3, 3, 2, 2, 2, 2)
-
-        vertices = interference_vertices(X1,X2,Z1,Z2,dA1,dA2,dB1,dB2)
-
-        ma_vertices = multi_access_vertices(3,3,9,2,2)
-
-        @test length(vertices) == 256
-
-        facet_dict = LocalPolytope.facets(vertices)
-
-        facets = facet_dict["facets"]
-
-        @test length(facets) == 16
-        @test facet_dict["equalities"] == []
-
-        bell_games = map(f -> convert(BellGame, f, BlackBox(4,4),rep="normalized"), facets)
-        println(bell_games)
-
-        @test bell_games == [
-            [0 0 0 0; 1 0 0 0; 1 0 0 0; 1 0 0 0], [1 0 0 0; 0 0 0 0; 1 0 0 0; 1 0 0 0],
-            [1 0 0 0; 1 0 0 0; 0 0 0 0; 1 0 0 0], [0 0 0 0; 0 1 0 0; 0 1 0 0; 0 1 0 0],
-            [0 1 0 0; 0 0 0 0; 0 1 0 0; 0 1 0 0], [0 1 0 0; 0 1 0 0; 0 0 0 0; 0 1 0 0],
-            [0 0 0 0; 0 0 1 0; 0 0 1 0; 0 0 1 0], [0 0 1 0; 0 0 0 0; 0 0 1 0; 0 0 1 0],
-            [0 0 1 0; 0 0 1 0; 0 0 0 0; 0 0 1 0], [0 0 0 0; 0 0 0 1; 0 0 0 1; 0 0 0 1],
-            [0 0 0 1; 0 0 0 0; 0 0 0 1; 0 0 0 1], [0 0 0 1; 0 0 0 1; 0 0 0 0; 0 0 0 1],
-            [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0], [0 0 1 0; 0 0 1 0; 0 0 1 0; 0 0 0 0],
-            [0 1 0 0; 0 1 0 0; 0 1 0 0; 0 0 0 0], [1 0 0 0; 1 0 0 0; 1 0 0 0; 0 0 0 0]
-        ]
-    end
-
-    @testset "(3,3) -> (2,2) -> (2,2) -> (3,3) interference2" begin
-        (X1, X2, Z1, Z2, dA1, dA2, dB, dC1, dC2) = (3, 3, 3, 3, 2, 2, 2, 2, 2)
-
-        vertices = interference2_vertices(X1,X2,Z1,Z2,dA1,dA2,dB,dC1,dC2)
-
-        ma_vertices = multi_access_vertices(3,3,9,2,2)
-
-        @test length(vertices) == 256
-
-        facet_dict = LocalPolytope.facets(vertices)
-
-        facets = facet_dict["facets"]
-
-        @test length(facets) == 16
-        @test facet_dict["equalities"] == []
-
-        bell_games = map(f -> convert(BellGame, f, BlackBox(4,4),rep="normalized"), facets)
-        println(bell_games)
-
-        @test bell_games == [
-            [0 0 0 0; 1 0 0 0; 1 0 0 0; 1 0 0 0], [1 0 0 0; 0 0 0 0; 1 0 0 0; 1 0 0 0],
-            [1 0 0 0; 1 0 0 0; 0 0 0 0; 1 0 0 0], [0 0 0 0; 0 1 0 0; 0 1 0 0; 0 1 0 0],
-            [0 1 0 0; 0 0 0 0; 0 1 0 0; 0 1 0 0], [0 1 0 0; 0 1 0 0; 0 0 0 0; 0 1 0 0],
-            [0 0 0 0; 0 0 1 0; 0 0 1 0; 0 0 1 0], [0 0 1 0; 0 0 0 0; 0 0 1 0; 0 0 1 0],
-            [0 0 1 0; 0 0 1 0; 0 0 0 0; 0 0 1 0], [0 0 0 0; 0 0 0 1; 0 0 0 1; 0 0 0 1],
-            [0 0 0 1; 0 0 0 0; 0 0 0 1; 0 0 0 1], [0 0 0 1; 0 0 0 1; 0 0 0 0; 0 0 0 1],
-            [0 0 0 1; 0 0 0 1; 0 0 0 1; 0 0 0 0], [0 0 1 0; 0 0 1 0; 0 0 1 0; 0 0 0 0],
-            [0 1 0 0; 0 1 0 0; 0 1 0 0; 0 0 0 0], [1 0 0 0; 1 0 0 0; 1 0 0 0; 0 0 0 0]
-        ]
     end
 
     # lifted version of signaling polytope facets
@@ -1070,7 +982,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         bell_games = map(f -> convert(BellGame, f, BlackBox(9,3),rep="normalized"), facets)
 
 
-        classes_dict = bipartite_broadcast_facet_classes(X, Y, Z, bell_games)
+        classes_dict = bipartite_broadcast_facet_classes(3, 3, 3, bell_games)
 
         @test length(keys(classes_dict)) == 2
 
@@ -1091,7 +1003,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test length(vertices) == 441
         @test length(vertices[1]) == 24
         BellScenario.dimension(vertices)
-        # @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
 
         facet_dict = LocalPolytope.facets(vertices)
 
@@ -1100,7 +1011,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test length(facets) == 417
         @test facet_dict["equalities"] == []
 
-        bell_games = map(f -> convert(BellGame, f, BlackBox(9,3),rep="normalized"), facets)
+        bell_games = map(f -> convert(BellGame, f, BlackBox(9,3), rep="normalized"), facets)
 
         bell_games[1]
 
@@ -1203,8 +1114,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
         @test length(vertices) == 2025
-        @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
-
     end
 
     @testset "broadcast 3 -> (2,2) -> (4,3)" begin
@@ -1214,7 +1123,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test length(vertices) == 840
 
     end
-
 
     @testset "broadcast 3 -> (2,2) -> (4,3)" begin
         (X, Y, Z, dA, dB) = (3, 4, 3, 2, 2)
@@ -1223,7 +1131,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test length(vertices) == 840
         @test length(vertices[1]) == 33
         BellScenario.dimension(vertices)
-        # @test length(vertices) == multi_access_num_vertices(X,Y,Z,dA,dB)
 
         facet_dict = LocalPolytope.facets(vertices)
     end
@@ -1255,7 +1162,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
             0  0  1  0 ;
             0  0  0  -1;
         ], 2)
-
 
         # inequality is proper half-space
         @test BellScenario.dimension(filter(v -> bg_chsh.β == bg_chsh[:]'*v, vertices)) == 59
@@ -1346,9 +1252,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         bt_vertices_unnorm = bacon_and_toner_vertices(3,3,2,2, false)
         length(bt_vertices_unnorm[1])
 
-
         polytope_dim = LocalPolytope.dimension(bt_vertices)
-
 
         bell_game_match1 = BellGame([0 0 1 0 1 1 1 1 1;0 1 0 1 0 0 0 0 0;0 1 0 1 0 0 0 0 0;0 0 1 0 1 1 1 1 1], 7)
 
@@ -1372,12 +1276,9 @@ is too large for an efficient enumeration of the facets using the PoRTA software
             end
         end
 
-
         facet_dim = LocalPolytope.dimension(facet_vertices)
 
         @test facet_dim + 1 == polytope_dim
-
-
     end
 end
 

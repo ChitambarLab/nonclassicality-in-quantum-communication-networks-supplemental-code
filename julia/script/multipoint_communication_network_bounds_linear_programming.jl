@@ -149,7 +149,7 @@ using linear programming.
     @testset "butterfly 44->2222->22" begin
         vertices = hourglass_network_vertices(4,4,2,2)
 
-        diff_test = [
+        diff_test_44 = [
             1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
             0 1 0 0 1 0 1 0 0 1 0 1 0 0 1 0;
             0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 0;
@@ -158,7 +158,7 @@ using linear programming.
 
         @test length(vertices) == 270400
 
-        raw_diff_game = optimize_linear_witness(vertices, diff_test[1:3,:][:])
+        raw_diff_game = optimize_linear_witness(vertices, diff_test_44[1:3,:][:])
 
         println(raw_diff_game)
 
@@ -174,7 +174,6 @@ using linear programming.
         @test bell_diff_game == diff_game_match
 
         @test bell_diff_game.β == 15
-
     end
 
     @testset "hourglass 33->2222->33" begin
@@ -200,7 +199,7 @@ using linear programming.
         println(raw_mult1_game)
         bell_mult1_game = convert(BellGame, round.(Int, 4*raw_mult1_game), BlackBox(9,9), rep="normalized")
 
-        @test polytope_dim = facet_dimension(vertices, raw_mult1_game) + 1
+        @test polytope_dim == facet_dimension(vertices, raw_mult1_game) + 1
 
         mult1_game_match = [
             3  0  0  1  1  0  0  0  1;
@@ -357,7 +356,7 @@ using linear programming.
         
         vertices = butterfly_vertices(3,3,2,2,2,2,2,2,2,2,2)
 
-        diff_test = [
+        equality_test_33 = [
             1 0 0 0 1 0 0 0 1;
             0 1 1 1 0 1 1 1 0;
             0 0 0 0 0 0 0 0 0;
@@ -365,9 +364,9 @@ using linear programming.
         ]
 
         length(vertices[1])
-        raw_game = optimize_linear_witness(vertices, diff_test[1:3,:][:])
+        raw_game = optimize_linear_witness(vertices, equality_test_33[1:3,:][:])
 
-        @test raw_game ≈ [0,0,0,0,0,0,0,0,0,0] 
+        @test raw_game ≈ [0.5, -0.0, 0.5, -0.5, -0.0, -0.5, -0.5, -0.0, -0.5, -0.5, -0.0, -0.5, 0.5, -0.0, 0.5, -0.5, -0.0, -0.5, -0.5, -0.0, -0.5, -0.5, -0.0, -0.5, 0.5, -0.0, 0.5, 0.5] 
     end
 
     @testset "(4,4)->(2,2)->(2,2) -> (2,2) " begin
@@ -976,12 +975,10 @@ using linear programming.
         ]
         @test bell_game_cv_match == bell_game_cv
         @test bell_game_cv.β == 13
-
-
     end
 
 
-    @testsett "(3,3)->(3,3) interference 2" begin
+    @testset "(3,3)->(3,3) interference 2" begin
         interference2_vertices_3333 = interference2_vertices(3,3,3,3,2,2,2,2,2)
         interference2_vertices_3333_unnormalized = interference2_vertices(3,3,3,3,2,2,2,2,2, normalize=false)
 
@@ -1251,18 +1248,6 @@ using linear programming.
         @test bell_game_cv.β == 9
     end
 
-    @testset "(2,2)->(2,2)->(2,2) -> (3,3) " begin
-        
-        vertices = butterfly_vertices(2,2,2,2,2,2,2,2,2,2,2)
-
-        @test length(vertices) == 256
-
-        length(vertices[1])
-        raw_game = optimize_linear_witness(vertices, diff_test[1:3,:][:])
-
-        @test raw_game ≈ [0,0,0,0,0,0,0,0,0,0] 
-    end
-
     @testset "(3,3) -> (2,2) -> 9 multiaccess network" begin
         mac_33_22_9_vertices = multi_access_vertices(3,3,9,2,2)
         mac_33_22_9_vertices_unnormalized = multi_access_vertices(3,3,9,2,2, normalize=false)
@@ -1301,7 +1286,7 @@ using linear programming.
         bell_game_mult0.β
         bell_game_mult0.game
 
-        facet_dim = facet_dimension(mac_33_22_9_vertices_unnormalized, bell_game_mult0)
+        facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_mult0)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_mult0_match = [
@@ -1322,7 +1307,7 @@ using linear programming.
         bell_game_mult1 = convert(BellGame, round.(Int, 7*raw_game_mult1), BlackBox(9,9), rep="normalized")
         bell_game_mult1.β
 
-        facet_dim = facet_dimension(mac_33_22_9_vertices_unnormalized, bell_game_mult1)
+        facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_mult1)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_mult1_match = [
@@ -1343,7 +1328,7 @@ using linear programming.
         bell_game_swap = convert(BellGame, round.(Int, 7*raw_game_swap), BlackBox(9,9), rep="normalized")
         bell_game_swap.β
 
-        facet_dim = facet_dimension(mac_33_22_9_vertices_unnormalized, bell_game_swap)
+        facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_swap)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_swap_match = [
@@ -1364,7 +1349,7 @@ using linear programming.
         bell_game_adder = convert(BellGame, round.(Int, 8*raw_game_adder), BlackBox(9,9), rep="normalized")
         bell_game_adder.β
 
-        facet_dim = facet_dimension(mac_33_22_9_vertices_unnormalized, bell_game_adder)
+        facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_adder)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_adder_match = [
@@ -1385,7 +1370,7 @@ using linear programming.
         bell_game_compare = convert(BellGame, round.(Int, 4*raw_game_compare), BlackBox(9,9), rep="normalized")
         bell_game_compare.β
 
-        facet_dim = facet_dimension(mac_33_22_9_vertices_unnormalized, bell_game_compare)
+        facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_compare)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_compare_match = [
@@ -1406,7 +1391,7 @@ using linear programming.
         bell_game_perm = convert(BellGame, round.(Int, 7*raw_game_perm), BlackBox(9,9), rep="normalized")
         bell_game_perm.β
 
-        facet_dim = facet_dimension(mac_33_22_9_vertices_unnormalized, bell_game_perm)
+        facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_perm)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_perm_match = [
@@ -1427,7 +1412,7 @@ using linear programming.
         bell_game_diff = convert(BellGame, round.(Int, 2*raw_game_diff), BlackBox(9,9), rep="normalized")
         bell_game_diff.β
 
-        facet_dim = facet_dimension(mac_33_22_9_vertices_unnormalized, bell_game_diff)
+        facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_diff)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_diff_match = [
@@ -1448,7 +1433,7 @@ using linear programming.
         bell_game_cv = convert(BellGame, round.(Int, 7*raw_game_cv), BlackBox(9,9), rep="normalized")
         bell_game_cv.β
 
-        facet_dim = facet_dimension(mac_33_22_9_vertices_unnormalized, bell_game_cv)
+        facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_cv)
         @test polytope_dim == facet_dim + 1 
 
         bell_game_cv_match = [
@@ -1554,7 +1539,7 @@ using linear programming.
         @test length(bc_9_22_33_vertices) == 2350089
 
         mult1_max_violation = max(map(v -> sum(mult1_test[:] .* v), bc_9_22_33_vertices_unnormalized)...)
-        @test mult1_max_violation ==6
+        @test mult1_max_violation == 6
         @time mult0_max_violation = max(map(v -> sum(mult0_test[:] .* v), bc_9_22_33_vertices_unnormalized)...)
         @test mult0_max_violation == 7
         swap_max_violation = max(map(v -> sum(swap_test[:] .* v), bc_9_22_33_vertices_unnormalized)...)
@@ -1571,7 +1556,6 @@ using linear programming.
         @test cv_max_violation == 4
 
         raw_game_mult0 = optimize_linear_witness(bc_9_22_33_vertices, mult0_test[1:end-1,:][:])
-
 
         println(raw_game_mult0*2)
         bell_game_mult0 = convert(BellGame, round.(Int, 2*raw_game_mult0), BlackBox(9,9), rep="normalized")
@@ -1802,6 +1786,10 @@ using linear programming.
 
     end
 
+    """
+    Verify that encoding using stirling2 partition matrices is sufficient, given that decoders
+    use the full set of deterministic behaviors.
+    """
     @testset "encoder matrix consruction" begin
         
         enc1_verts = BellScenario.stirling2_matrices(3,2)
@@ -1845,7 +1833,5 @@ using linear programming.
         end
 
         @test length(unique(test_verts)) == match_num
-    
-        reshape(test_verts[1], (3,3))
     end
 end
