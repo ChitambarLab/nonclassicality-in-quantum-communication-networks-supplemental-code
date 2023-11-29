@@ -3,6 +3,13 @@ using BellScenario
 
 include("../src/classical_network_vertices.jl")
 
+"""
+This script computes the complete set of facets for broadcast and multiaccess classical netwtork polytopes.
+We restrict the computationss such that all facets are enumerated within a few minutes when run on a laptop computer.
+We observe that in scenarios beyond the ones computed here, that too many vertices are enumerated and the polytope dimension
+is too large for an efficient enumeration of the facets using the PoRTA software. 
+"""
+
 @testset "simple polytopes" begin
     @testset "(2,2) -> (2,2) -> 2 only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 2, 2, 2)
