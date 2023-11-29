@@ -1,7 +1,7 @@
 using Test
 using BellScenario
 
-include("../src/classical_network_vertices.jl")
+include("../src/communication_network_nonclassicality.jl")
 
 """
 This script uses linear programming to obtain facet inequalities of broadcast network polytopes.

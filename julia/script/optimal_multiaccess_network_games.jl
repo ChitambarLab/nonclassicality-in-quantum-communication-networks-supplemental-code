@@ -3,7 +3,7 @@ using BellScenario
 using QBase
 import QBase: measure
 
-include("../src/classical_network_vertices.jl")
+include("../src/communication_network_nonclassicality.jl")
 
 
 @testset "Multiaccess Network Games" begin

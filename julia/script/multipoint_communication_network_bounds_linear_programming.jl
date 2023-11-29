@@ -1,7 +1,7 @@
 using Test
 using BellScenario
 
-include("../src/classical_network_vertices.jl")
+include("../src/communication_network_nonclassicality.jl")
 
 """
 The goal of this script is to compute nonclassicality witnesses for multipoint communication networks.

@@ -5,11 +5,6 @@ using BellScenario
 using Base.Iterators: flatten
 using SparseArrays
 
-using Convex
-using SCS
-
-
-
 using JuMP
 using HiGHS
 
@@ -911,55 +906,6 @@ function bipartite_interference_facet_classes(X1,X2,Y1,Y2, bell_games)
     facet_class_dict
 end
 
-function multi_access_optimize_measurement(
-    X,Y,Z,dA,dB,
-    game::BellGame,
-    ρA_states::Vector{<:State},
-    ρB_states::Vector{<:State},
-) :: Dict
-    # if scenario.X != length(ρ_states)
-    #     throw(DomainError(scenario, "expected length of `ρ_states` is $(scenario.X)), but got $(length(ρ_states)) instead"))
-    # end
-    #
-    # if size(ρ_states[1]) != (scenario.d,scenario.d)
-    #     throw(DomainError(ρ_states, "dimension of `ρ_states` is not $(scenario.d)"))
-    # end
-
-    ρ_states = collect(flatten( map( ρA -> map(ρB -> kron(ρA,ρB), ρB_states), ρA_states)))
-
-
-    norm_game_vector = convert(Vector{Int64}, game)
-    norm_bound = norm_game_vector[end]
-    norm_game = reshape(norm_game_vector[1:(end-1)], (Z-1, X*Y))
-
-    # add povm variables and constraints
-    Π_vars = map(i -> HermitianSemidefinite(dA*dB), 1:Z)
-    constraints = (sum(map(Π_y -> real(Π_y), Π_vars)) == Matrix{Float64}(I, dA*dB, dA*dB))
-    constraints += (sum(map(Π_y -> imag(Π_y), Π_vars)) == zeros(Float64, dA*dB, dA*dB))
-
-    # sum up the state contibutions for each row
-    H_y = map(row_id -> sum(norm_game[row_id,:] .* ρ_states), 1:Z-1)
-
-    # add the objective
-    objective = maximize(real(tr(sum(Π_vars[1:end-1] .* H_y))), constraints)
-
-    # optimize model
-    solve!(objective, SCS.Optimizer(verbose=0))
-
-    # parse/return results
-    score = objective.optval
-    violation = score - norm_bound
-    # Π_opt = _opt_vars_to_povm(map(Π_y -> Π_y.value, Π_vars))
-    Π_opt = map(Π_y -> Π_y.value, Π_vars)
-
-    Dict(
-        "violation" => violation,
-        "povm" => Π_opt,
-        "game" => game,
-        "scenario" => (X,Y,Z,dA,dB),
-        "states" => ρ_states
-    )
-end
 
 function optimize_linear_witness(vertices, test_point)
     dim_v = length(vertices[1]) + 1

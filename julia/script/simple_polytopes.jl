@@ -1,7 +1,7 @@
 using Test
 using BellScenario
 
-include("../src/classical_network_vertices.jl")
+include("../src/communication_network_nonclassicality.jl")
 
 """
 This script computes the complete set of facets for broadcast and multiaccess classical netwtork polytopes.
@@ -880,7 +880,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
     end
 
     # lifted version of signaling polytope facets
-    @testset "3 -> (2,2) -> (3,2)" begin
+    @testset "broadcast 3 -> (2,2) -> (3,2)" begin
         (X, Y, Z, dA, dB) = (3, 3, 2, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -914,7 +914,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg2.β == 2
     end
 
-    @testset "3 -> (2,2) -> (2,3)" begin
+    @testset "broadcast 3 -> (2,2) -> (2,3)" begin
         (X, Y, Z, dA, dB) = (3, 2, 3, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -946,7 +946,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg2.β == 2
     end
 
-    @testset "3 -> (2,2) -> (4,2)" begin
+    @testset "broadcast 3 -> (2,2) -> (4,2)" begin
         (X, Y, Z, dA, dB) = (3, 4, 2, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -980,7 +980,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg3.β == 4
     end
 
-    @testset "3 -> (2,3) -> (3,3)" begin
+    @testset "broadcast 3 -> (2,3) -> (3,3)" begin
         (X, Y, Z, dA, dB) = (3, 3, 3, 2, 3)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -1014,7 +1014,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg2.β == 2
     end
 
-    @testset "3 -> (3,2) -> (3,3)" begin
+    @testset "broadcast 3 -> (3,2) -> (3,3)" begin
         (X, Y, Z, dA, dB) = (3, 3, 3, 3, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -1048,7 +1048,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg2.β == 2
     end
 
-    @testset "3 -> (3/2,2/3) -> (3,3)" begin
+    @testset "broadcast 3 -> (3/2,2/3) -> (3,3)" begin
 
         vertices_a = broadcast_vertices(3,3,3,3,2)
         vertices_b = broadcast_vertices(3,3,3,2,3)
@@ -1084,7 +1084,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg2.β == 2
     end
 
-    @testset "3 -> (2,2) -> (3,3)" begin
+    @testset "broadcast 3 -> (2,2) -> (3,3)" begin
         (X, Y, Z, dA, dB) = (3, 3, 3, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -1198,7 +1198,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
     end
 
-    @testset "4 -> (2,2) -> (3,3)" begin
+    @testset "broadcast 4 -> (2,2) -> (3,3)" begin
         (X, Y, Z, dA, dB) = (4, 3, 3, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -1207,7 +1207,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
     end
 
-    @testset "3 -> (2,2) -> (4,3)" begin
+    @testset "broadcast 3 -> (2,2) -> (4,3)" begin
         (X, Y, Z, dA, dB) = (3, 4, 3, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -1216,7 +1216,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
     end
 
 
-    @testset "3 -> (2,2) -> (4,3)" begin
+    @testset "broadcast 3 -> (2,2) -> (4,3)" begin
         (X, Y, Z, dA, dB) = (3, 4, 3, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -1228,7 +1228,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         facet_dict = LocalPolytope.facets(vertices)
     end
 
-    @testset "4 -> (2,2) -> (4,4)" begin
+    @testset "broadcast 4 -> (2,2) -> (4,4)" begin
         (X, Y, Z, dA, dB) = (4, 4, 4, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB, normalize=false)
@@ -1339,11 +1339,6 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_game_match2 = BellGame([1 0 0 0;0 0 1 0;1 0 0 1;0 0 0 1], 2)
         @test bell_game_match2 in bell_games
-
-
-
-
-
     end
 
     @testset  "bacon toner scenario 33->22" begin
