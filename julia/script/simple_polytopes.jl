@@ -236,7 +236,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_games = map(f -> convert(BellGame, f, BlackBox(2,6),rep="normalized"), facets)
 
-        classes_dict = facet_classes(X, Y, Z, bell_games)
+        classes_dict = bipartite_multiaccess_facet_classes(X, Y, Z, bell_games)
 
         @test length(keys(classes_dict)) == 2
 
@@ -271,7 +271,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_games = map(f -> convert(BellGame, f, BlackBox(2,6),rep="normalized"), facets)
 
-        classes_dict = facet_classes(X, Y, Z, bell_games)
+        classes_dict = bipartite_multiaccess_facet_classes(X, Y, Z, bell_games)
 
         @test length(keys(classes_dict)) == 2
 
@@ -306,7 +306,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_games = map(f -> convert(BellGame, f, BlackBox(2,8),rep="normalized"), facets)
 
-        classes_dict = facet_classes(X, Y, Z, bell_games)
+        classes_dict = bipartite_multiaccess_facet_classes(X, Y, Z, bell_games)
 
         @test length(keys(classes_dict)) == 3
 
@@ -348,7 +348,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_games = map(f -> convert(BellGame, f, BlackBox(2,10),rep="normalized"), facets)
 
-        classes_dict = facet_classes(X, Y, Z, bell_games)
+        classes_dict = bipartite_multiaccess_facet_classes(X, Y, Z, bell_games)
 
         @test length(keys(classes_dict)) == 3
 
@@ -391,7 +391,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_games = map(f -> convert(BellGame, f, BlackBox(2,9),rep="normalized"), facets)
 
-        classes_dict = facet_classes(X, Y, Z, bell_games)
+        classes_dict = bipartite_multiaccess_facet_classes(X, Y, Z, bell_games)
 
         @test length(keys(classes_dict)) == 20
 
@@ -553,7 +553,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_games = map(f -> convert(BellGame, f, BlackBox(2,9),rep="normalized"), facets)
 
-        classes_dict = facet_classes(X, Y, Z, bell_games)
+        classes_dict = bipartite_multiaccess_facet_classes(X, Y, Z, bell_games)
 
         @test length(keys(classes_dict)) == 6
 
@@ -617,7 +617,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_games = map(f -> convert(BellGame, f, BlackBox(2,9),rep="normalized"), facets)
 
-        classes_dict = facet_classes(X, Y, Z, bell_games)
+        classes_dict = bipartite_multiaccess_facet_classes(X, Y, Z, bell_games)
 
         @test length(keys(classes_dict)) == 6
 
@@ -682,7 +682,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
         bell_games = map(f -> convert(BellGame, f, BlackBox(2,9),rep="normalized"), facets)
 
-        classes_dict = facet_classes(3, 3, 2, bell_games)
+        classes_dict = bipartite_multiaccess_facet_classes(3, 3, 2, bell_games)
 
         @test length(keys(classes_dict)) == 8
 

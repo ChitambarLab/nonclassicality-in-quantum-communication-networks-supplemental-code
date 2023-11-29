@@ -116,7 +116,7 @@ using linear programming.
     end
 
     @testset "butterfly 33->2222->22" begin
-        vertices = quadpartitie_connected_vertices(3,3,2,2,2,2,2,2)
+        vertices = hourglass_network_vertices(3,3,2,2)
 
         diff_test = [
             1 0 0 0 1 0 0 0 1;
@@ -147,7 +147,7 @@ using linear programming.
     end
 
     @testset "butterfly 44->2222->22" begin
-        vertices = quadpartitie_connected_vertices(4,4,2,2,2,2,2,2)
+        vertices = hourglass_network_vertices(4,4,2,2)
 
         diff_test = [
             1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
@@ -177,9 +177,9 @@ using linear programming.
 
     end
 
-    @testset "min butterfly 33->2222->33" begin
-        vertices = quadpartitie_connected_vertices(3,3,3,3,2,2,2,2)
-        vertices_unnormalized = quadpartitie_connected_vertices(3,3,3,3,2,2,2,2, normalize=false)
+    @testset "hourglass 33->2222->33" begin
+        vertices = hourglass_network_vertices(3, 3, 3, 3)
+        vertices_unnormalized = hourglass_network_vertices(3, 3, 3, 3, normalize=false)
 
         polytope_dim = BellScenario.dimension(vertices)
         @test polytope_dim == 72
