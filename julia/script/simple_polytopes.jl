@@ -11,7 +11,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 """
 
 @testset "simple polytopes" begin
-    @testset "(2,2) -> (2,2) -> 2 only has non-negativity facets" begin
+    @testset "multiaccess (2,2) -> (2,2) -> 2 only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 2, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -31,7 +31,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         ]
     end
 
-    @testset "2 -> (2,2) -> (2,2) only has non-negativity facets" begin
+    @testset "broadcast 2 -> (2,2) -> (2,2) only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 2, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -86,7 +86,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         ]
     end
 
-    @testset "(2,2) -> (2,2) -> 3 only has non-negativity facets" begin
+    @testset "multiaccess (2,2) -> (2,2) -> 3 only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 3, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -108,7 +108,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         ]
     end
 
-    @testset "3 -> (2,2) -> (2,2) only has non-negativity facets" begin
+    @testset "broadcast 3 -> (2,2) -> (2,2) only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (3, 2, 2, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -139,7 +139,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         ]
     end
 
-    @testset "(2,2) -> (2,2) -> 4 only has non-negativity facets" begin
+    @testset "multiaccess (2,2) -> (2,2) -> 4 only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 4, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -165,7 +165,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         ]
     end
 
-    @testset "4 -> (2,2) -> (2,2) only has non-negativity facets" begin
+    @testset "broadcast 4 -> (2,2) -> (2,2) only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (4, 2, 2, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -192,7 +192,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         ]
     end
 
-    @testset "(2,2) -> (2,2) -> 5 only has non-negativity facets" begin
+    @testset "multiaccess (2,2) -> (2,2) -> 5 only has non-negativity facets" begin
         (X, Y, Z, dA, dB) = (2, 2, 5, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -220,7 +220,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         ]
     end
 
-    @testset "(3,2) -> (2,2) -> 2" begin
+    @testset "multiaccess (3,2) -> (2,2) -> 2" begin
         (X, Y, Z, dA, dB) = (3, 2, 2, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -255,7 +255,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg2.β == 4
     end
 
-    @testset "(2,3) -> (2,2) -> 2" begin
+    @testset "multiaccess (2,3) -> (2,2) -> 2" begin
         (X, Y, Z, dA, dB) = (2, 3, 2, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -290,7 +290,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg2.β == 4
     end
 
-    @testset "(4,2) -> (2,2) -> 2" begin
+    @testset "multiaccess (4,2) -> (2,2) -> 2" begin
         (X, Y, Z, dA, dB) = (4, 2, 2, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -332,7 +332,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg3.β == 6
     end
 
-    @testset "(5,2) -> (2,2) -> 2" begin
+    @testset "multiaccess (5,2) -> (2,2) -> 2" begin
         (X, Y, Z, dA, dB) = (5, 2, 2, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -374,7 +374,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg3.β == 6
     end
 
-    @testset "(3,3) -> (2,2) -> 2" begin
+    @testset "multiaccess (3,3) -> (2,2) -> 2" begin
         (X, Y, Z, dA, dB) = (3, 3, 2, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -537,7 +537,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
     end
 
 
-    @testset "(3,3) -> (2,3) -> 2" begin
+    @testset "multiaccess (3,3) -> (2,3) -> 2" begin
         (X, Y, Z, dA, dB) = (3, 3, 2, 2, 3)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -601,7 +601,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
     end
 
 
-    @testset "(3,3) -> (3,2) -> 2" begin
+    @testset "multiaccess (3,3) -> (3,2) -> 2" begin
         (X, Y, Z, dA, dB) = (3, 3, 2, 3, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -664,7 +664,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         @test bg6.β == 7
     end
 
-    @testset "(3,3) -> (3,2) -> 2 + (3,3) -> (2,3) -> 2" begin
+    @testset "multiaccess (3,3) -> (3,2) -> 2 + (3,3) -> (2,3) -> 2 one-bit one-trit" begin
 
         vertices_a = multi_access_vertices(3, 3, 2, 3, 2)
         vertices_b = multi_access_vertices(3, 3, 2, 2, 3)
@@ -744,7 +744,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
 
     end
 
-    @testset "(3,3) -> (2,2) -> 3" begin
+    @testset "multiaccess (3,3) -> (2,2) -> 3" begin
         (X, Y, Z, dA, dB) = (3, 3, 3, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -755,7 +755,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         # facet computation is too expensive
     end
 
-    @testset "(4,4) -> (2,2) -> 2" begin
+    @testset "multiaccess (4,4) -> (2,2) -> 2" begin
         (X, Y, Z, dA, dB) = (4, 4, 2, 2, 2)
 
         vertices = multi_access_vertices(X,Y,Z,dA,dB)
@@ -779,7 +779,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
     end
 
 
-    @testset "2 -> (2,2) -> (3,3) positivity only" begin
+    @testset "broadcast 2 -> (2,2) -> (3,3) positivity only" begin
         (X, Y, Z, dA, dB) = (2, 3, 3, 2, 2)
 
         vertices = broadcast_vertices(X,Y,Z,dA,dB)
@@ -817,7 +817,7 @@ is too large for an efficient enumeration of the facets using the PoRTA software
         
     end
 
-    @testset "(3,3) -> (2,2) -> (2,2) -> (3,3) interference" begin
+    @testset "interference (3,3) -> (2,2) -> (2,2) -> (3,3)" begin
         (X1, X2, Z1, Z2, dA1, dA2, dB1, dB2) = (3, 3, 3, 3, 2, 2, 2, 2)
 
         vertices = interference_vertices(X1,X2,Z1,Z2,dA1,dA2,dB1,dB2)

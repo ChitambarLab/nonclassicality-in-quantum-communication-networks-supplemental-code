@@ -3,6 +3,15 @@ using BellScenario
 
 include("../src/classical_network_vertices.jl")
 
+"""
+The goal of this script is to compute nonclassicality witnesses for multipoint communication networks.
+We consider both simulation games and facet inequalities as nonclassicality witnesses.
+For each considered network, we first enumerate the vertices of the classical network polytope.
+Using the vertices, the maximal score for a number of simulation games is calculated.
+Then, using the simulation game as a test behavior, tight facet inequalities are derived
+using linear programming.
+"""
+
 
 @testset "multipoint communication bounds" begin
     
@@ -175,11 +184,8 @@ include("../src/classical_network_vertices.jl")
         polytope_dim = BellScenario.dimension(vertices)
         @test polytope_dim == 72
 
-
         @test length(vertices) == 400689
         
-
-
         @test classical_bound(mult0_test, vertices_unnormalized) == 7
         @test classical_bound(mult1_test, vertices_unnormalized) == 6
         @test classical_bound(swap_test, vertices_unnormalized) == 5

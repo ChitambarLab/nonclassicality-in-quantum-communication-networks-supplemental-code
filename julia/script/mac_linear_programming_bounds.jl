@@ -3,6 +3,11 @@ using BellScenario
 
 include("../src/classical_network_vertices.jl")
 
+"""
+This script investigates the classical bounds of various simulation games in multiaccess networks.
+In each case, we enumerae the vertices for the network. Then, 
+"""
+
 @testset "(3,3)->(2,2)->2 qmac fingerprinting is local " begin
     
     vertices = multi_access_vertices(3,3,2,2,2)
@@ -32,25 +37,19 @@ end
     # bell_game = convert(BellGame, round.(Int, 2.6*raw_game), BlackBox(2,16), rep="normalized")
     bell_game = convert(BellGame, round.(Int, 3*raw_game), BlackBox(2,16), rep="normalized")
 
-    bell_game.β
+    @test bell_game.β == 10
 
-    verts = Array{Vector{Int}}([])
-    for v in vertices
-        if isapprox(sum([v...,-1].*raw_game), 0, atol=1e-6)
-            push!(verts, convert.(Int, v))
-        elseif sum([v...,-1].*raw_game) > 0
-            println("not a polytope bound")
-        end
-    end
-    verts
-
-    BellScenario.dimension(verts)
-    BellScenario.dimension(vertices)
+    @test bell_game == [
+        1  0  0  0  0  1  0  0  0  0  1  0  0  0  0  1;
+        0  1  2  2  1  0  1  1  0  0  0  1  0  0  0  0;
+    ]
 end
 
 @testset "(3,3)->(2,2)->3" begin
     
     vertices = multi_access_vertices(3,3,3,2,2)
+
+    @test length(vertices) == 633
 
     diff_test = [
         1 0 0 0 1 0 0 0 1;
@@ -61,27 +60,17 @@ end
     raw_game = optimize_linear_witness(vertices, diff_test[1:2,:][:])
     bell_game = convert(BellGame, round.(Int, 2*raw_game), BlackBox(3,9), rep="normalized")
 
-
-    verts = Array{Vector{Int}}([])
-    for v in vertices
-        if isapprox(sum([v...,-1].*raw_game), 0, atol=1e-6)
-            push!(verts, convert.(Int, v))
-        elseif sum([v...,-1].*raw_game) > 0
-            println("not a polytope bound")
-        end
-    end
-    verts
-
-    BellScenario.dimension(verts)
-    BellScenario.dimension(vertices)
-
-    println(raw_game)
+    @testt bell_game.β == 8
+    @test bell_game == [
+        2  0  0  0  1  0  0  0  1;
+        0  0  1  2  0  1  0  1  0;
+        1  1  1  1  0  2  1  0  0;
+    ]
 end
 
 @testset "(3,3) -> (2,2) -> 3" begin
     vertices33_22_3 = multi_access_vertices(3,3,3,2,2, normalize=false)
 
-    @test 633 == length(vertices33_22_3)
     
     compare_game = [
         1 0 0 0 1 0 0 0 1;
@@ -159,9 +148,6 @@ end
     raw_game = optimize_linear_witness(vertices, diff_test[1,:][:])
     bell_game = convert(BellGame, round.(Int, 2*raw_game), BlackBox(2,18), rep="normalized")
 
-
-    println(raw_game)
-
     @test raw_game ≈ [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] 
 end
 
@@ -192,22 +178,4 @@ end
     println(raw_game)
 
     @test raw_game ≈ [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] 
-end
-
-@testset "4-bit RAC" begin
-    
-    rac4 = [
-        1 1 1 1 1 1 1 0 1 1 0 1 1 1 0 0 1 0 1 1 1 0 1 0 1 0 0 1 1 0 0 0 0 1 1 1 0 1 1 0 0 1 0 1 0 1 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0.;
-        0 0 0 0 0 0 0 1 0 0 1 0 0 0 1 1 0 1 0 0 0 1 0 1 0 1 1 0 0 1 1 1 1 0 0 0 1 0 0 1 1 0 1 0 1 0 1 1 1 1 0 0 1 1 0 1 1 1 1 0 1 1 1 1.;
-    ]
-
-    rac4_verts = multi_access_vertices(16,4,2,2,4, normalize=false)
-
-    scores = []
-    for v in rac4_verts
-        push!(scores, sum(rac4[:] .* v))
-    end
-    println(max(scores...))
-
-    scores
 end
