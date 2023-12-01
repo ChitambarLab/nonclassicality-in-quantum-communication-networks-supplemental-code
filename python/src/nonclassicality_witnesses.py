@@ -4,7 +4,7 @@ import math
 
 def finger_printing_matrix(num_senders, num_in):
     """Constructs the matrix containing the winning answers
-    for the finger printing game.
+    for the finger printing (equality) simulation game.
     """
     ineq_tensor = np.zeros([num_in]*num_senders)
     match_ids = np.diag_indices(num_in, num_senders)
@@ -18,6 +18,10 @@ def finger_printing_matrix(num_senders, num_in):
 
 
 def bisender_mac_bounds():
+    """
+    The complete set of canonical facet inequalities that bound
+    the 3,3->2,2->2 multiaccess network.
+    """
     return [
         (4, np.array([[0,0,0,0,1,0,1,0,0],[1,1,0,1,0,0,0,0,0]])),
         (4, np.array([[0,0,1,0,1,0,0,0,0],[1,1,0,1,0,0,0,0,0]])),
@@ -41,6 +45,10 @@ def bisender_mac_bounds():
     ]
 
 def bisender_mac_qubit_simulation_games():
+    """
+    A collection of simulation games for networks having two inputs and one output.
+    The classical bound is calculated for the 3,3->2,2->2 multiaccess network scenario.
+    """
     return [
         (7, np.array([ # diff game
             [1,0,0,0,1,0,0,0,1],
@@ -88,6 +96,10 @@ def bisender_mac_qubit_simulation_games():
     ]
 
 def bipartite_broadcast_bounds():
+    """
+    A complete set of canonical facet inequalities that bound tthe 3->2,2->3,3 classical broadcast
+    network polytope.
+    """
     return [
         (1, np.array([[0,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,0,0]])),
         (2, np.array([[0, 0, 1],[0, 0, 0],[1, 0, 0],[0, 0, 0],[0, 1, 0],[1, 0, 0],[1, 0, 0],[1, 0, 0],[1, 0, 0]])),
@@ -99,6 +111,9 @@ def bipartite_broadcast_bounds():
     ]
 
 def qubit_signaling_dimension_bounds():
+    """
+    A complete set of canonical facet inequalities that bound the X->2->Y point-to-point network (see https://arxiv.org/abs/2102.12543).
+    """
     return [
         (2, np.array([[1,0,0],[1,0,0],[0,1,0],[0,0,1]])),
         (2, np.eye(4)),
@@ -111,6 +126,15 @@ def qubit_signaling_dimension_bounds():
     ]
 
 def interference_33_33_network_bounds():
+    """
+    A collection of simulation game and facet inequality nonclassicality witnesses
+    for the 3,3->3,3 interference network. The facet inequalities are each derived from
+    the behavior matrix of the corresponding simulation game using the linear programming
+    approach to deriving facet inequalities.
+
+    A 3-tuple is returned containing the set of simulation games, the set of facet inequalities,
+    and list of names identifying the set simulation games.
+    """
     interference_game_inequalities = [
         (7, np.array([ # multiplication with zero 
             [1, 1, 1, 1, 0, 0, 1, 0, 0],
@@ -289,6 +313,15 @@ def interference_33_33_network_bounds():
 
 
 def interference2_33_33_network_bounds():
+    """
+    A collection of simulation game and facet inequality nonclassicality witnesses
+    for the 3,3->3,3 compressed interference network. The facet inequalities are each derived from
+    the behavior matrix of the corresponding simulation game using the linear programming
+    approach to deriving facet inequalities.
+
+    A 3-tuple is returned containing the set of simulation games, the set of facet inequalities,
+    and list of names identifying the set simulation games.
+    """
     interference2_game_inequalities = [
         (7, np.array([ # multiplication with zero 
             [1, 1, 1, 1, 0, 0, 1, 0, 0],
@@ -466,8 +499,17 @@ def interference2_33_33_network_bounds():
     return interference2_game_inequalities, interference2_facet_inequalities, game_names
 
 
-def min_butterfly_33_33_network_bounds():
-    min_butterfly_game_inequalities = [
+def hourglass_33_33_network_bounds():
+    """
+    A collection of simulation game and facet inequality nonclassicality witnesses
+    for the 3,3->3,3 hourglass network. The facet inequalities are each derived from
+    the behavior matrix of the corresponding simulation game using the linear programming
+    approach to deriving facet inequalities.
+
+    A 3-tuple is returned containing the set of simulation games, the set of facet inequalities,
+    and list of names identifying the set simulation games.
+    """
+    hourglass_game_inequalities = [
         (7, np.array([ # multiplication with zero 
             [1, 1, 1, 1, 0, 0, 1, 0, 0],
             [0, 0, 0, 0, 1, 0, 0, 0, 0],
@@ -548,7 +590,7 @@ def min_butterfly_33_33_network_bounds():
         (5, np.eye(9)), # communication value
     ]
 
-    min_butterfly_facet_inequalities = [
+    hourglass_facet_inequalities = [
         (16, np.array([ # mult0
             [2,  2,  2,  2,  1,  0,  2,  0,  2],
             [1,  1,  1,  1,  2,  0,  1,  1,  2],
@@ -641,10 +683,19 @@ def min_butterfly_33_33_network_bounds():
 
     game_names = ["mult0", "mult1", "swap", "adder", "compare", "perm", "diff", "cv"]
     
-    return min_butterfly_game_inequalities, min_butterfly_facet_inequalities, game_names
+    return hourglass_game_inequalities, hourglass_facet_inequalities, game_names
 
 
 def butterfly_33_33_network_bounds():
+    """
+    A collection of simulation game and facet inequality nonclassicality witnesses
+    for the 3,3->3,3 butterfly network. The facet inequalities are each derived from
+    the behavior matrix of the corresponding simulation game using the linear programming
+    approach to deriving facet inequalities.
+
+    A 3-tuple is returned containing the set of simulation games, the set of facet inequalities,
+    and list of names identifying the set simulation games.
+    """
     butterfly_game_inequalities = [
         (7, np.array([ # multiplication with zero 
             [1, 1, 1, 1, 0, 0, 1, 0, 0],
@@ -822,6 +873,15 @@ def butterfly_33_33_network_bounds():
     return butterfly_game_inequalities, butterfly_facet_inequalities, game_names
 
 def mac_33_22_9_network_bounds():
+    """
+    A collection of simulation game and facet inequality nonclassicality witnesses
+    for the 3,3->2,2->9 multiaccess network. The facet inequalities are each derived from
+    the behavior matrix of the corresponding simulation game using the linear programming
+    approach to deriving facet inequalities.
+
+    A 3-tuple is returned containing the set of simulation games, the set of facet inequalities,
+    and list of names identifying the set simulation games.
+    """
     mac_game_inequalities = [
         (7, np.array([ # multiplication with zero 
             [1, 1, 1, 1, 0, 0, 1, 0, 0],
@@ -999,6 +1059,9 @@ def mac_33_22_9_network_bounds():
     return mac_game_inequalities, mac_facet_inequalities, game_names
 
 def broadcast_4_22_44_network_bounds():
+    """
+    Returns 3 nonclassicality witnesses obtained for 4->2,2->4,4 broadcast networks.
+    """
     bc_facet_inequalities = [
         (2, np.array([ # correlated communication value
             [1,0,0,0],
@@ -1018,7 +1081,7 @@ def broadcast_4_22_44_network_bounds():
             [0,0,0,1],
             [0,0,1,0],
         ])),
-        (8, np.array(  # derived from PR-box-asissted receiver CHSH violation
+        (8, np.array(  # facet inequality derived from PR-box-asissted receiver CHSH violation
             [
                 [3,0,0,0],
                 [0,3,0,0],
@@ -1038,7 +1101,7 @@ def broadcast_4_22_44_network_bounds():
                 [2,2,1,2],
             ]
         )),
-        (2, np.array([
+        (2, np.array([  # broadcast communication value
             [1,0,0,0],
             [0,0,0,0],
             [0,0,0,0],
@@ -1061,6 +1124,15 @@ def broadcast_4_22_44_network_bounds():
     return bc_facet_inequalities
 
 def broadcast_9_22_33_network_bounds():
+    """
+    A collection of simulation game and facet inequality nonclassicality witnesses
+    for the 9->2,2->3,3 broadcast network. The facet inequalities are each derived from
+    the behavior matrix of the corresponding simulation game using the linear programming
+    approach to deriving facet inequalities.
+
+    A 3-tuple is returned containing the set of simulation games, the set of facet inequalities,
+    and list of names identifying the set simulation games.
+    """
     bc_game_inequalities = [
         (7, np.array([ # multiplication with zero 
             [1, 1, 1, 1, 0, 0, 1, 0, 0],
@@ -1239,6 +1311,11 @@ def broadcast_9_22_33_network_bounds():
 
 
 def rac_game(n):
+    """
+    Returns the random access coding (RAC) game tuple where one bit of communication
+    is used and the sender is given an n-bit input. The classical bound is obtained
+    from https://arxiv.org/abs/0810.2937 (Eq. 25) 
+    """
     X = 2**n
     Y = n
 
@@ -1261,6 +1338,10 @@ def rac_game(n):
 
 
 def multiaccess_33_23_2_bounds():
+    """
+    Returns a complete set of canonical facet inequalities that bound
+    the 3,3->2,3->2 multiaccess network.
+    """
     return [
         (4, np.array([
             [0,  0,  0,  0,  1,  0,  1,  0,  0],
@@ -1285,6 +1366,10 @@ def multiaccess_33_23_2_bounds():
     ]
 
 def multiaccess_33_32_2_bounds():
+    """
+    Returns a complete set of canonical facet inequalities that bound
+    the 3,3->3,2->2 multiaccess network.
+    """
     return [
         (4, np.array([
             [0,  0,  1, 0,  1,  0,  0,  0,  0],
@@ -1309,6 +1394,10 @@ def multiaccess_33_32_2_bounds():
     ]
 
 def multiaccess_twotrit_witnesses():
+    """
+    Returns a complete set of canonical facet inequalities that bound
+    the 3,3->2/3,3/2->2 multiaccess network.
+    """
     return [
         (6, np.array([
             [0,  0,  0,  0,  1,  0,  1,  0,  0],
@@ -1341,6 +1430,10 @@ def multiaccess_twotrit_witnesses():
     ]
 
 def prepare_and_measure_inequalities():
+    """
+    Returns a collection of nonclassicality witnesses, both facet inequalities
+    and simulation games, for the bipartite prepare-and-measure scenario.
+    """
     return [
         (4, np.array([ # 3 input dimensionality witness
             [0,  0,  0,  1,  1,  0],

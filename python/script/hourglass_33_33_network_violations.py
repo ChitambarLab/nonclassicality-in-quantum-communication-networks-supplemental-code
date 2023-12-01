@@ -21,7 +21,7 @@ inequalities demonstrate a quantum advanttage.
 if __name__=="__main__":
 
 
-    data_dir = "data/min_butterfly_33_33_network_violations/"
+    data_dir = "data/hourglass_33_33_network_violations/"
 
     # postmap3 = np.array([
     #     [1,0,0,0],[0,1,0,0],[0,0,1,1],
@@ -114,11 +114,11 @@ if __name__=="__main__":
         earx_qbf_meas_nodes,
     ]
 
-    min_butterfly_game_inequalities, min_butterfly_facet_inequalities, game_names = src.min_butterfly_33_33_network_bounds()
+    hourglass_game_inequalities, hourglass_facet_inequalities, game_names = src.hourglass_33_33_network_bounds()
 
     for i in range(1,2):
-        butterfly_game_inequality = min_butterfly_game_inequalities[i]
-        butterfly_facet_inequality = min_butterfly_facet_inequalities[i]
+        butterfly_game_inequality = hourglass_game_inequalities[i]
+        butterfly_facet_inequality = hourglass_facet_inequalities[i]
 
         print("name = ", game_names[i])
         inequality_tag = "I_" + game_names[i] + "_"
