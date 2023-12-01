@@ -9,6 +9,16 @@ import qnetvo as qnet
 import context
 import src
 
+"""
+The goal of this script is to identify quantum resource configurations of the 3,3->2,3->2 and
+3,3->3,2->2 multiaccess networks whose behaviors that can achieve nonclassicality. To achieve this goal,
+this script collects numerical optimization data for maximizing nonclassicality against the computed
+set facet inequalities for the 3,3->2,3->2 and 3,3->3,2->2 scenarios. Violations of these inequalities
+demonstrate that the considered resource configuration requires cannot be simulated classically without
+increasing the signaling dimension. Note that the network polytopes considered in these scenarios are
+contained by the 3,3->2/3,3/2->2 scenario in which the trit of communication is not linked to one particular
+sender.
+"""
 
 if __name__=="__main__":
 

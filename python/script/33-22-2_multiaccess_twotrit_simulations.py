@@ -9,47 +9,14 @@ import qnetvo as qnet
 import context
 import src
 
-# def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
-#     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
-#     handle errors during computation.
-#     This function is called with the same parameters as ``qnetvo.gradient_descent``.
-#     Optimization errors will result in an empty optimization dictionary.
-#     """
-#     try:
-#         opt_dict = qnet.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
-#     except Exception as err:
-#         print("An error occurred during gradient descent.")
-#         print(err)
-#         opt_dict = {
-#             "opt_score": np.nan,
-#             "opt_settings": [[], []],
-#             "scores": [np.nan],
-#             "samples": [0],
-#             "settings_history": [[[], []]],
-#         }
-
-#     return opt_dict
-
-# def src.optimize_inequality(nodes, postmap, inequality, **gradient_kwargs):
-
-#     mac_ansatz = qnet.NetworkAnsatz(*nodes)
-
-#     def opt_fn(placeholder_param):
-
-#         print("\nclassical bound : ", inequality[0])
-
-#         settings = mac_ansatz.rand_network_settings()
-#         cost = qnet.linear_probs_cost_fn(mac_ansatz, inequality[1], postmap)
-#         opt_dict = _gradient_descent_wrapper(cost, settings, **gradient_kwargs)
-
-#         print("\nmax_score : ", max(opt_dict["scores"]))
-#         print("violation : ", max(opt_dict["scores"]) - inequality[0])
-
-#         return opt_dict
-
-
-#     return opt_fn
-
+"""
+The goal of this script is to identify quantum resource configurations of the 3,3->2,2->2 multiaccess
+network whose behaviors require two-trits of communication to simulate. To achieve this goal,
+this script collects numerical optimization data for maximizing nonclassicality against the computed
+set facet inequalities for the 3,3->2/3,3/2->2 scenario, in which one-bit and one-trit of communication
+are used in the network. Violations of these inequalities demonstrate that the considered resource
+configuration requires two-trits to be simulated.
+"""
 
 if __name__=="__main__":
 

@@ -9,16 +9,22 @@ import qnetvo
 import context
 import src
 
+"""
+The goal of this script is to identify quantum resource configurations of the 3,3->2,2->3 broadcast
+network that can produce nonclassical behaviors. To achieve this goal,
+this script collects numerical optimization data for maximizing nonclassicality against the computed
+set facet inequalities for the 3->2,2->3,3 broadcast scenario, in which one-bit of classical communication
+is used by to communicate to each receiver. Violations of these inequalities demonstrate that the considered resource
+configuration requires cannot be simulated classically without increasing the signaling dimension.
+"""
+
 if __name__=="__main__":
 
-
     data_dir = "data/bipartite_broadcast_quantum_violations/"
-
 
     qubit_projector_postmap = np.array([[1,0],[0,1],[0,0]])
     qubit_povm_postmap = np.array([[1,0,1,0],[0,1,0,0],[0,0,0,1]])
     # qubit_povm_postmap = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,1]])
-
 
     projector_postmap = np.kron(qubit_projector_postmap, qubit_projector_postmap)
     povm_postmap = np.kron(qubit_povm_postmap, qubit_povm_postmap)
@@ -87,10 +93,6 @@ if __name__=="__main__":
         qml.ArbitraryStatePreparation(settings, [wires[0], wires[2]])
         qml.Hadamard(wires=wires[1])
         qml.CNOT(wires=[wires[1],wires[3]])
-
-
-
-
 
 
     broadcast_povm_prep_nodes = [

@@ -9,6 +9,13 @@ import qnetvo
 import context
 import src
 
+"""
+The goal of this script is to identify quantum resource configurations of the 3,3->3,3 butterfly
+network that can produce nonclassical behaviors. Note that all communication has signaling dimension d=2.
+To achieve this goal, this script collects numerical optimization data for maximizing nonclassicality against the computed
+set facet inequalities and simulation games for the considered butterfly nettwork. Violations of these
+inequalities demonstrate a quantum advanttage.
+"""
 
 if __name__=="__main__":
 

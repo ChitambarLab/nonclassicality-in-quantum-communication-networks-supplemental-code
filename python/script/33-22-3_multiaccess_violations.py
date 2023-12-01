@@ -9,6 +9,14 @@ import qnetvo as qnet
 import context
 import src
 
+"""
+The goal of this script is to identify quantum resource configurations of the multiaccess
+network that can produce nonclassical behaviors with respect to simulation games. To achieve this goal,
+this script collects numerical optimization data for maximizing nonclassicality against the set of games
+in the `src.bisender_mac_qubit_simulation_games` function.
+Violations of these inequalities demonstrate precise distributed information processing tasks that admit
+an operational quantum advantage.
+"""
 
 if __name__=="__main__":
 
@@ -277,7 +285,7 @@ if __name__=="__main__":
     inequalities = src.bisender_mac_qubit_simulation_games()
 
     
-    for i in [1]:#range(0,len(inequalities)):
+    for i in range(0,len(inequalities)):
         inequality = inequalities[i]
 
         print("i = ", i)

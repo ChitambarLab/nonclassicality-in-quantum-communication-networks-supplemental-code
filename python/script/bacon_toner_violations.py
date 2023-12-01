@@ -9,6 +9,16 @@ import qnetvo
 import context
 import src
 
+"""
+The goal of this script is to identify quantum resource configurations that can lead to nonclassical
+behaviors in a bipartite Bell scenario assisted by one-bit of one-way communication from one device to another.
+Note that only one device can use a bit, while the receiver is unable to signal.
+To achieve this goal, this script collects numerical optimization data for maximizing nonclassicality against the
+linear ineiqualities derived by Bacon and Toner (https://arxiv.org/abs/quant-ph/0208057).
+Violations of these inequalities demonstrate that a bit of classical signaling is insufficient to simulate the
+quantum resource.
+"""
+
 if __name__=="__main__":
 
 

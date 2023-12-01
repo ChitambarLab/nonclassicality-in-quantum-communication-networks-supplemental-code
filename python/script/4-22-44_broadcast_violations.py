@@ -9,46 +9,13 @@ import qnetvo
 import context
 import src
 
-# def _gradient_descent_wrapper(*opt_args, **opt_kwargs):
-#     """Wraps ``qnetvo.gradient_descent`` in a try-except block to gracefully
-#     handle errors during computation.
-#     This function is called with the same parameters as ``qnetvo.gradient_descent``.
-#     Optimization errors will result in an empty optimization dictionary.
-#     """
-#     try:
-#         opt_dict = qnetvo.gradient_descent(*opt_args, **opt_kwargs, optimizer="adam")
-#     except Exception as err:
-#         print("An error occurred during gradient descent.")
-#         print(err)
-#         opt_dict = {
-#             "opt_score": np.nan,
-#             "opt_settings": [[], []],
-#             "scores": [np.nan],
-#             "samples": [0],
-#             "settings_history": [[[], []]],
-#         }
-
-#     return opt_dict
-
-# def src.optimize_inequality(nodes, postmap, inequality, fixed_setting_ids=[], fixed_settings=[], **gradient_kwargs):
-
-#     network_ansatz = qnetvo.NetworkAnsatz(*nodes)
-
-#     def opt_fn(placeholder_param):
-
-#         print("\nclassical bound : ", inequality[0])
-
-#         settings = network_ansatz.rand_network_settings(fixed_setting_ids=fixed_setting_ids,fixed_settings=fixed_settings)
-#         cost = qnetvo.linear_probs_cost_fn(network_ansatz, inequality[1], postmap)
-#         opt_dict = _gradient_descent_wrapper(cost, settings, **gradient_kwargs)
-
-#         print("\nmax_score : ", max(opt_dict["scores"]))
-#         print("violation : ", max(opt_dict["scores"]) - inequality[0])
-
-#         return opt_dict
-
-
-#     return opt_fn
+"""
+This script collects numerical optimization data for maximizing nonclassicality in the
+4->2,2->4,4 broadcast network against our set of known nonclassicality witnesses for the scenario.
+The goal of the script is to identify resource configurations that can provide a quantum nonclassicality
+advantage. Notably, we investigate the role of entanglement-assisted receivers in establishing nonclassical
+behaviors.
+"""
 
 if __name__=="__main__":
 

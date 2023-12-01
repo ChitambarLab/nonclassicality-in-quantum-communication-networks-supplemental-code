@@ -9,7 +9,13 @@ import qnetvo
 import context
 import src
 
-
+"""
+The goal of this script is to identify quantum resource configurations in the bipartite prepare-and-measure scenario 
+that can produce nonclassical behaviors with respect to the random access coding game. To achieve this goal,
+this script collects numerical optimization data for maximizing nonclassicality against the computed set facet inequalities
+and simulation games for the considered  prepare and measure scenario. Violations of these inequalities demonstrate a
+quantum advanttage over classical signaling.
+"""
 
 if __name__=="__main__":
 

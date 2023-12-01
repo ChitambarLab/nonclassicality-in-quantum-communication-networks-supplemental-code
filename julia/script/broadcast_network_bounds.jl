@@ -35,7 +35,7 @@ This script uses linear programming to obtain facet inequalities of broadcast ne
         polytope_dim_4_22_44 = BellScenario.dimension(vertices_4_22_44)
         @test polytope_dim_4_22_44 == 60
 
-        @testset "conditional perm game" begin
+        @testset "broadcast cv game" begin
             cv_test = [
                 1 0 0 0;0 0 0 0;0 0 0 0;0 0 0 0;
                 0 0 0 0;0 1 0 0;0 0 0 0;0 0 0 0;
@@ -43,12 +43,8 @@ This script uses linear programming to obtain facet inequalities of broadcast ne
                 0 0 0 0;0 0 0 0;0 0 0 0;0 0 0 1;
             ]
 
-            perm_max_violation = max(map(v -> sum(perm_test[:] .* v), vertices_4_22_44_unnormalized)...)
-            @test perm_max_violation ==4
-
             raw_game_cv_4_22_44 = optimize_linear_witness(vertices_4_22_44, cv_test[1:end-1,:][:])
 
-            println(raw_game_perm_4_22_44*2)
             bg_cv_4_22_44 = convert(BellGame, round.(Int, 2*raw_game_cv_4_22_44), BlackBox(16,4), rep="normalized")
 
             println(bg_cv_4_22_44)
@@ -67,7 +63,7 @@ This script uses linear programming to obtain facet inequalities of broadcast ne
             @test bg_cv_4_22_44.β == 7
         end
 
-        @testset "entangeld receiver game" begin
+        @testset "entangled receiver game" begin
             test_game = [
                 1 0.  0.  0. ;
                 0.  0.  0.  0. ;
@@ -91,7 +87,7 @@ This script uses linear programming to obtain facet inequalities of broadcast ne
             @test max_violation == 4
         end
 
-        @testsett "pr-box assisted receivers" begin
+        @testset "pr-box assisted receivers" begin
             pr_mat = hcat(
                 kron([1;0],[0.5;0;0;0.5],[1;0]),
                 kron([1;0],[0.5;0;0;0.5],[0;1]),
@@ -197,7 +193,7 @@ This script uses linear programming to obtain facet inequalities of broadcast ne
         ]
         println(magic_squares_game)
 
-        # no advantageg
+        # no advantage
         ms_max_violation = max(map(v -> sum(magic_squares_game[:] .* v), vertices_9_22_44_unnormalized)...)
         @test ms_max_violation == 9
     end

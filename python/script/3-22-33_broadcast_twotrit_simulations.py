@@ -6,10 +6,19 @@ from datetime import datetime
 
 import qnetvo
 
-
 import context
 import src
 
+"""
+This script collects numerical optimization data for maximizing nonclassicality in 3->2,2->
+3,3 broadcast against the broadcast communication value simulation game, e.g. each receiver must
+output the input. The broadcast communication value game is a facet inequality of the
+3->2/3,3/2->3,3 broadcast scenario where one trit and one bit of communication are used.
+In this script we consider a broad range of resource configurations where the signaling dimension
+is d=2 between the sender and each receiver. The goal of the script is to identify resource
+configurations that cannot be simulated using one bit and one trit of classical communication, meaning 
+that two-trits are required to simulate the violations we find in this script.
+"""
 
 if __name__=="__main__":
 
