@@ -16,7 +16,14 @@ The respective dependencies are managed using the Julia package manager and Cond
 ### Julia
 
 Julia is a programming language for high-performance computing. Follow the [Julia Installation Instructions](https://julialang.org/downloads/)
-to download and install the latest version of Julia. To run a Julia script, navigate to the root project directory and run the command:
+to download and install the latest version of Julia.
+To install the julia dependencies, open a julia prompt and run the command:
+
+```
+$ julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
+```
+
+To run a Julia script, navigate to the root project directory and run the command:
 
 ```
 $ julia --project=. julia/script/name_of_script.jl
@@ -28,7 +35,7 @@ Note that the `--project=.` flag sets up the Julia environment to use the depend
 
 To run a Python script or notebook, we use Conda to manage the environment:
 
-1. Visit the [Conda Installation Page](https://conda.io/projects/conda/en/latest/user-guide/install/index.html#installation) for detaisl on how
+1. Visit the [Conda Installation Page](https://conda.io/projects/conda/en/latest/user-guide/install/index.html#installation) for details on how
    to install the `conda` command line tool.
 2. To set up the development environment, navigate to the root project directory and run the command:
 
