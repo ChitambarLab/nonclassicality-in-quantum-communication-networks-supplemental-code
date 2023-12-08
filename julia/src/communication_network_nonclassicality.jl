@@ -710,35 +710,3 @@ function bipartite_interference_facet_classes(X1,X2,Y1,Y2, bell_games)
 
     return polytope_facet_classes(input_perms, output_perms, bell_games)
 end
-
-"""
-Implements the linear program for obtaining a facet inequality that witnesses the nonclassciality of the
-provided `test_point` (see https://arxiv.org/abs/1303.2849 Eq. 19). A complete set of enumerated vertices are
-required as input. The optimized facet inequality is returned in vector form.
-"""
-function optimize_linear_witness(vertices, test_point)
-    dim_v = length(vertices[1]) + 1
-
-    # initializing modell
-    model = Model(HiGHS.Optimizer)
-
-    # adding variable for inequality
-    @variable(model, s[1:dim_v])
-
-    # adding constraints to model
-    for v in vertices
-        va = [v..., -1]
-        @constraint(model, sum(s.*va) <= 0)
-    end
-
-    @constraint(model, c, sum(s.*[test_point..., -1]) <= 1)
-
-    # defining the optimization objective
-    @objective(model, Max, sum(s.*[test_point..., -1]))
-
-    # optimizing
-    optimize!(model)
-
-    # return optimized linear inequality
-    return value.(s)
-end
