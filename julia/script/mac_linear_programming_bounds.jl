@@ -8,6 +8,9 @@ This script investigates the classical bounds of various simulation games in mul
 In each case, we enumerae the vertices for the network. Then, 
 """
 
+
+@testset "multiaccess network classical bounds" begin
+
 @testset "(3,3)->(2,2)->2 qmac fingerprinting is local " begin
     
     vertices = multi_access_vertices(3,3,2,2,2)
@@ -17,7 +20,7 @@ In each case, we enumerae the vertices for the network. Then,
         1 3 3 3 1 3 3 3 1;
     ] / 4
 
-    raw_game = optimize_linear_witness(vertices, diff_test[1,:][:])
+    raw_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, diff_test[1,:][:])
 
     @test raw_game ≈ [0,0,0,0,0,0,0,0,0,0] 
 end
@@ -32,7 +35,7 @@ end
         0 1 1 1 1 0 1 1 1 1 0 1 1 1 1 0;
     ]
 
-    raw_game = optimize_linear_witness(vertices, fp_test[1,:][:])
+    raw_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, fp_test[1,:][:])
 
     # bell_game = convert(BellGame, round.(Int, 2.6*raw_game), BlackBox(2,16), rep="normalized")
     bell_game = convert(BellGame, round.(Int, 3*raw_game), BlackBox(2,16), rep="normalized")
@@ -57,20 +60,27 @@ end
         0 0 1 0 0 0 1 0 0;
     ]
 
-    raw_game = optimize_linear_witness(vertices, diff_test[1:2,:][:])
+    raw_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, diff_test[1:2,:][:])
     bell_game = convert(BellGame, round.(Int, 2*raw_game), BlackBox(3,9), rep="normalized")
 
-    @test bell_game.β == 8
-    @test bell_game == [
-        2  0  0  0  1  0  0  0  1;
-        0  0  1  2  0  1  0  1  0;
-        1  1  1  1  0  2  1  0  0;
+    # Note: result from earlier version of HiGHS (v0.2.3)
+    # @test bell_game.β == 8
+    # @test bell_game == [
+    #     2  0  0  0  1  0  0  0  1;
+    #     0  0  1  2  0  1  0  1  0;
+    #     1  1  1  1  0  2  1  0  0;
+    # ]
+
+    # Note: results obtained with current version (v1.7.5) of HiGHS solver
+    diff_test_facet_match2 = [
+        1 0 0 0 3 0 0 0 1;
+        1 0 0 0 0 3 0 1 0;
+        0 1 1 1 2 2 1 0 0;
     ]
-end
+    @test bell_game.β == 9
+    @test bell_game == diff_test_facet_match2
 
-@testset "(3,3) -> (2,2) -> 3" begin
-    vertices33_22_3 = multi_access_vertices(3,3,3,2,2, normalize=false)
-
+    vertices33_22_3_unnorm = multi_access_vertices(3,3,3,2,2, normalize=false)
     
     compare_game = [
         1 0 0 0 1 0 0 0 1;
@@ -78,7 +88,7 @@ end
         0 0 0 1 0 0 1 1 0;
     ]
 
-    @test 7 == max(map(v -> sum(v[:].*compare_game[:]), vertices33_22_3)...)
+    @test 7 == max(map(v -> sum(v[:].*compare_game[:]), vertices33_22_3_unnorm)...)
 end
 
 @testset "(3,3) -> (2,2) -> 2" begin
@@ -168,3 +178,5 @@ end
 #     @test 8 == max(map(tuple -> tuple[2], game1_scores)...)
 #     @test 10 == max(map(tuple -> tuple[2], game2_scores)...)
 # end
+
+end

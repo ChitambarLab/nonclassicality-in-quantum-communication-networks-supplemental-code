@@ -118,7 +118,7 @@ using linear programming.
     @testset "butterfly 33->2222->22" begin
         vertices = hourglass_network_vertices(3,3,2,2)
 
-        diff_test = [
+        diff_test_33 = [
             1 0 0 0 1 0 0 0 1;
             0 1 0 1 0 1 0 1 0;
             0 0 1 0 0 0 1 0 0;
@@ -127,53 +127,41 @@ using linear programming.
 
         @test length(vertices) == 10816
 
-        raw_diff_game = optimize_linear_witness(vertices, diff_test[1:3,:][:])
+        raw_diff_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, diff_test_33[1:3,:][:])
 
         println(raw_diff_game)
 
         bell_diff_game = convert(BellGame, round.(Int, 2*raw_diff_game), BlackBox(4,9), rep="normalized")
 
-        diff_game_match = [
-            0  1  0  1  1  0  0  1  3;
-            0  2  0  2  0  1  0  1  2;
-            0  0  2  0  1  0  2  0  0;
-            1  1  2  1  1  0  2  0  0;
+        println(bell_diff_game)
+
+        # Note this game is optiimized for HiGHS (v0.2.3)
+        # diff_game_match = [
+        #     0  1  0  1  1  0  0  1  3;
+        #     0  2  0  2  0  1  0  1  2;
+        #     0  0  2  0  1  0  2  0  0;
+        #     1  1  2  1  1  0  2  0  0;
+        # ]
+
+        # @test bell_diff_game == diff_game_match
+
+        # @test bell_diff_game.β == 12
+
+        # Note this result is obtained using recent versions of HiGHS
+        diff_game_match_2 = [
+            4 1 0 1 1 1 0 1 4;
+            0 2 4 5 0 5 0 1 0;
+            1 0 2 0 1 0 2 0 1;
+            1 1 6 4 1 4 2 0 1;
         ]
 
-        @test bell_diff_game == diff_game_match
+        @test bell_diff_game == diff_game_match_2
 
-        @test bell_diff_game.β == 12
+        @test bell_diff_game.β == 24
 
-    end
-
-    @testset "butterfly 44->2222->22" begin
-        vertices = hourglass_network_vertices(4,4,2,2)
-
-        diff_test_44 = [
-            1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
-            0 1 0 0 1 0 1 0 0 1 0 1 0 0 1 0;
-            0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 0;
-            0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0;
-        ]
-
-        @test length(vertices) == 270400
-
-        raw_diff_game = optimize_linear_witness(vertices, diff_test_44[1:3,:][:])
-
-        println(raw_diff_game)
-
-        bell_diff_game = convert(BellGame, round.(Int, 2*raw_diff_game), BlackBox(4,16), rep="normalized")
-
-        diff_game_match = [
-            1  0  0  0  0  1  1  1  0  1  1  0  1  0  0  1;
-            0  1  0  0  1  0  2  0  0  1  0  0  0  0  0  1;
-            0  0  1  1  0  1  0  2  1  0  1  0  1  1  0  0;
-            0  1  2  2  1  1  1  2  1  0  1  0  1  1  0  0;
-        ]
-
-        @test bell_diff_game == diff_game_match
-
-        @test bell_diff_game.β == 15
+        polytope_dim = BellScenario.dimension(vertices)
+        @test polytope_dim == 27
+        @test polytope_dim == facet_dimension(vertices, raw_diff_game) + 1
     end
 
     @testset "hourglass 33->2222->33" begin
@@ -195,7 +183,7 @@ using linear programming.
         @test classical_bound(cv_test, vertices_unnormalized) == 5 
  
 
-        raw_mult1_game = optimize_linear_witness(vertices, mult1_test[1:8,:][:])
+        raw_mult1_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, mult1_test[1:8,:][:])
         println(raw_mult1_game)
         bell_mult1_game = convert(BellGame, round.(Int, 4*raw_mult1_game), BlackBox(9,9), rep="normalized")
 
@@ -216,7 +204,7 @@ using linear programming.
         @test bell_mult1_game == mult1_game_match
         @test bell_mult1_game.β == 13
 
-        raw_mult0_game = optimize_linear_witness(vertices, mult0_test[1:8,:][:])
+        raw_mult0_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, mult0_test[1:8,:][:])
         println(3*raw_mult0_game)
         bell_mult0_game = convert(BellGame, round.(Int, 3*raw_mult0_game), BlackBox(9,9), rep="normalized")
 
@@ -235,7 +223,7 @@ using linear programming.
         @test bell_mult0_game == mult0_game_match
         @test bell_mult0_game.β == 16
 
-        raw_swap_game = optimize_linear_witness(vertices, swap_test[1:8,:][:])
+        raw_swap_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, swap_test[1:8,:][:])
         println(raw_swap_game)
         bell_swap_game = convert(BellGame, round.(Int, 3*raw_swap_game), BlackBox(9,9), rep="normalized")
 
@@ -254,26 +242,40 @@ using linear programming.
         @test bell_swap_game == swap_game_match
         @test bell_swap_game.β == 13
 
-        raw_adder_game = optimize_linear_witness(vertices, adder_test[1:8,:][:])
+        raw_adder_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, adder_test[1:8,:][:])
         println(5*raw_adder_game)
         bell_adder_game = convert(BellGame, round.(Int, 5*raw_adder_game), BlackBox(9,9), rep="normalized")
 
+        # Note: Obtained using older versions the HiGHS Solver (v0.2.3)
+        # adder_game_match = [
+        #     2  0  0  0  0  2  0  1  0;
+        #     0  2  0  2  1  0  0  0  1;
+        #     0  1  2  1  2  1  1  0  0;
+        #     2  0  0  0  0  2  0  1  0;
+        #     0  2  0  1  1  1  0  0  1;
+        #     0  1  2  1  1  1  1  0  0;
+        #     2  0  0  0  0  2  0  1  0;
+        #     0  1  0  2  1  0  0  0  1;
+        #     1  1  2  1  2  1  1  0  0;
+        # ]
+
         adder_game_match = [
-            2  0  0  0  0  2  0  1  0;
-            0  2  0  2  1  0  0  0  1;
-            0  1  2  1  2  1  1  0  0;
-            2  0  0  0  0  2  0  1  0;
-            0  2  0  1  1  1  0  0  1;
-            0  1  2  1  1  1  1  0  0;
-            2  0  0  0  0  2  0  1  0;
-            0  1  0  2  1  0  0  0  1;
-            1  1  2  1  2  1  1  0  0;
+            2  1  0  1  1  2  0  2  1;
+            1  2  0  2  1  1  0  1  2;
+            0  0  2  0  2  0  2  0  0;
+            2  1  0  1  0  3  0  3  1;
+            1  2  0  2  1  1  0  1  3;
+            1  1  1  1  1  1  1  1  1;
+            1  1  0  0  0  2  0  2  2;
+            0  2  0  1  1  1  0  2  2;
+            2  2  1  2  1  2  1  2  2;
         ]
 
         @test bell_adder_game == adder_game_match
-        @test bell_adder_game.β == 10
+        # @test bell_adder_game.β == 10
+        @test bell_adder_game.β == 16
 
-        raw_compare_game = optimize_linear_witness(vertices, compare_test[1:8,:][:])
+        raw_compare_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, compare_test[1:8,:][:])
         println(3*raw_compare_game)
         bell_compare_game = convert(BellGame, round.(Int, 3*raw_compare_game), BlackBox(9,9), rep="normalized")
 
@@ -292,26 +294,41 @@ using linear programming.
         @test bell_compare_game == compare_game_match
         @test bell_compare_game.β == 9
 
-        raw_diff_game = optimize_linear_witness(vertices, diff_test[1:8,:][:])
+        raw_diff_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, diff_test[1:8,:][:])
         println(2*raw_diff_game)
         bell_diff_game = convert(BellGame, round.(Int, 2*raw_diff_game), BlackBox(9,9), rep="normalized")
 
+        # Note: obtained using older versions of the HiGHS solver
+        # diff_game_match = [
+        #     2  0  0  0  1  0  0  0  1;
+        #     1  0  0  1  0  1  0  0  1;
+        #     1  0  0  0  0  1  0  0  1;
+        #     1  0  0  1  0  1  0  0  1;
+        #     0  0  1  2  0  1  0  1  0;
+        #     0  0  1  1  0  2  0  0  0;
+        #     1  0  0  0  0  1  0  0  1;
+        #     0  0  1  1  0  2  0  0  0;
+        #     1  1  1  1  0  2  1  0  0;
+        # ]
+
         diff_game_match = [
-            2  0  0  0  1  0  0  0  1;
-            1  0  0  1  0  1  0  0  1;
-            1  0  0  0  0  1  0  0  1;
-            1  0  0  1  0  1  0  0  1;
-            0  0  1  2  0  1  0  1  0;
-            0  0  1  1  0  2  0  0  0;
-            1  0  0  0  0  1  0  0  1;
-            0  0  1  1  0  2  0  0  0;
-            1  1  1  1  0  2  1  0  0;
+            1  0  0  0  3  0  0  0  1;
+            0  0  0  0  1  2  0  0  1;
+            0  0  0  0  2  1  0  0  1;
+            0  0  0  0  1  2  0  0  1;
+            0  0  0  0  0  3  0  1  0;
+            0  1  0  0  2  2  0  0  0;
+            0  0  0  0  2  1  0  0  1;
+            0  1  0  0  2  2  0  0  0;
+            0  1  1  1  2  2  1  0  0;
         ]
 
         @test bell_diff_game == diff_game_match
-        @test bell_diff_game.β == 8
+        # @test bell_diff_game.β == 8
+        @test bell_diff_game.β == 9
 
-        raw_perm_game = optimize_linear_witness(vertices, perm_test[1:8,:][:])
+
+        raw_perm_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, perm_test[1:8,:][:])
         println(5*raw_perm_game)
         bell_perm_game = convert(BellGame, round.(Int, 5*raw_perm_game), BlackBox(9,9), rep="normalized")
 
@@ -331,7 +348,7 @@ using linear programming.
         @test bell_perm_game.β == 10
 
         
-        raw_cv_game = optimize_linear_witness(vertices, cv_test[1:8,:][:])
+        raw_cv_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, cv_test[1:8,:][:])
         println(3*raw_cv_game)
         bell_cv_game = convert(BellGame, round.(Int, 3*raw_cv_game), BlackBox(9,9), rep="normalized")
 
@@ -364,7 +381,7 @@ using linear programming.
         ]
 
         length(vertices[1])
-        raw_game = optimize_linear_witness(vertices, equality_test_33[1:3,:][:])
+        raw_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, equality_test_33[1:3,:][:])
 
         @test raw_game ≈ [0.5, -0.0, 0.5, -0.5, -0.0, -0.5, -0.5, -0.0, -0.5, -0.5, -0.0, -0.5, 0.5, -0.0, 0.5, -0.5, -0.0, -0.5, -0.5, -0.0, -0.5, -0.5, -0.0, -0.5, 0.5, -0.0, 0.5, 0.5] 
     end
@@ -387,7 +404,7 @@ using linear programming.
         @test rac_max_violation == 13
 
 
-        raw_game_rac = optimize_linear_witness(butterfly_vertices_4422, rac_test[1:end-1,:][:])
+        raw_game_rac = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_4422, rac_test[1:end-1,:][:])
 
         println(raw_game_rac)
         bell_game_rac = convert(BellGame, round.(Int, 6*raw_game_rac), BlackBox(4,16), rep="normalized")
@@ -426,8 +443,6 @@ using linear programming.
 
         @test length(butterfly_vertices_3333) == 690813
 
-        # stirling encodings gives 690813 vertices
-
 
         mult1_max_violation = max(map(v -> sum(mult1_test[:] .* v), butterfly_vertices_3333_unnormalized)...)
         @test mult1_max_violation == 6
@@ -447,16 +462,14 @@ using linear programming.
         @test cv_max_violation == 7
 
 
-        raw_game_mult0 = optimize_linear_witness(butterfly_vertices_3333, mult0_test[1:end-1,:][:])
-        raw_game_mult1 = optimize_linear_witness(butterfly_vertices_3333, mult1_test[1:end-1,:][:])
-        raw_game_swap = optimize_linear_witness(butterfly_vertices_3333, swap_test[1:end-1,:][:])
-        raw_game_adder = optimize_linear_witness(butterfly_vertices_3333, adder_test[1:end-1,:][:])
-        raw_game_compare = optimize_linear_witness(butterfly_vertices_3333, compare_test[1:end-1,:][:])
-        raw_game_perm = optimize_linear_witness(butterfly_vertices_3333, perm_test[1:end-1,:][:])
-        raw_game_diff = optimize_linear_witness(butterfly_vertices_3333, diff_test[1:end-1,:][:])
-        raw_game_cv = optimize_linear_witness(butterfly_vertices_3333, cv_test[1:end-1,:][:])
-
-
+        raw_game_mult0 = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_3333, mult0_test[1:end-1,:][:])
+        raw_game_mult1 = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_3333, mult1_test[1:end-1,:][:])
+        raw_game_swap = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_3333, swap_test[1:end-1,:][:])
+        raw_game_adder = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_3333, adder_test[1:end-1,:][:])
+        raw_game_compare = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_3333, compare_test[1:end-1,:][:])
+        raw_game_perm = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_3333, perm_test[1:end-1,:][:])
+        raw_game_diff = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_3333, diff_test[1:end-1,:][:])
+        raw_game_cv = BellScenario.LocalPolytope.linear_nonclassicality_witness(butterfly_vertices_3333, cv_test[1:end-1,:][:])
 
 
         println(raw_game_mult0)
@@ -536,18 +549,28 @@ using linear programming.
         @test polytope_dim == facet_dim + 1
 
         bell_game_swap_match = [
-            2  0  1  0  0  1  0  1  0;
-            0  0  1  2  0  1  0  1  0;
-            1  0  1  1  1  1  1  1  1;
-            0  2  0  0  0  1  1  0  0;
-            0  0  1  0  2  0  1  0  0;
-            0  1  1  1  1  1  0  1  1;
-            0  0  3  0  0  2  0  1  0;
-            0  0  2  0  0  3  0  1  0;
-            1  1  2  1  1  2  1  1  1;
+            # 2  0  1  0  0  1  0  1  0;
+            # 0  0  1  2  0  1  0  1  0;
+            # 1  0  1  1  1  1  1  1  1;
+            # 0  2  0  0  0  1  1  0  0;
+            # 0  0  1  0  2  0  1  0  0;
+            # 0  1  1  1  1  1  0  1  1;
+            # 0  0  3  0  0  2  0  1  0;
+            # 0  0  2  0  0  3  0  1  0;
+            # 1  1  2  1  1  2  1  1  1;
+            2  1  0  0  1  0  0  1  0;
+            0  0  0  2  1  0  0  1  0;
+            0  0  0  0  0  0  2  1  0;
+            1  2  0  1  0  0  1  0  0;
+            0  0  0  1  2  0  1  0  0;
+            0  0  0  0  0  0  1  2  0;
+            1  1  1  1  1  1  1  1  1;
+            1  1  1  1  1  1  1  1  1;
+            1  1  1  1  1  1  1  1  1;
         ]
         @test bell_game_swap == bell_game_swap_match
-        @test bell_game_swap.β == 12
+        # @test bell_game_swap.β == 12
+        @test bell_game_swap.β == 10
 
         println(raw_game_adder)
         bell_game_adder = convert(BellGame, round.(Int, 3*raw_game_adder), BlackBox(9,9), rep="normalized")
@@ -567,19 +590,29 @@ using linear programming.
         @test polytope_dim == facet_dim + 1
 
         bell_game_adder_match = [
-            1  0  1  0  1  1  1  1  0;
-            0  2  0  1  0  0  0  0  2;
-            1  1  2  0  1  1  1  1  1;
-            0  1  1  0  0  2  1  1  0;
-            0  1  0  0  0  0  0  0  2;
-            0  1  2  0  0  1  1  1  1;
-            1  0  1  0  1  1  1  1  1;
-            0  1  0  1  0  0  0  0  2;
-            1  1  2  0  1  1  1  1  1;
+            # 1  0  1  0  1  1  1  1  0;
+            # 0  2  0  1  0  0  0  0  2;
+            # 1  1  2  0  1  1  1  1  1;
+            # 0  1  1  0  0  2  1  1  0;
+            # 0  1  0  0  0  0  0  0  2;
+            # 0  1  2  0  0  1  1  1  1;
+            # 1  0  1  0  1  1  1  1  1;
+            # 0  1  0  1  0  0  0  0  2;
+            # 1  1  2  0  1  1  1  1  1;
+            2  0  0  1  0  0  0  1  0;
+            0  2  0  3  0  0  0  1  1;
+            0  1  1  1  1  0  2  0  0;
+            1  0  0  0  0  2  0  2  0;
+            1  1  0  2  0  0  1  1  0;
+            1  1  1  2  0  1  1  1  0;
+            1  0  0  1  0  1  1  1  1;
+            0  2  0  2  0  0  1  0  1;
+            1  2  1  2  1  1  1  1  1;
         ]
 
         @test bell_game_adder == bell_game_adder_match
-        @test bell_game_adder.β == 10 
+        # @test bell_game_adder.β == 10 
+        @test bell_game_adder.β == 12
 
         println(raw_game_compare)
         bell_game_compare = convert(BellGame, round.(Int, 3*raw_game_compare), BlackBox(9,9), rep="normalized")
@@ -629,19 +662,29 @@ using linear programming.
         @test polytope_dim == facet_dim + 1
 
         bell_game_perm_match = [
-            2  1  0  1  3  0  1  1  2;
-            1  5  2  0  0  2  1  1  0;
-            0  3  3  1  3  3  0  2  0;
-            1  2  0  1  4  0  1  0  2;
-            0  3  1  1  1  3  1  1  0;
-            0  3  3  2  1  2  0  1  0;
-            1  0  0  1  3  0  1  1  1;
-            0  3  1  0  0  2  2  1  1;
-            2  3  3  1  3  3  1  2  0;
+            # 2  1  0  1  3  0  1  1  2;
+            # 1  5  2  0  0  2  1  1  0;
+            # 0  3  3  1  3  3  0  2  0;
+            # 1  2  0  1  4  0  1  0  2;
+            # 0  3  1  1  1  3  1  1  0;
+            # 0  3  3  2  1  2  0  1  0;
+            # 1  0  0  1  3  0  1  1  1;
+            # 0  3  1  0  0  2  2  1  1;
+            # 2  3  3  1  3  3  1  2  0;
+            2  0  0  0  0  0  1  0  2;
+            0  1  0  0  1  1  2  1  0;
+            1  0  1  1  0  1  2  1  1;
+            1  1  0  0  1  0  0  1  2;
+            0  0  0  1  1  2  2  1  0;
+            0  1  0  1  0  0  1  1  2;
+            1  1  0  0  1  0  1  1  2;
+            0  0  0  0  1  1  2  1  1;
+            1  1  1  1  1  1  2  1  1;
         ]
 
         @test bell_game_perm == bell_game_perm_match
-        @test bell_game_perm.β == 20 
+        # @test bell_game_perm.β == 20 
+        @test bell_game_perm.β == 11
 
 
         println(raw_game_diff)
@@ -661,20 +704,29 @@ using linear programming.
         @test polytope_dim == facet_dim + 1
 
         bell_game_diff_match = [
-            3  0  0  0  2  0  0  1  1;
-            1  0  0  1  1  0  0  1  1;
-            2  0  0  0  1  0  0  0  1;
-            2  0  1  0  0  2  0  1  0;
-            1  0  1  2  0  1  0  2  0;
-            2  1  1  1  1  2  0  1  0;
-            1  0  0  0  0  1  0  1  1;
-            0  0  1  1  0  2  0  1  1;
-            2  1  2  1  1  2  1  1  0;
+            # 3  0  0  0  2  0  0  1  1;
+            # 1  0  0  1  1  0  0  1  1;
+            # 2  0  0  0  1  0  0  0  1;
+            # 2  0  1  0  0  2  0  1  0;
+            # 1  0  1  2  0  1  0  2  0;
+            # 2  1  1  1  1  2  0  1  0;
+            # 1  0  0  0  0  1  0  1  1;
+            # 0  0  1  1  0  2  0  1  1;
+            # 2  1  2  1  1  2  1  1  0;
+            3  1  0  0  3  0  0  1  1;
+            2  0  0  0  2  1  1  1  0;
+            2  1  0  0  2  0  0  0  1;
+            1  1  2  0  1  2  0  1  0;
+            0  1  1  0  0  3  0  2  0;
+            1  1  2  1  2  2  0  1  0;
+            1  1  0  0  1  1  0  1  1;
+            1  1  0  1  2  2  1  1  0;
+            2  2  2  1  2  2  1  1  0;
         ]
 
         @test bell_game_diff == bell_game_diff_match
-        @test bell_game_diff.β == 12
-
+        # @test bell_game_diff.β == 12
+        @test bell_game_diff.β == 14
 
         println(raw_game_cv)
         bell_game_cv = convert(BellGame, round.(Int, 2*raw_game_cv), BlackBox(9,9), rep="normalized")
@@ -734,14 +786,14 @@ using linear programming.
         cv_max_violation = max(map(v -> sum(cv_test[:] .* v), interference_vertices_3333_unnormalized)...)
         @test cv_max_violation == 4
 
-        raw_game_mult0 = optimize_linear_witness(interference_vertices_3333, mult0_test[1:end-1,:][:])
-        raw_game_mult1 = optimize_linear_witness(interference_vertices_3333, mult1_test[1:end-1,:][:])
-        raw_game_swap = optimize_linear_witness(interference_vertices_3333, swap_test[1:end-1,:][:])
-        raw_game_adder = optimize_linear_witness(interference_vertices_3333, adder_test[1:end-1,:][:])
-        raw_game_compare = optimize_linear_witness(interference_vertices_3333, compare_test[1:end-1,:][:])
-        raw_game_perm = optimize_linear_witness(interference_vertices_3333, perm_test[1:end-1,:][:])
-        raw_game_diff = optimize_linear_witness(interference_vertices_3333, diff_test[1:end-1,:][:])
-        raw_game_cv = optimize_linear_witness(interference_vertices_3333, cv_test[1:end-1,:][:])
+        raw_game_mult0 = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference_vertices_3333, mult0_test[1:end-1,:][:])
+        raw_game_mult1 = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference_vertices_3333, mult1_test[1:end-1,:][:])
+        raw_game_swap = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference_vertices_3333, swap_test[1:end-1,:][:])
+        raw_game_adder = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference_vertices_3333, adder_test[1:end-1,:][:])
+        raw_game_compare = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference_vertices_3333, compare_test[1:end-1,:][:])
+        raw_game_perm = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference_vertices_3333, perm_test[1:end-1,:][:])
+        raw_game_diff = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference_vertices_3333, diff_test[1:end-1,:][:])
+        raw_game_cv = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference_vertices_3333, cv_test[1:end-1,:][:])
 
         println(raw_game_mult0)
         bell_game_mult0 = convert(BellGame, round.(Int, 4*raw_game_mult0), BlackBox(9,9), rep="normalized")
@@ -758,19 +810,31 @@ using linear programming.
         facet_dim = BellScenario.dimension(facet_verts)
         @test polytope_dim == facet_dim + 1
 
+        # bell_game_mult0_match = [
+        #     1  2  1  3  0  1  0  0  1;
+        #     1  0  0  1  3  0  0  1  2;
+        #     1  0  0  1  1  3  0  2  0;
+        #     0  1  1  0  1  2  1  1  2;
+        #     0  1  1  0  1  2  1  1  2;
+        #     0  1  1  1  1  2  1  1  2;
+        #     1  0  0  1  3  1  0  0  2;
+        #     1  1  0  1  1  2  0  1  2;
+        #     1  1  1  2  2  2  1  1  1;
+        # ]
         bell_game_mult0_match = [
-            1  2  1  3  0  1  0  0  1;
-            1  0  0  1  3  0  0  1  2;
-            1  0  0  1  1  3  0  2  0;
-            0  1  1  0  1  2  1  1  2;
-            0  1  1  0  1  2  1  1  2;
-            0  1  1  1  1  2  1  1  2;
-            1  0  0  1  3  1  0  0  2;
-            1  1  0  1  1  2  0  1  2;
-            1  1  1  2  2  2  1  1  1;
+            1  2  0  2  0  1  1  0  1
+            1  0  0  0  3  0  0  1  2
+            1  0  0  0  1  3  0  2  0
+            0  0  1  0  1  2  1  1  2
+            0  1  1  0  1  2  1  1  2
+            0  0  1  1  1  2  1  1  2
+            1  0  0  0  3  1  0  0  2
+            1  1  0  1  1  2  0  1  2
+            1  1  1  1  2  2  1  1  1
         ]
         @test bell_game_mult0_match == bell_game_mult0
-        @test bell_game_mult0.β == 13
+        # @test bell_game_mult0.β == 13
+        @test bell_game_mult0.β == 12
 
         println(raw_game_mult1*7)
         bell_game_mult1 = convert(BellGame, round.(Int, 7*raw_game_mult1), BlackBox(9,9), rep="normalized")
@@ -875,19 +939,31 @@ using linear programming.
         facet_dim = BellScenario.dimension(facet_verts)
         @test polytope_dim == facet_dim + 1
 
+        # bell_game_compare_match = [
+        #     2  0  0  0  3  0  0  0  1;
+        #     0  1  1  1  0  3  1  1  0;
+        #     1  1  1  0  0  3  0  1  0;
+        #     0  2  1  0  2  2  1  0  1;
+        #     1  1  1  0  0  3  1  1  0;
+        #     0  3  1  0  1  3  1  0  0;
+        #     1  2  1  1  1  2  0  0  1;
+        #     0  1  2  2  0  1  1  1  0;
+        #     1  2  2  1  2  2  1  0  0;
+        # ]
         bell_game_compare_match = [
-            2  0  0  0  3  0  0  0  1;
-            0  1  1  1  0  3  1  1  0;
-            1  1  1  0  0  3  0  1  0;
-            0  2  1  0  2  2  1  0  1;
-            1  1  1  0  0  3  1  1  0;
-            0  3  1  0  1  3  1  0  0;
-            1  2  1  1  1  2  0  0  1;
-            0  1  2  2  0  1  1  1  0;
-            1  2  2  1  2  2  1  0  0;
+            3  0  0  0  3  0  0  1  1;
+            0  2  1  2  2  2  0  1  1;
+            1  2  1  1  1  2  0  1  1;
+            1  1  2  1  0  3  0  2  0;
+            1  1  2  1  0  3  0  2  0;
+            1  3  2  0  0  3  1  0  0;
+            2  1  1  0  0  3  0  2  0;
+            1  1  2  2  1  2  0  2  0;
+            2  2  2  1  2  2  1  1  0;
         ]
         @test bell_game_compare_match == bell_game_compare
-        @test bell_game_compare.β == 12
+        # @test bell_game_compare.β == 12
+        @test bell_game_compare.β == 14
 
         println(raw_game_perm)
         bell_game_perm = convert(BellGame, round.(Int, 7*raw_game_perm), BlackBox(9,9), rep="normalized")
@@ -933,19 +1009,31 @@ using linear programming.
         facet_dim = BellScenario.dimension(facet_verts)
         @test polytope_dim == facet_dim + 1
 
+        # bell_game_diff_match = [
+        #     2  0  0  0  2  0  1  0  1;
+        #     0  0  2  1  1  2  1  0  1;
+        #     1  0  2  0  0  2  1  0  1;
+        #     0  0  2  1  1  2  1  0  1;
+        #     0  0  2  2  0  2  0  1  0;
+        #     0  0  2  2  1  2  0  0  1;
+        #     1  0  2  0  0  2  1  0  1;
+        #     0  0  2  2  1  2  0  0  1;
+        #     1  1  3  1  1  2  1  0  0;
+        # ]
         bell_game_diff_match = [
-            2  0  0  0  2  0  1  0  1;
-            0  0  2  1  1  2  1  0  1;
-            1  0  2  0  0  2  1  0  1;
-            0  0  2  1  1  2  1  0  1;
-            0  0  2  2  0  2  0  1  0;
-            0  0  2  2  1  2  0  0  1;
-            1  0  2  0  0  2  1  0  1;
-            0  0  2  2  1  2  0  0  1;
-            1  1  3  1  1  2  1  0  0;
+            3  0  0  0  2  0  1  1  1;
+            0  1  3  1  1  2  1  1  1;
+            1  1  3  0  0  2  1  1  1;
+            0  1  3  1  1  2  1  1  1;
+            1  3  1  1  0  3  0  0  0;
+            1  2  2  0  1  2  1  1  1;
+            1  1  3  0  0  2  1  1  1;
+            1  2  2  0  1  2  1  1  1;
+            2  2  3  1  1  2  1  1  0;
         ]
         @test bell_game_diff_match == bell_game_diff
-        @test bell_game_diff.β == 11
+        # @test bell_game_diff.β == 11
+        @test bell_game_diff.β == 14
 
         println(raw_game_cv*7)
         bell_game_cv = convert(BellGame, round.(Int, 7*raw_game_cv), BlackBox(9,9), rep="normalized")
@@ -1005,14 +1093,14 @@ using linear programming.
         cv_max_violation = max(map(v -> sum(cv_test[:] .* v), interference2_vertices_3333_unnormalized)...)
         @test cv_max_violation == 2
 
-        raw_game_mult0 = optimize_linear_witness(interference2_vertices_3333, mult0_test[1:end-1,:][:])
-        raw_game_mult1 = optimize_linear_witness(interference2_vertices_3333, mult1_test[1:end-1,:][:])
-        raw_game_swap = optimize_linear_witness(interference2_vertices_3333, swap_test[1:end-1,:][:])
-        raw_game_adder = optimize_linear_witness(interference2_vertices_3333, adder_test[1:end-1,:][:])
-        raw_game_compare = optimize_linear_witness(interference2_vertices_3333, compare_test[1:end-1,:][:])
-        raw_game_perm = optimize_linear_witness(interference2_vertices_3333, perm_test[1:end-1,:][:])
-        raw_game_diff = optimize_linear_witness(interference2_vertices_3333, diff_test[1:end-1,:][:])
-        raw_game_cv = optimize_linear_witness(interference2_vertices_3333, cv_test[1:end-1,:][:])
+        raw_game_mult0 = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference2_vertices_3333, mult0_test[1:end-1,:][:])
+        raw_game_mult1 = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference2_vertices_3333, mult1_test[1:end-1,:][:])
+        raw_game_swap = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference2_vertices_3333, swap_test[1:end-1,:][:])
+        raw_game_adder = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference2_vertices_3333, adder_test[1:end-1,:][:])
+        raw_game_compare = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference2_vertices_3333, compare_test[1:end-1,:][:])
+        raw_game_perm = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference2_vertices_3333, perm_test[1:end-1,:][:])
+        raw_game_diff = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference2_vertices_3333, diff_test[1:end-1,:][:])
+        raw_game_cv = BellScenario.LocalPolytope.linear_nonclassicality_witness(interference2_vertices_3333, cv_test[1:end-1,:][:])
 
         println(raw_game_mult0)
         bell_game_mult0 = convert(BellGame, round.(Int, 4*raw_game_mult0), BlackBox(9,9), rep="normalized")
@@ -1029,19 +1117,30 @@ using linear programming.
         facet_dim = BellScenario.dimension(facet_verts)
         @test polytope_dim == facet_dim + 1
 
+        # bell_game_mult0_match = [
+        #     1  2  2  1  0  0  0  0  1;
+        #     0  0  1  0  3  0  1  2  1;
+        #     0  0  0  0  0  3  1  3  0;
+        #     0  1  2  0  1  2  1  2  1;
+        #     0  1  2  0  1  2  1  2  1;
+        #     0  1  2  0  1  2  1  2  1;
+        #     0  1  2  0  1  2  1  2  1;
+        #     0  1  2  0  1  2  1  2  1;
+        #     1  1  2  0  2  2  1  2  0;
+        # ]
         bell_game_mult0_match = [
-            1  2  2  1  0  0  0  0  1;
-            0  0  1  0  3  0  1  2  1;
-            0  0  0  0  0  3  1  3  0;
-            0  1  2  0  1  2  1  2  1;
-            0  1  2  0  1  2  1  2  1;
-            0  1  2  0  1  2  1  2  1;
-            0  1  2  0  1  2  1  2  1;
-            0  1  2  0  1  2  1  2  1;
-            1  1  2  0  2  2  1  2  0;
+            1  2  1  1  0  0  0  0  1;
+            0  0  1  0  3  0  0  1  1;
+            0  0  0  0  0  3  0  2  0;
+            0  1  2  0  1  2  0  1  1;
+            0  1  2  0  1  2  0  1  1;
+            0  1  2  0  1  2  0  1  1;
+            0  1  2  0  1  2  0  1  1;
+            0  1  2  0  1  2  0  1  1;
+            1  1  2  0  2  2  0  1  0; 
         ]
         @test bell_game_mult0_match == bell_game_mult0
-        @test bell_game_mult0.β == 12
+        @test bell_game_mult0.β == 10
 
         println(raw_game_mult1*7)
         bell_game_mult1 = convert(BellGame, round.(Int, 7*raw_game_mult1), BlackBox(9,9), rep="normalized")
@@ -1204,16 +1303,27 @@ using linear programming.
         facet_dim = BellScenario.dimension(facet_verts)
         @test polytope_dim == facet_dim + 1
 
+        # bell_game_diff_match = [
+        #     2  0  0  0  2  0  0  0  1;
+        #     0  1  3  1  1  2  0  0  1;
+        #     0  1  3  1  1  2  0  0  1;
+        #     0  1  3  1  1  2  0  0  1;
+        #     0  1  3  2  0  2  0  1  0;
+        #     0  1  3  1  1  2  0  0  1;
+        #     0  1  3  1  1  2  0  0  1;
+        #     0  1  3  1  1  2  0  0  1;
+        #     1  2  3  1  1  2  0  0  0;
+        # ]
         bell_game_diff_match = [
-            2  0  0  0  2  0  0  0  1;
-            0  1  3  1  1  2  0  0  1;
-            0  1  3  1  1  2  0  0  1;
-            0  1  3  1  1  2  0  0  1;
-            0  1  3  2  0  2  0  1  0;
-            0  1  3  1  1  2  0  0  1;
-            0  1  3  1  1  2  0  0  1;
-            0  1  3  1  1  2  0  0  1;
-            1  2  3  1  1  2  0  0  0;
+            2  0  0  0  1  0  1  1  1;
+            0  0  3  1  0  2  1  1  1;
+            0  0  3  1  0  2  1  1  1;
+            0  0  3  1  0  2  1  1  1;
+            0  2  1  1  0  3  0  0  0;
+            0  0  3  1  0  2  1  1  1;
+            0  0  3  1  0  2  1  1  1;
+            0  0  3  1  0  2  1  1  1;
+            1  1  3  1  0  2  1  1  0;
         ]
         @test bell_game_diff_match == bell_game_diff
         @test bell_game_diff.β == 11
@@ -1272,14 +1382,14 @@ using linear programming.
         cv_max_violation = max(map(v -> sum(cv_test[:] .* v), mac_33_22_9_vertices_unnormalized)...)
         @test cv_max_violation == 4
 
-        raw_game_mult0 = optimize_linear_witness(mac_33_22_9_vertices, mult0_test[1:end-1,:][:])
-        raw_game_mult1 = optimize_linear_witness(mac_33_22_9_vertices, mult1_test[1:end-1,:][:])
-        raw_game_swap = optimize_linear_witness(mac_33_22_9_vertices, swap_test[1:end-1,:][:])
-        raw_game_adder = optimize_linear_witness(mac_33_22_9_vertices, adder_test[1:end-1,:][:])
-        raw_game_compare = optimize_linear_witness(mac_33_22_9_vertices, compare_test[1:end-1,:][:])
-        raw_game_perm = optimize_linear_witness(mac_33_22_9_vertices, perm_test[1:end-1,:][:])
-        raw_game_diff = optimize_linear_witness(mac_33_22_9_vertices, diff_test[1:end-1,:][:])
-        raw_game_cv = optimize_linear_witness(mac_33_22_9_vertices, cv_test[1:end-1,:][:])
+        raw_game_mult0 = BellScenario.LocalPolytope.linear_nonclassicality_witness(mac_33_22_9_vertices, mult0_test[1:end-1,:][:])
+        raw_game_mult1 = BellScenario.LocalPolytope.linear_nonclassicality_witness(mac_33_22_9_vertices, mult1_test[1:end-1,:][:])
+        raw_game_swap = BellScenario.LocalPolytope.linear_nonclassicality_witness(mac_33_22_9_vertices, swap_test[1:end-1,:][:])
+        raw_game_adder = BellScenario.LocalPolytope.linear_nonclassicality_witness(mac_33_22_9_vertices, adder_test[1:end-1,:][:])
+        raw_game_compare = BellScenario.LocalPolytope.linear_nonclassicality_witness(mac_33_22_9_vertices, compare_test[1:end-1,:][:])
+        raw_game_perm = BellScenario.LocalPolytope.linear_nonclassicality_witness(mac_33_22_9_vertices, perm_test[1:end-1,:][:])
+        raw_game_diff = BellScenario.LocalPolytope.linear_nonclassicality_witness(mac_33_22_9_vertices, diff_test[1:end-1,:][:])
+        raw_game_cv = BellScenario.LocalPolytope.linear_nonclassicality_witness(mac_33_22_9_vertices, cv_test[1:end-1,:][:])
 
         println(raw_game_mult0)
         bell_game_mult0 = convert(BellGame, round.(Int, 4*raw_game_mult0), BlackBox(9,9), rep="normalized")
@@ -1289,8 +1399,19 @@ using linear programming.
         facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_mult0)
         @test polytope_dim == facet_dim + 1 
 
+        # bell_game_mult0_match = [
+        #     0  2  1  2  0  0  0  0  1;
+        #     0  0  0  0  3  0  0  0  2;
+        #     0  0  0  0  1  2  0  2  0;
+        #     0  0  0  0  3  0  0  0  2;
+        #     0  0  0  0  3  0  0  0  2;
+        #     0  0  0  0  3  0  0  0  2;
+        #     0  0  0  0  3  0  0  0  2;
+        #     0  0  0  0  3  0  0  0  2;
+        #     0  1  1  1  2  1  1  1  1;
+        # ]
         bell_game_mult0_match = [
-            0  2  1  2  0  0  0  0  1;
+            0  2  0  2  0  0  1  0  1;
             0  0  0  0  3  0  0  0  2;
             0  0  0  0  1  2  0  2  0;
             0  0  0  0  3  0  0  0  2;
@@ -1415,16 +1536,27 @@ using linear programming.
         facet_dim = facet_dimension(mac_33_22_9_vertices, raw_game_diff)
         @test polytope_dim == facet_dim + 1 
 
+        # bell_game_diff_match = [
+        #     2  0  0  0  2  0  0  0  1;
+        #     1  0  1  1  0  2  0  0  1;
+        #     1  0  1  1  0  2  0  0  1;
+        #     1  0  1  1  0  2  0  0  1;
+        #     0  0  1  2  0  1  0  1  0;
+        #     1  0  1  1  0  2  0  0  1;
+        #     1  0  1  1  0  2  0  0  1;
+        #     1  0  1  1  0  2  0  0  1;
+        #     1  1  1  1  1  2  1  0  0;
+        # ]
         bell_game_diff_match = [
-            2  0  0  0  2  0  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            0  0  1  2  0  1  0  1  0;
-            1  0  1  1  0  2  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            1  0  1  1  0  2  0  0  1;
-            1  1  1  1  1  2  1  0  0;
+            1  0  0  0  3  0  0  0  1;
+            0  1  0  1  1  2  0  0  1;
+            0  1  0  1  1  2  0  0  1;
+            0  1  0  1  1  2  0  0  1;
+            1  0  0  0  0  3  0  1  0;
+            0  1  0  1  1  2  0  0  1;
+            0  1  0  1  1  2  0  0  1;
+            0  1  0  1  1  2  0  0  1;
+            0  1  1  1  2  2  1  0  0;
         ]
         @test bell_game_diff_match == bell_game_diff
         @test bell_game_diff.β == 9
@@ -1494,12 +1626,12 @@ using linear programming.
         test_mat4 = hcat(test_mat3, test_mat3, test_mat3)
 
         test_mat_max_violation = max(map(v -> sum(test_mat[:] .* v), bc_9_22_33_vertices_unnormalized)...)
-        raw_game_test_mat = optimize_linear_witness(bc_9_22_33_vertices, test_mat[1:end-1,:][:])
+        raw_game_test_mat = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, test_mat[1:end-1,:][:])
         bell_game_test_mat = convert(BellGame, round.(Int, raw_game_test_mat), BlackBox(9,9), rep="normalized")
         bell_game_test_mat.β
         bell_game_test_mat.game
 
-        raw_game_test_mat2 = optimize_linear_witness(bc_9_22_33_vertices, test_mat2[1:end-1,:][:])
+        raw_game_test_mat2 = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, test_mat2[1:end-1,:][:])
 
         println(raw_game_test_mat2)
         bell_game_test_mat2 = convert(BellGame, round.(Int, 3*raw_game_test_mat2), BlackBox(9,9), rep="normalized")
@@ -1507,23 +1639,41 @@ using linear programming.
         bell_game_test_mat2.game
 
         @test bell_game_test_mat == [
-            0 0 0 1 0 0 0 0 0;
-            0 0 0 0 1 0 0 0 0;
-            0 0 0 0 0 1 0 0 0;
-            0 0 0 1 0 0 0 0 0;
-            0 0 0 0 1 0 0 0 0;
-            0 0 0 0 0 1 0 0 0;
-            0 0 0 1 0 0 0 0 0;
-            0 0 0 0 1 0 0 0 0;
-            0 0 0 0 0 1 0 0 0;
+            # 0 0 0 1 0 0 0 0 0;
+            # 0 0 0 0 1 0 0 0 0;
+            # 0 0 0 0 0 1 0 0 0;
+            # 0 0 0 1 0 0 0 0 0;
+            # 0 0 0 0 1 0 0 0 0;
+            # 0 0 0 0 0 1 0 0 0;
+            # 0 0 0 1 0 0 0 0 0;
+            # 0 0 0 0 1 0 0 0 0;
+            # 0 0 0 0 0 1 0 0 0;
+            0  0  0  1  0  0  1  0  0;
+            0  0  0  0  1  0  1  0  0;
+            0  0  0  0  0  1  1  0  0;
+            0  0  0  1  0  0  0  1  0;
+            0  0  0  0  1  0  0  1  0;
+            0  0  0  0  0  1  0  1  0;
+            0  0  0  1  1  1  0  0  0;
+            0  0  0  1  1  1  0  0  0;
+            0  0  0  1  1  1  0  0  0;
         ]
 
-        raw_game_test_mat4 = optimize_linear_witness(bc_9_22_33_vertices, test_mat4[1:end-1,:][:])
+        raw_game_test_mat4 = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, test_mat4[1:end-1,:][:])
 
 
 
         @test bell_game_test_mat2 == [
-            1  0  0  1  0  0  0  0  0;
+            # 1  0  0  1  0  0  0  0  0;
+            # 0  0  0  0  1  0  0  0  0;
+            # 0  0  3  0  0  0  0  0  0;
+            # 0  0  0  0  0  0  0  1  0;
+            # 0  2  0  0  0  0  0  0  0;
+            # 0  0  3  0  0  0  0  0  0;
+            # 0  0  3  0  0  0  0  0  0;
+            # 0  0  3  0  0  0  0  0  0;
+            # 1  1  3  0  0  0  0  0  0;
+            2  0  0  0  0  0  0  0  0;
             0  0  0  0  1  0  0  0  0;
             0  0  3  0  0  0  0  0  0;
             0  0  0  0  0  0  0  1  0;
@@ -1555,7 +1705,7 @@ using linear programming.
         cv_max_violation = max(map(v -> sum(cv_test[:] .* v), bc_9_22_33_vertices_unnormalized)...)
         @test cv_max_violation == 4
 
-        raw_game_mult0 = optimize_linear_witness(bc_9_22_33_vertices, mult0_test[1:end-1,:][:])
+        raw_game_mult0 = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, mult0_test[1:end-1,:][:])
 
         println(raw_game_mult0*2)
         bell_game_mult0 = convert(BellGame, round.(Int, 2*raw_game_mult0), BlackBox(9,9), rep="normalized")
@@ -1566,7 +1716,16 @@ using linear programming.
         @test polytope_dim == facet_dim + 1 
 
         bell_game_mult0_match = [
-            1  0  0  1  0  0  0  0  0;
+            # 1  0  0  1  0  0  0  0  0;
+            # 0  0  0  0  2  0  0  0  0;
+            # 0  0  0  0  0  2  0  0  0;
+            # 1  0  0  0  0  0  0  0  1;
+            # 0  0  0  0  1  0  0  0  1;
+            # 0  0  0  0  0  2  0  0  1;
+            # 1  0  0  0  1  1  0  0  0;
+            # 1  0  0  0  1  1  0  0  0;
+            # 1  0  0  0  1  2  0  0  0;
+            1  0  0  0  0  0  1  0  0;
             0  0  0  0  2  0  0  0  0;
             0  0  0  0  0  2  0  0  0;
             1  0  0  0  0  0  0  0  1;
@@ -1579,7 +1738,7 @@ using linear programming.
         @test bell_game_mult0_match == bell_game_mult0
         @test bell_game_mult0.β == 5
 
-        raw_game_mult1 = optimize_linear_witness(bc_9_22_33_vertices, mult1_test[1:end-1,:][:])
+        raw_game_mult1 = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, mult1_test[1:end-1,:][:])
 
 
         println(raw_game_mult1)
@@ -1590,12 +1749,21 @@ using linear programming.
         @test polytope_dim == facet_dim + 1 
 
         bell_game_mult1_match = [
+            # 2  0  0  0  0  0  0  0  0;
+            # 0  2  0  0  0  0  0  0  0;
+            # 0  0  2  0  0  0  0  0  0;
+            # 1  0  0  0  0  1  0  0  0;
+            # 0  1  0  0  0  1  0  0  0;
+            # 0  0  2  0  0  1  0  0  0;
+            # 1  1  1  0  0  0  0  0  0;
+            # 1  1  1  0  0  0  0  0  0;
+            # 1  1  2  0  0  0  0  0  0;
             2  0  0  0  0  0  0  0  0;
-            0  2  0  0  0  0  0  0  0;
+            0  1  0  1  0  0  0  0  0;
             0  0  2  0  0  0  0  0  0;
-            1  0  0  0  0  1  0  0  0;
-            0  1  0  0  0  1  0  0  0;
-            0  0  2  0  0  1  0  0  0;
+            1  0  0  0  0  0  0  1  0;
+            0  1  0  0  0  0  0  1  0;
+            0  0  2  0  0  0  0  1  0;
             1  1  1  0  0  0  0  0  0;
             1  1  1  0  0  0  0  0  0;
             1  1  2  0  0  0  0  0  0;
@@ -1603,7 +1771,7 @@ using linear programming.
         @test bell_game_mult1_match == bell_game_mult1
         @test bell_game_mult1.β == 5
 
-        raw_game_swap = optimize_linear_witness(bc_9_22_33_vertices, swap_test[1:end-1,:][:])
+        raw_game_swap = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, swap_test[1:end-1,:][:])
 
         println(raw_game_swap*3)
         bell_game_swap = convert(BellGame, round.(Int, 3*raw_game_swap), BlackBox(9,9), rep="normalized")
@@ -1626,7 +1794,7 @@ using linear programming.
         @test bell_game_swap_match == bell_game_swap
         @test bell_game_swap.β == 6
 
-        raw_game_adder = optimize_linear_witness(bc_9_22_33_vertices, adder_test[1:end-1,:][:])
+        raw_game_adder = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, adder_test[1:end-1,:][:])
 
 
         println(raw_game_adder)
@@ -1650,7 +1818,7 @@ using linear programming.
         @test bell_game_adder_match == bell_game_adder
         @test bell_game_adder.β == 6
 
-        raw_game_compare = optimize_linear_witness(bc_9_22_33_vertices, compare_test[1:end-1,:][:])
+        raw_game_compare = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, compare_test[1:end-1,:][:])
 
 
         println(raw_game_compare)
@@ -1658,20 +1826,30 @@ using linear programming.
         bell_game_compare.β 
 
         bell_game_compare_match = [
-            1  0  0  0  0  0  0  0  0;
-            0  0  0  2  0  0  0  0  0;
+            # 1  0  0  0  0  0  0  0  0;
+            # 0  0  0  2  0  0  0  0  0;
+            # 0  2  0  0  0  0  0  0  0;
+            # 0  0  0  0  0  0  0  0  1;
+            # 0  0  0  2  0  0  0  0  0;
+            # 0  2  0  0  0  0  0  0  0;
+            # 0  1  0  1  0  0  0  0  0;
+            # 0  1  0  2  0  0  0  0  0;
+            # 0  2  0  1  0  0  0  0  0;
+            2  0  0  0  0  0  0  0  0;
+            0  0  0  1  0  0  0  0  1;
             0  2  0  0  0  0  0  0  0;
-            0  0  0  0  0  0  0  0  1;
-            0  0  0  2  0  0  0  0  0;
-            0  2  0  0  0  0  0  0  0;
-            0  1  0  1  0  0  0  0  0;
-            0  1  0  2  0  0  0  0  0;
-            0  2  0  1  0  0  0  0  0;
+            1  0  1  0  0  0  0  0  0;
+            0  0  1  1  0  0  0  0  0;
+            0  2  1  0  0  0  0  0  0;
+            1  1  0  1  0  0  0  0  0;
+            1  1  0  1  0  0  0  0  0;
+            1  2  0  1  0  0  0  0  0;
         ]
         @test bell_game_compare_match == bell_game_compare
-        @test bell_game_compare.β == 4
+        # @test bell_game_compare.β == 4
+        @test bell_game_compare.β == 5
 
-        raw_game_perm = optimize_linear_witness(bc_9_22_33_vertices, perm_test[1:end-1,:][:])
+        raw_game_perm = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, perm_test[1:end-1,:][:])
 
 
         println(raw_game_perm)
@@ -1695,7 +1873,7 @@ using linear programming.
         @test bell_game_perm_match == bell_game_perm
         @test bell_game_perm.β == 6
 
-        raw_game_diff = optimize_linear_witness(bc_9_22_33_vertices, diff_test[1:end-1,:][:])
+        raw_game_diff = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, diff_test[1:end-1,:][:])
 
         println(raw_game_diff)
         bell_game_diff = convert(BellGame, round.(Int, raw_game_diff), BlackBox(9,9), rep="normalized")
@@ -1705,20 +1883,30 @@ using linear programming.
         @test polytope_dim == facet_dim + 1 
 
         bell_game_diff_match = [
-            1  0  0  0  1  0  0  0  0;
+            # 1  0  0  0  1  0  0  0  0;
+            # 0  0  0  0  0  0  0  0  1;
+            # 0  0  2  0  0  0  0  0  0;
+            # 0  0  0  0  0  0  0  0  1;
+            # 0  2  0  0  0  0  0  0  0;
+            # 0  0  2  0  0  0  0  0  0;
+            # 0  0  2  0  0  0  0  0  0;
+            # 0  0  2  0  0  0  0  0  0;
+            # 1  1  2  0  0  0  0  0  0;
+            1  0  0  0  0  0  0  0  1;
             0  0  0  0  0  0  0  0  1;
-            0  0  2  0  0  0  0  0  0;
+            0  0  1  0  0  0  0  0  1;
             0  0  0  0  0  0  0  0  1;
-            0  2  0  0  0  0  0  0  0;
-            0  0  2  0  0  0  0  0  0;
-            0  0  2  0  0  0  0  0  0;
-            0  0  2  0  0  0  0  0  0;
-            1  1  2  0  0  0  0  0  0;
+            0  0  0  1  0  0  0  0  0;
+            0  0  1  0  0  0  0  0  0;
+            0  0  1  0  0  0  0  0  1;
+            0  0  1  0  0  0  0  0  0;
+            1  0  1  0  0  0  0  0  0;
         ]
         @test bell_game_diff_match == bell_game_diff
-        @test bell_game_diff.β == 5
+        # @test bell_game_diff.β == 5
+        @test bell_game_diff.β == 3
 
-        raw_game_cv = optimize_linear_witness(bc_9_22_33_vertices, cv_test[1:end-1,:][:])
+        raw_game_cv = BellScenario.LocalPolytope.linear_nonclassicality_witness(bc_9_22_33_vertices, cv_test[1:end-1,:][:])
 
 
         println(raw_game_cv)
@@ -1790,5 +1978,35 @@ using linear programming.
         end
 
         @test length(unique(test_verts)) == match_num
+    end
+
+    @testset "butterfly 44->2222->22" begin
+        vertices = hourglass_network_vertices(4,4,2,2)
+
+        diff_test_44 = [
+            1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
+            0 1 0 0 1 0 1 0 0 1 0 1 0 0 1 0;
+            0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 0;
+            0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0;
+        ]
+
+        @test length(vertices) == 270400
+
+        raw_diff_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, diff_test_44[1:3,:][:])
+
+        println(raw_diff_game)
+
+        bell_diff_game = convert(BellGame, round.(Int, 2*raw_diff_game), BlackBox(4,16), rep="normalized")
+
+        diff_game_match = [
+            1  0  0  0  0  1  1  1  0  1  1  0  1  0  0  1;
+            0  1  0  0  1  0  2  0  0  1  0  0  0  0  0  1;
+            0  0  1  1  0  1  0  2  1  0  1  0  1  1  0  0;
+            0  1  2  2  1  1  1  2  1  0  1  0  1  1  0  0;
+        ]
+
+        @test bell_diff_game == diff_game_match
+
+        @test bell_diff_game.β == 15
     end
 end

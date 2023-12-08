@@ -47,7 +47,8 @@ def bisender_mac_bounds():
 def bisender_mac_qubit_simulation_games():
     """
     A collection of simulation games for networks having two inputs and one output.
-    The classical bound is calculated for the 3,3->2,2->2 multiaccess network scenario.
+    The classical bound is calculated for multiaccess networks having devices with
+    up to four inputs and outpus.
     """
     return [
         (7, np.array([ # diff game

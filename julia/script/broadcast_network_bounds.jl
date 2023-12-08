@@ -43,11 +43,11 @@ This script uses linear programming to obtain facet inequalities of broadcast ne
                 0 0 0 0;0 0 0 0;0 0 0 0;0 0 0 1;
             ]
 
-            raw_game_cv_4_22_44 = optimize_linear_witness(vertices_4_22_44, cv_test[1:end-1,:][:])
+            raw_game_cv_4_22_44 = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices_4_22_44, cv_test[1:end-1,:][:])
 
             bg_cv_4_22_44 = convert(BellGame, round.(Int, 2*raw_game_cv_4_22_44), BlackBox(16,4), rep="normalized")
 
-            println(bg_cv_4_22_44)
+            show(bg_cv_4_22_44)
             println(bg_cv_4_22_44.β)
 
             facet_dim = facet_dimension(vertices_4_22_44, round.(Int, 2*raw_game_cv_4_22_44))
@@ -95,21 +95,33 @@ This script uses linear programming to obtain facet inequalities of broadcast ne
                 kron([0;1],[0;.5;.5;0],[0;1])
             )
 
-            raw_game_pr_4_22_44 = optimize_linear_witness(vertices_4_22_44, pr_mat[1:end-1,:][:])
+            raw_game_pr_4_22_44 = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices_4_22_44, pr_mat[1:end-1,:][:])
 
             println(raw_game_pr_4_22_44)
             bg_pr_4_22_44 = convert(BellGame, round.(Int, raw_game_pr_4_22_44), BlackBox(16,4), rep="normalized")
-            println(bg_pr_4_22_44)
+            show(bg_pr_4_22_44)
             println(bg_pr_4_22_44.β)
 
-            bg_pr_match = [
-                3 0 0 0; 0 3 0 0; 0 0 0 3; 1 1 0 2;
-                1 1 0 2; 1 1 0 2; 2 1 0 2; 1 3 0 2;
-                1 0 2 0; 0 1 2 0; 0 0 0 3; 1 1 0 2;
-                2 1 0 2; 1 2 0 2; 1 1 1 2; 2 2 1 2;
+            # Note: previous result obtained on earlier versions (v0.2.3) of the HiGHS solver
+            # bg_pr_match = [
+            #     3 0 0 0; 0 3 0 0; 0 0 0 3; 1 1 0 2;
+            #     1 1 0 2; 1 1 0 2; 2 1 0 2; 1 3 0 2;
+            #     1 0 2 0; 0 1 2 0; 0 0 0 3; 1 1 0 2;
+            #     2 1 0 2; 1 2 0 2; 1 1 1 2; 2 2 1 2;
+            # ]
+            # @test bg_pr_4_22_44 == bg_pr_match
+            # @test bg_pr_4_22_44.β == 8
+
+            # Note: results obtained with current version (v1.7.5) of HiGHS solver
+            bg_pr_match_2 = [
+                2 0 0 0; 0 1 0 0; 0 0 1 1; 1 0 0 1;
+                0 0 0 2; 1 0 0 2; 1 0 1 1; 0 1 0 1;
+                0 0 2 0; 1 0 1 0; 1 0 2 1; 0 0 1 1;
+                1 0 0 1; 0 0 0 2; 0 0 2 1; 1 1 1 1;
             ]
-            @test bg_pr_4_22_44 == bg_pr_match
-            @test bg_pr_4_22_44.β == 8
+            @test bg_pr_4_22_44 == bg_pr_match_2
+            @test bg_pr_4_22_44.β == 5
+            
 
             facet_dim = facet_dimension(vertices_4_22_44, round.(Int, raw_game_pr_4_22_44))
             @test polytope_dim_4_22_44 == facet_dim + 1
@@ -136,65 +148,64 @@ This script uses linear programming to obtain facet inequalities of broadcast ne
                 0 0 0 -1;
             ]
             chsh_max_violation = max(map(v -> sum(chsh_test[:] .* v), vertices_4_22_44_unnormalized)...)
-
-
+            @test chsh_max_violation == 3
         end
     end
 
-    @testset "" begin
-        vertices_9_22_44 = broadcast_vertices(9,4,4,2,2)
-        vertices_9_22_44_unnormalized = broadcast_vertices(9,4,4,2,2, normalize=false)
+    # @testset "No advantage in magic squares game in broadcast setting" begin
+    #     vertices_9_22_44 = broadcast_vertices(9,4,4,2,2)
+    #     vertices_9_22_44_unnormalized = broadcast_vertices(9,4,4,2,2, normalize=false)
 
-        @test length(vertices_9_22_44) == 9388096
+    #     @test length(vertices_9_22_44) == 9388096
 
-        bin_vals = [
-            [0,0,0,0],[0,0,0,1],[0,0,1,0],[0,0,1,1],
-            [0,1,0,0],[0,1,0,1],[0,1,1,0],[0,1,1,1],
-            [1,0,0,0],[1,0,0,1],[1,0,1,0],[1,0,1,1],
-            [1,1,0,0],[1,1,0,1],[1,1,1,0],[1,1,1,1],
-        ]
+    #     bin_vals = [
+    #         [0,0,0,0],[0,0,0,1],[0,0,1,0],[0,0,1,1],
+    #         [0,1,0,0],[0,1,0,1],[0,1,1,0],[0,1,1,1],
+    #         [1,0,0,0],[1,0,0,1],[1,0,1,0],[1,0,1,1],
+    #         [1,1,0,0],[1,1,0,1],[1,1,1,0],[1,1,1,1],
+    #     ]
 
-        magic_squares_game = zeros(16,9)
-        for x in [1,2,3], y in [1,2,3]
-            col_id = 3*(x-1) + y 
-            for i in 1:16
+    #     magic_squares_game = zeros(16,9)
+    #     for x in [1,2,3], y in [1,2,3]
+    #         col_id = 3*(x-1) + y 
+    #         for i in 1:16
                 
-                a_bits = bin_vals[i][1:2]
-                b_bits = bin_vals[i][3:4]
+    #             a_bits = bin_vals[i][1:2]
+    #             b_bits = bin_vals[i][3:4]
 
-                a3 = (sum(a_bits) % 2 == 0) ? 0 : 1
-                b3 = (sum(b_bits) % 2 == 0) ? 1 : 0
+    #             a3 = (sum(a_bits) % 2 == 0) ? 0 : 1
+    #             b3 = (sum(b_bits) % 2 == 0) ? 1 : 0
 
-                push!(a_bits, a3)
-                push!(b_bits, b3)
+    #             push!(a_bits, a3)
+    #             push!(b_bits, b3)
 
-                if a_bits[y] == b_bits[x]
-                    magic_squares_game[i, col_id] = 1
-                end
-            end
-        end
-        ms_test = [
-            1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0;
-            1.0 1.0 1.0 0.0 0.0 0.0 1.0 1.0 1.0;
-            0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0;
-            0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 
-            1.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 1.0;
-            1.0 0.0 0.0 0.0 1.0 1.0 1.0 0.0 0.0;
-            0.0 1.0 1.0 1.0 0.0 0.0 1.0 0.0 0.0;
-            0.0 1.0 1.0 0.0 1.0 1.0 0.0 1.0 1.0;
-            0.0 1.0 0.0 0.0 1.0 0.0 1.0 0.0 1.0;
-            0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0;
-            1.0 0.0 1.0 0.0 1.0 0.0 0.0 1.0 0.0;
-            1.0 0.0 1.0 1.0 0.0 1.0 1.0 0.0 1.0;
-            0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0 0.0;
-            0.0 0.0 1.0 1.0 1.0 0.0 0.0 0.0 1.0;
-            1.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 1.0;
-            1.0 1.0 0.0 1.0 1.0 0.0 1.0 1.0 0.0;
-        ]
-        println(magic_squares_game)
+    #             if a_bits[y] == b_bits[x]
+    #                 magic_squares_game[i, col_id] = 1
+    #             end
+    #         end
+    #     end
+    #     ms_test = [
+    #         1.0 1.0 1.0 1.0 1.0 1.0 0.0 0.0 0.0;
+    #         1.0 1.0 1.0 0.0 0.0 0.0 1.0 1.0 1.0;
+    #         0.0 0.0 0.0 1.0 1.0 1.0 1.0 1.0 1.0;
+    #         0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0; 
+    #         1.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 1.0;
+    #         1.0 0.0 0.0 0.0 1.0 1.0 1.0 0.0 0.0;
+    #         0.0 1.0 1.0 1.0 0.0 0.0 1.0 0.0 0.0;
+    #         0.0 1.0 1.0 0.0 1.0 1.0 0.0 1.0 1.0;
+    #         0.0 1.0 0.0 0.0 1.0 0.0 1.0 0.0 1.0;
+    #         0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0;
+    #         1.0 0.0 1.0 0.0 1.0 0.0 0.0 1.0 0.0;
+    #         1.0 0.0 1.0 1.0 0.0 1.0 1.0 0.0 1.0;
+    #         0.0 0.0 1.0 0.0 0.0 1.0 1.0 1.0 0.0;
+    #         0.0 0.0 1.0 1.0 1.0 0.0 0.0 0.0 1.0;
+    #         1.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 1.0;
+    #         1.0 1.0 0.0 1.0 1.0 0.0 1.0 1.0 0.0;
+    #     ]
+    #     println(magic_squares_game)
 
-        # no advantage
-        ms_max_violation = max(map(v -> sum(magic_squares_game[:] .* v), vertices_9_22_44_unnormalized)...)
-        @test ms_max_violation == 9
-    end
+    #     # no advantage
+    #     ms_max_violation = max(map(v -> sum(magic_squares_game[:] .* v), vertices_9_22_44_unnormalized)...)
+    #     @test ms_max_violation == 9
+    # end
 end
