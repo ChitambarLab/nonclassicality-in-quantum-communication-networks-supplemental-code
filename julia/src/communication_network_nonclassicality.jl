@@ -5,8 +5,6 @@ using BellScenario
 using Base.Iterators: flatten
 using SparseArrays
 
-using JuMP
-using HiGHS
 
 """
 Enumerates the two-sender multiaccess network polytope vertices using brute force and taking
@@ -630,6 +628,35 @@ function n_product_id(party_ids :: Vector{Int64}, party_inputs::Vector{Int64}) :
 end
 
 """
+    party_permutations(dim :: Int) :: Vector{Matrix{Int64}}
+
+Returns the identity permutation matrix that swaps two subsystems if they have equal
+dimension `d`. Otherwise, 
+This function is adapted from CVChannel.jl.
+"""
+function party_permutations(X :: Int, Y :: Int) :: Vector{Vector{Int}}
+    party_permutations = [[1:X*Y...]]
+    if X == Y
+        dim = X
+        party_swap = zeros(dim^2)
+
+        for vec_id in 1:dim^2
+            # factoring col_id into Alice and Bob subsystem ids
+            a_id = floor(Int64, (vec_id-1)/dim)
+            b_id = (vec_id-1) % dim
+
+            # swapping Alice and Bob subsystem ids to construct row_id
+            row_id = convert(Int, b_id*dim + a_id + 1)
+            party_swap[vec_id] = row_id
+
+        end
+        push!(party_permutations, party_swap)
+    end
+
+    return party_permutations
+end
+
+"""
 Classical network polytopes are invariant under relabeling the inputs and outputs.
 Thus, classcal network polytopes have a permutation symmetry, which can be exploited
 to describe the polytope using only a small set of generator facet inequalities. Each
@@ -639,8 +666,14 @@ can be obtained by permuting the inputs and outputs of the generator facet.
 This function takes a set of input permuations, output permuations, and facet ineuqalities represented
 as `BellScenario.BellGame` objects and outptus a dictionary grouping each facet into its distinct class. 
 """
-function polytope_facet_classes(input_perms, output_perms, bell_games)
-    num_perms = length(input_perms)*length(output_perms)
+function polytope_facet_classes(
+    input_perms,
+    output_perms,
+    bell_games,
+    output_party_permutations,
+    input_party_permutations,
+)
+    num_perms = length(input_perms)*length(output_perms)*length(output_party_permutations)*length(input_party_permutations)
 
     facet_class_dict = Dict{Int64, Vector{Matrix{Int64}}}()
     facet_class_id = 1
@@ -659,9 +692,11 @@ function polytope_facet_classes(input_perms, output_perms, bell_games)
             # construct all unique permutations
             perms = Array{Matrix{Int64}}(undef, num_perms)
             id = 1
-            for input_perm in input_perms, output_perm in output_perms
-                perms[id] = bell_game[output_perm, input_perm]
-                id += 1
+            for input_party_perm in input_party_permutations, output_party_perm in output_party_permutations
+                for input_perm in input_perms, output_perm in output_perms
+                    perms[id] = bell_game[output_party_perm,input_party_perm][output_perm, input_perm]
+                    id += 1
+                end
             end
 
             # add facet to facet dictionary
@@ -681,8 +716,10 @@ into canonical facet classes..
 function bipartite_multiaccess_facet_classes(X1, X2, Y, bell_games :: Vector{BellScenario.BellGame})
     input_perms = local_bipartite_permuatations(X1,X2)
     output_perms = permutations(1:Y)
+    input_party_perms = party_permutations(X1, X2)
+    output_party_perms = party_permutations(Y, 1)
     
-    return polytope_facet_classes(input_perms, output_perms, bell_games)
+    return polytope_facet_classes(input_perms, output_perms, bell_games, output_party_perms, input_party_perms)
 end
 
 """
@@ -694,8 +731,10 @@ facet inequalities in the class can be obtained by permuting the input and outpu
 function bipartite_broadcast_facet_classes(X, Y1, Y2, bell_games :: Vector{BellScenario.BellGame})
     output_perms = local_bipartite_permuatations(Y1, Y2)
     input_perms =  permutations(1:X)
+    input_party_perms = party_permutations(X, 1)
+    output_party_perms = party_permutations(Y1, Y2)
     
-    return polytope_facet_classes(input_perms, output_perms, bell_games)
+    return polytope_facet_classes(input_perms, output_perms, bell_games, output_party_perms, input_party_perms)
 end
 
 """
@@ -707,6 +746,8 @@ facet inequalities in the class can be obtained by permuting the input and outpu
 function bipartite_interference_facet_classes(X1,X2,Y1,Y2, bell_games)
     output_perms = local_bipartite_permuatations(Y1, Y2)
     input_perms = local_bipartite_permuatations(X1, X2)
+    input_party_perms = party_permutations(X1, X2)
+    output_party_perms = party_permutations(Y1, Y2)
 
-    return polytope_facet_classes(input_perms, output_perms, bell_games)
+    return polytope_facet_classes(input_perms, output_perms, bell_games, output_party_perms, input_party_perms)
 end

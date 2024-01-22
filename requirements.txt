@@ -1,2 +1,3 @@
-pennylane~=0.29
+pennylane~=0.33
 dask[delayed]==2022.5
+qnetvo~=0.4.3

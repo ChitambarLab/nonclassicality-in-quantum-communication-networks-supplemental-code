@@ -2,7 +2,7 @@ name: network-nonclassicality-dev
 channels:
   - defaults
 dependencies:
-  - python=3.8
+  - python=3.11
   - black
   - notebook
   - matplotlib
