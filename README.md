@@ -1,5 +1,7 @@
 # Nonclassicality in Quantum Communication Networks
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10780790.svg)](https://doi.org/10.5281/zenodo.10780790)
+
 *A numerical analysis of the behaviors of quantum and classical communication networks.*
 
 This codebase supplements our ["Nonclassicality in Quantum Communication Networks"](broken_arxiv_url) paper
@@ -62,4 +64,24 @@ Our Julia codebase is found in the `julia/` directory. Functions for enumerating
 Our Python codebase is found in the `pyhon/` directory. The `python/src/` directory houses our functions for applying variational optimization to maximize nonclassicality. The `python/script/` directory holds our variational optimization scripts. Each script corresponds to a fixed network in which the several different quantum resource configurations and nonclassicality witnesses are considered. Note that the scripts
 assume that a few CPU cores are available for computation, this number can be adjusted by manually editing the scripts. 
 
-The `data/` directory holds our numerical results from variational optimization. Each subdirectory of `data/` is named for a script in `python/script/`. The names of the contained files notate a quantum resource configuration and the considered nonclassicality. The `notebook/` directory contains our data analysis and visualization. 
+The `data/` directory holds our numerical results from variational optimization. Each subdirectory of `data/` is named for a script in `python/script/`. The names of the contained files notate a quantum resource configuration and the considered nonclassicality. The `notebook/` directory contains our data analysis and visualization.
+
+## Citation
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10780790.svg)](https://doi.org/10.5281/zenodo.10780790)
+
+Please cite this software if you find it useful to your work.
+
+```
+@Misc{nonclassicality_in_communication_networks_supplemental_software,
+  author        = {Brian Doolittle},
+  title         = {Supplementary Code for Operational Nonclassicality in Quantum Communication Networks},
+  howpublished  = {https://github.com/ChitambarLab/nonclassicality-in-quantum-communication-networks-supplemental-code},
+  month         = {Feb},
+  year          = {2024},
+  archiveprefix = {arXiv},
+  url           = {https://github.com/ChitambarLab/nonclassicality-in-quantum-communication-networks-supplemental-code},
+  version       = {v0.1.0},
+  doi = {https://doi.org/10.5281/zenodo.10780790}
+}
+```
