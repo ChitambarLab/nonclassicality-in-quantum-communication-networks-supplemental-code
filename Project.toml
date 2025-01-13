@@ -1,5 +1,5 @@
 authors = ["Brian Doolittle <brian.d.doolittle@gmail.com> and contributors"]
-version = "0.0.1"
+version = "0.0.2"
 
 [deps]
 BellScenario = "4e58fcc1-4405-48af-b0f2-42df636d9190"

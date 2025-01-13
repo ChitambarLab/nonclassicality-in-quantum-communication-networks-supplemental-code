@@ -30,19 +30,33 @@ end
     
     vertices = multi_access_vertices(4,4,2,2,2)
 
-    fp_test = [
+    fp_test1 = [
+        1 0 0 0 0 1 0 0 0 0 1 0.5 0.5 0.5 0.5 1;
+        0 1 1 1 1 0 1 1 1 1 0 0.5 0.5 0.5 0.5 0;
+    ]
+
+    fp_test2 = [
         1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1;
         0 1 1 1 1 0 1 1 1 1 0 1 1 1 1 0;
     ]
 
-    raw_game = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, fp_test[1,:][:])
+    raw_game1 = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, fp_test1[1,:][:])
+    raw_game2 = BellScenario.LocalPolytope.linear_nonclassicality_witness(vertices, fp_test2[1,:][:])
 
-    # bell_game = convert(BellGame, round.(Int, 2.6*raw_game), BlackBox(2,16), rep="normalized")
-    bell_game = convert(BellGame, round.(Int, 3*raw_game), BlackBox(2,16), rep="normalized")
+    bell_game1 = convert(BellGame, round.(Int, 2.6*raw_game1), BlackBox(2,16), rep="normalized")
+    bell_game2 = convert(BellGame, round.(Int, 3*raw_game2), BlackBox(2,16), rep="normalized")
 
-    @test bell_game.β == 10
 
-    @test bell_game == [
+    @test bell_game1.β == 10
+
+    @test bell_game1 == [
+        1  0  0  0  0  1  0  0  0  0  1  0  0  0  0  1;
+        0  1  2  2  1  0  1  1  0  0  0  1  0  0  0  0;
+    ]
+
+    @test bell_game2.β == 10
+
+    @test bell_game2 == [
         1  0  0  0  0  1  0  0  0  0  1  0  0  0  0  1;
         0  1  2  2  1  0  1  1  0  0  0  1  0  0  0  0;
     ]

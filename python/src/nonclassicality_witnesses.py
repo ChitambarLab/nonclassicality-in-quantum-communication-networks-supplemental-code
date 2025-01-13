@@ -2,6 +2,24 @@ import numpy as np
 import math
 
 
+def noise_robustness(violation, reward_matrix, classical_bound):
+    """
+    Calculate the noise robustness for the specified violation, nonclassicality
+    witness reward matrix, and classical bound. The noise robustness is the amount
+    of white noise that must be mixed into the violating behavior for it to be classical.
+
+    :param violation: The score achieved by a particular behavior.
+    :param reward_matrix: The reward matrix of the nonclassicality witness.
+    :param classical_bound: The maximum classical score for the reward matrix.
+    """
+    
+    num_rows = reward_matrix.shape[0]
+    white_noise_score  = np.sum(reward_matrix) / num_rows
+    
+    omega = (violation - classical_bound) / (violation - white_noise_score)
+
+    return omega
+
 def finger_printing_matrix(num_senders, num_in):
     """Constructs the matrix containing the winning answers
     for the finger printing (equality) simulation game.

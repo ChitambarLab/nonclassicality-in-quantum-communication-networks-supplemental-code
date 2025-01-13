@@ -4,7 +4,8 @@
 
 *A numerical analysis of the behaviors of quantum and classical communication networks.*
 
-This codebase supplements our ["Nonclassicality in Quantum Communication Networks"](broken_arxiv_url) paper
+This codebase supplements our paper,
+["An Operational Framework for Nonclassicality in Quantum Communication Networks"](https://arxiv.org/abs/2403.02988),
 with numerical results and tools for reproducing our framework. To promote transparency and reproducibility of our work, all scripts are designed to be run on a laptop computer within a couple of minutes. Future work can extend our computations to larger systems in a variety of ways as discuss in our main paper.
 
 
